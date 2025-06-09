@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Importa Clienti - Quality Hair</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      text-align: center;
+      padding: 50px;
+    }
+
+    input[type="file"] {
+      margin-top: 20px;
+    }
+
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Importa Clienti da CSV</h1>
+  <input type="file" id="csvFile" accept=".csv" />
+  <br />
+  <button id="uploadBtn">Carica e importa</button>
+  <p id="status"></p>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="/js/importa-clienti.js"></script>
+</body>
+</html>

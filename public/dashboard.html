@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard - QualityHair</title>
+ 
+
+ <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Sfondo animato con particelle */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 193, 7, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(255, 235, 59, 0.06) 0%, transparent 50%);
+      animation: floating 20s ease-in-out infinite;
+      z-index: -1;
+    }
+
+    @keyframes floating {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      33% { transform: translateY(-30px) rotate(2deg); }
+      66% { transform: translateY(15px) rotate(-1deg); }
+    }
+
+    /* Effetto glassmorphism per la navbar */
+    #navbar {
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .dashboard {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      position: relative;
+    }
+
+    .overlay {
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 30px;
+      padding: 4rem 3rem;
+      border: 2px solid rgba(255, 215, 0, 0.3);
+      box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 215, 0, 0.2),
+        0 0 60px rgba(255, 215, 0, 0.1);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      animation: slideUp 1s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .overlay::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent 30%, rgba(255, 215, 0, 0.1) 50%, transparent 70%);
+      transform: rotate(45deg);
+      transition: all 0.6s ease;
+      opacity: 0;
+    }
+
+    .overlay:hover::before {
+      opacity: 1;
+      animation: shimmer 1.5s ease-in-out;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) rotate(45deg); }
+    }
+
+    .overlay:hover {
+      transform: translateY(-10px);
+      box-shadow: 
+        0 35px 70px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 215, 0, 0.3),
+        0 0 80px rgba(255, 215, 0, 0.2);
+    }
+
+    .brand-title {
+font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;      
+font-size: 3.5rem;
+      font-weight: 900;
+      background: linear-gradient(135deg, #ffd700, #ffeb3b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5)); }
+      to { filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8)); }
+    }
+
+    .brand-subtitle {
+      font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
+      font-size: 1.4rem;
+      color: rgba(255, 215, 0, 0.9);
+      font-style: italic;
+      margin-bottom: 2.5rem;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 1.5s ease-out 0.5s both;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #btnCerca,
+#btnNuovoCliente {
+      background: linear-gradient(135deg, #ffd700, #ffb300);
+      color: #000000;
+      border: none;
+      padding: 1.2rem 2.5rem;
+      font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 
+        0 10px 25px rgba(255, 215, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 0 20px rgba(255, 215, 0, 0.2);
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      min-width: 200px;
+      border: 2px solid rgba(255, 215, 0, 0.3);
+    }
+
+    #btnCerca::before,
+#btnNuovoCliente::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transition: left 0.5s ease;
+    }
+
+    #btnCerca:hover,
+#btnNuovoCliente:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 
+        0 20px 40px rgba(255, 215, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 0 40px rgba(255, 215, 0, 0.4);
+      background: linear-gradient(135deg, #ffeb3b, #ffc107);
+      color: #000000;
+    }
+
+    #btnCerca:hover::before {
+      left: 100%;
+    }
+
+    #btnCerca:active,
+#btnNuovoCliente:active {
+      transform: translateY(-1px) scale(1.02);
+      transition: all 0.1s ease;
+    }
+
+    /* Decorazioni fluttuanti */
+    .floating-decoration {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 215, 0, 0.1);
+      animation: float 6s ease-in-out infinite;
+      pointer-events: none;
+      border: 1px solid rgba(255, 215, 0, 0.2);
+    }
+
+    .floating-decoration:nth-child(1) {
+      width: 60px;
+      height: 60px;
+      top: 10%;
+      left: 10%;
+      animation-delay: 0s;
+    }
+
+    .floating-decoration:nth-child(2) {
+      width: 40px;
+      height: 40px;
+      top: 70%;
+      right: 15%;
+      animation-delay: 2s;
+    }
+
+    .floating-decoration:nth-child(3) {
+      width: 80px;
+      height: 80px;
+      bottom: 20%;
+      left: 5%;
+      animation-delay: 4s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-20px) rotate(180deg); }
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .overlay {
+        padding: 2rem 1.5rem;
+        margin: 1rem;
+      }
+      
+      #btnCerca {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        min-width: 180px;
+      }
+    }
+
+    /* Miglioramenti per accessibilità */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+ 
+
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background: #111;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+  color: white;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-content input {
+  padding: 0.8rem;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: #222;
+  color: white;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-buttons button {
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  background: linear-gradient(135deg, #ffd700, #ffb300);
+  color: black;
+  transition: transform 0.2s ease;
+}
+
+.modal-buttons button:hover {
+  transform: scale(1.05);
+}
+
+
+
+
+</style>
+</head>
+<body>
+
+
+  <!-- Decorazioni fluttuanti -->
+  <div class="floating-decoration"></div>
+  <div class="floating-decoration"></div>
+  <div class="floating-decoration"></div>
+
+  <div id="navbar"></div> <!-- Qui sarà caricata la navbar -->
+
+
+
+
+  <main class="dashboard">
+    <div class="overlay">
+
+<img src="/img/logo.jpg" alt="logo" style="display: block; margin: 0 auto; width: 300px;">
+   
+     <p class="brand-subtitle">gestione clienti</p>
+      <button id="btnCerca">Cerca Cliente</button><br><br>
+      <button id="btnNuovoCliente">Nuovo Cliente</button>
+    </div>
+  </main>
+
+<div id="modal-nuovo-cliente" class="modal hidden">
+  <div class="modal-content">
+    <h2>Nuovo Cliente</h2>
+    <input type="text" id="input-nome" placeholder="Nome" />
+    <input type="text" id="input-cognome" placeholder="Cognome" />
+    <input type="email" id="input-email" placeholder="Email (opzionale)" />
+    <input type="tel" id="input-telefono" placeholder="Telefono (opzionale)" />
+    <div class="modal-buttons">
+      <button id="salvaCliente">Salva</button>
+      <button id="annullaCliente">Annulla</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  <script src="/js/navbar-loader.js"></script>
+  <script src="/js/dashboard.js"></script>
+
+
+
+</body>
+</html>

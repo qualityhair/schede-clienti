@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lista Clienti</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+ <div id="navbar"></div>
+
+<div class="container">
+  <h1>Lista Clienti</h1>
+  <table id="tabella-clienti">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Cognome</th>
+        <th>Email</th>
+        <th>Telefono</th>
+        <th>Azioni</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- I dati dei clienti saranno inseriti qui dinamicamente -->
+    </tbody>
+  </table>
+</div>
+
+  <script src="/js/navbar-loader.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    fetch('/api/clienti')
+      .then(response => response.json())
+      .then(clienti => {
+        const tbody = document.querySelector('#tabella-clienti tbody');
+        clienti.forEach(cliente => {
+          const tr = document.createElement('tr');
+
+          tr.innerHTML = `
+            <td>${cliente.nome}</td>
+            <td>${cliente.cognome}</td>
+            <td>${cliente.email}</td>
+            <td>${cliente.telefono}</td>
+            <td>
+
+	      <button onclick="window.location.href='/scheda-cliente.html?id=${cliente.id}'">Vai alla Scheda</button>
+            </td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(error => console.error('Errore nel recupero dei clienti:', error));
+  });
+
+  function modificaCliente(id) {
+    window.location.href = `/scheda-cliente.html?id=${id}`;
+  }
+
+  function eliminaCliente(id) {
+    if (confirm('Sei sicuro di voler eliminare questo cliente?')) {
+      fetch(`/api/clienti/${id}`, {
+        method: 'DELETE'
+      })
+      .then(response => {
+        if (response.ok) {
+          location.reload();
+        } else {
+          alert('Errore durante l\'eliminazione del cliente.');
+        }
+      })
+      .catch(error => console.error('Errore:', error));
+    }
+  }
+</script>
+
+
+</body>
+</html>
