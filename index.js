@@ -1,158 +1,158 @@
 const express = require("express");
-const mysql = require("mysql2");
+const { Pool } = require("pg");
 const path = require("path");
 const bodyParser = require("body-parser");
 const app = express();
 const port = 3000;
 
-app.use(express.static(path.join(__dirname, "public")));
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
+app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-const db = mysql.createConnection({
-  host: "192.168.1.200",
+const db = new Pool({
+  host: "dpg-d13tkvjuibrs73bse2fg-a.frankfurt-postgres.render.com",
   user: "qualityadmin",
-  password: "passwordforte123",
-  database: "qualityadmin"
+  password: "SLeGL08KBKIOJTPgmcBbEGROSWKpExps",
+  database: "qualityhair",
+  port: 5432,
+  ssl: { rejectUnauthorized: false }
 });
 
-db.connect((err) => {
-  if (err) throw err;
-  console.log("✅ Connesso al database MyCloud!");
-});
+db.connect()
+  .then(() => console.log("✅ Connesso al database PostgreSQL su Render!"))
+  .catch(err => console.error("Errore connessione DB:", err));
 
 // --- ROTTE CLIENTI ---
-app.get("/api/clienti", (req, res) => {
-  db.query("SELECT * FROM clienti", (err, result) => {
-    if (err) return res.status(500).send(err);
-    res.json(result);
-  });
+app.get("/api/clienti", async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM clienti");
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
-app.post("/api/clienti", (req, res) => {
+app.post("/api/clienti", async (req, res) => {
   const { nome, cognome, email, telefono } = req.body;
-  const sql = "INSERT INTO clienti (nome, cognome, email, telefono) VALUES (?, ?, ?, ?)";
-
-  db.query(sql, [nome, cognome, email, telefono], (err, result) => {
-    if (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Errore durante l'inserimento" });
-    }
-
-    const nuovoClienteId = result.insertId;
+  const sql = "INSERT INTO clienti (nome, cognome, email, telefono) VALUES ($1, $2, $3, $4) RETURNING id";
+  try {
+    const result = await db.query(sql, [nome, cognome, email, telefono]);
+    const nuovoClienteId = result.rows[0].id;
     res.status(201).json({
       message: "Cliente aggiunto",
       id: nuovoClienteId
     });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Errore durante l'inserimento" });
+  }
 });
 
-
-app.put("/api/clienti/:id", (req, res) => {
+app.put("/api/clienti/:id", async (req, res) => {
   const { id } = req.params;
   const { nome, cognome, telefono, email } = req.body;
-  db.query(
-    "UPDATE clienti SET nome=?, cognome=?, telefono=?, email=? WHERE id=?",
-    [nome, cognome, telefono, email, id],
-    (err) => {
-      if (err) return res.status(500).send(err);
-      res.send("Cliente aggiornato");
-    }
-  );
+  try {
+    await db.query(
+      "UPDATE clienti SET nome=$1, cognome=$2, telefono=$3, email=$4 WHERE id=$5",
+      [nome, cognome, telefono, email, id]
+    );
+    res.send("Cliente aggiornato");
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
 // 🔍 Rotta di ricerca cliente per nome o cognome
-app.get("/api/clienti/cerca", (req, res) => {
+app.get("/api/clienti/cerca", async (req, res) => {
   const term = `%${req.query.term}%`;
-  db.query(
-    "SELECT * FROM clienti WHERE nome LIKE ? OR cognome LIKE ?",
-    [term, term],
-    (err, result) => {
-      if (err) return res.status(500).send("Errore nel database");
-      res.json(result);
-    }
-  );
+  try {
+    const result = await db.query(
+      "SELECT * FROM clienti WHERE nome ILIKE $1 OR cognome ILIKE $2",
+      [term, term]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).send("Errore nel database");
+  }
 });
 
 // --- ROTTE TRATTAMENTI ---
 // 🔍 Dati di un singolo cliente
-app.get("/api/clienti/:id", (req, res) => {
+app.get("/api/clienti/:id", async (req, res) => {
   const id = req.params.id;
-  db.query("SELECT * FROM clienti WHERE id = ?", [id], (err, result) => {
-    if (err) return res.status(500).send(err);
-    res.json(result[0]); // Restituisce un singolo oggetto, non un array
-  });
+  try {
+    const result = await db.query("SELECT * FROM clienti WHERE id = $1", [id]);
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
-app.get("/api/clienti/:id/trattamenti", (req, res) => {
-  db.query("SELECT * FROM trattamenti WHERE cliente_id=?", [req.params.id], (err, result) => {
-    if (err) return res.status(500).send(err);
-    res.json(result);
-  });
+app.get("/api/clienti/:id/trattamenti", async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM trattamenti WHERE cliente_id=$1", [req.params.id]);
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
-app.post("/api/trattamenti", (req, res) => {
+app.post("/api/trattamenti", async (req, res) => {
   const { cliente_id, tipo_trattamento, descrizione, data_trattamento, note } = req.body;
-  db.query(
-    "INSERT INTO trattamenti (cliente_id, tipo_trattamento, descrizione, data_trattamento, note) VALUES (?, ?, ?, ?, ?)",
-    [cliente_id, tipo_trattamento, descrizione, data_trattamento, note],
-    (err) => {
-      if (err) return res.status(500).send(err);
-      res.send("Trattamento aggiunto");
-    }
-  );
+  try {
+    await db.query(
+      "INSERT INTO trattamenti (cliente_id, tipo_trattamento, descrizione, data_trattamento, note) VALUES ($1, $2, $3, $4, $5)",
+      [cliente_id, tipo_trattamento, descrizione, data_trattamento, note]
+    );
+    res.send("Trattamento aggiunto");
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
-app.put("/api/trattamenti/:id", (req, res) => {
+app.put("/api/trattamenti/:id", async (req, res) => {
   const { id } = req.params;
   const { tipo_trattamento, descrizione, data_trattamento, note } = req.body;
-  db.query(
-    "UPDATE trattamenti SET tipo_trattamento=?, descrizione=?, data_trattamento=?, note=? WHERE id=?",
-    [tipo_trattamento, descrizione, data_trattamento, note, id],
-    (err) => {
-      if (err) return res.status(500).send(err);
-      res.send("Trattamento aggiornato");
-    }
-  );
-});
-// 🗑️ Elimina trattamento
-app.delete("/api/trattamenti/:id", (req, res) => {
-  const id = req.params.id;
-  db.query("DELETE FROM trattamenti WHERE id = ?", [id], (err) => {
-    if (err) return res.status(500).send(err);
-    res.send("Trattamento eliminato");
-  });
+  try {
+    await db.query(
+      "UPDATE trattamenti SET tipo_trattamento=$1, descrizione=$2, data_trattamento=$3, note=$4 WHERE id=$5",
+      [tipo_trattamento, descrizione, data_trattamento, note, id]
+    );
+    res.send("Trattamento aggiornato");
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
 });
 
+// 🗑️ Elimina trattamento
+app.delete("/api/trattamenti/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    await db.query("DELETE FROM trattamenti WHERE id = $1", [id]);
+    res.send("Trattamento eliminato");
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+app.listen(port, () => {
+  console.log(`🚀 QualityHair intranet in ascolto su http://localhost:${port}`);
+});
 
 // 🗑️ Elimina cliente
-app.delete("/api/clienti/:id", (req, res) => {
+app.delete("/api/clienti/:id", async (req, res) => {
   const clienteId = req.params.id;
 
-  // Prima elimini tutti i trattamenti collegati
-  db.query("DELETE FROM trattamenti WHERE cliente_id = ?", [clienteId], (err) => {
-    if (err) {
-      console.error("Errore nell'eliminazione trattamenti:", err);
-      return res.status(500).json({ error: "Errore durante l'eliminazione dei trattamenti" });
-    }
+  try {
+    // Prima elimini tutti i trattamenti collegati
+    await db.query("DELETE FROM trattamenti WHERE cliente_id = $1", [clienteId]);
 
     // Poi elimini il cliente
-    db.query("DELETE FROM clienti WHERE id = ?", [clienteId], (err2, result) => {
-      if (err2) {
-        console.error("Errore nell'eliminazione cliente:", err2);
-        return res.status(500).json({ error: "Errore durante l'eliminazione del cliente" });
-      }
+    await db.query("DELETE FROM clienti WHERE id = $1", [clienteId]);
 
-      res.send("Cliente eliminato con successo");
-    });
-  });
+    res.send("Cliente eliminato con successo");
+  } catch (err) {
+    console.error("Errore nell'eliminazione:", err);
+    res.status(500).json({ error: "Errore durante l'eliminazione" });
+  }
 });
-
-app.listen(3000, '0.0.0.0', () => {
-  console.log("🚀 In ascolto su http://0.0.0.0:3000");
-});
-
