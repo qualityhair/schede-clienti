@@ -86,3 +86,12 @@ document.getElementById("salvaCliente").addEventListener("click", async () => {
     alert("Errore durante la creazione del cliente.");
   }
 });
+document.addEventListener('DOMContentLoaded', () => {
+  const btnListaClienti = document.getElementById('btnListaClienti');
+  if (btnListaClienti) {
+    btnListaClienti.addEventListener('click', () => {
+      window.location.href = 'lista-clienti.html';
+    });
+  }
+});
+
