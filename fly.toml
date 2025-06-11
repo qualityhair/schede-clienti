@@ -7,6 +7,7 @@ app = 'schede-clienti'
 primary_region = 'fra'
 
 [build]
+  builtin = "node"
 
 [http_service]
   internal_port = 3000
@@ -20,3 +21,4 @@ primary_region = 'fra'
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
+
