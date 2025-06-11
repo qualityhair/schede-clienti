@@ -87,11 +87,14 @@ document.getElementById("salvaCliente").addEventListener("click", async () => {
   }
 });
 document.addEventListener('DOMContentLoaded', () => {
-  const btnListaClienti = document.getElementById('btnListaClienti');
-  if (btnListaClienti) {
-    btnListaClienti.addEventListener('click', () => {
+  const btnLista = document.getElementById('btnListaClienti');
+  if (btnLista) {
+    btnLista.addEventListener('click', () => {
       window.location.href = 'lista-clienti.html';
     });
+  } else {
+    console.warn('Bottone "Lista Clienti" non trovato');
   }
 });
+
 
