@@ -11,13 +11,16 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 const db = new Pool({
-  host: "dpg-d13tkvjuibrs73bse2fg-a.frankfurt-postgres.render.com",
-  user: "qualityadmin",
-  password: "SLeGL08KBKIOJTPgmcBbEGROSWKpExps",
-  database: "qualityhair",
+  host: "schede-clienti-db-v2.flycast",
+  user: "postgres",
+  password: "YourStrongPassword123!",
+  database: "postgres",
   port: 5432,
-  ssl: { rejectUnauthorized: false }
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
+
 
 db.connect()
   .then(() => console.log("✅ Connesso al database PostgreSQL su Render!"))
