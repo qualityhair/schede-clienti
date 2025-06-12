@@ -6,20 +6,14 @@ document.addEventListener("DOMContentLoaded", () => {
       .then(html => {
         container.innerHTML = html;
 
-        // Dopo il caricamento, collega gli event listener
-        const btnCerca = container.querySelector("#btnCerca");
-        if (btnCerca) {
-          btnCerca.addEventListener("click", () => {
-            const modal = document.getElementById("modal-cerca-cliente");
-            if (modal) {
-              modal.classList.remove("hidden");
-            } else {
-              console.error("Modale di ricerca cliente non trovata.");
-            }
-          });
-        }
+        // Dopo aver caricato la navbar, carichiamo anche dashboard.js
+        const dashboardScript = document.createElement("script");
+        dashboardScript.src = "/js/dashboard.js";
+        dashboardScript.defer = true; // mantiene coerenza con il vecchio comportamento
+        document.body.appendChild(dashboardScript);
       })
       .catch(err => console.error("Errore nel caricamento della navbar:", err));
   }
 });
+
 
