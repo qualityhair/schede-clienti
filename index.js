@@ -23,8 +23,9 @@ const db = new Pool({
 
 
 db.connect()
-  .then(() => console.log("✅ Connesso al database PostgreSQL su Render!"))
+  .then(() => console.log("✅ Connesso al database PostgreSQL su Fly.io!"))
   .catch(err => console.error("Errore connessione DB:", err));
+
 
 // --- ROTTE CLIENTI ---
 app.get("/api/clienti", async (req, res) => {
