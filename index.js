@@ -134,12 +134,17 @@ app.get("/api/clienti/cerca", async (req, res) => {
 });
 
 // --- ROTTE TRATTAMENTI ---
-// 🔍 Dati di un singolo cliente
+
+// 🔍 Rotta per recuperare un singolo cliente (già esistente)
 app.get("/api/clienti/:id", async (req, res) => {
   const id = req.params.id;
   try {
     const result = await db.query("SELECT * FROM clienti WHERE id = $1", [id]);
-    res.json(result.rows[0]);
+    if (result.rows.length > 0) {
+      res.json(result.rows[0]);
+    } else {
+      res.status(404).json({ message: "Cliente non trovato" }); // Gestisce il caso 404 per il cliente
+    }
   } catch (err) {
     // === DEBUGGING START ===
     console.error("ERRORE DATABASE IN GET /api/clienti/:id:", err);
@@ -151,6 +156,27 @@ app.get("/api/clienti/:id", async (req, res) => {
     // === DEBUGGING END ===
   }
 });
+
+// AGGIUNTA: Rotta per recuperare un singolo trattamento per ID
+app.get("/api/trattamenti/:id", async (req, res) => { // <-- QUESTA È LA NUOVA ROTTA
+  const id = req.params.id;
+  try {
+    const result = await db.query("SELECT * FROM trattamenti WHERE id = $1", [id]);
+    if (result.rows.length > 0) {
+      res.json(result.rows[0]); // Restituisce il primo (e unico) risultato
+    } else {
+      res.status(404).json({ message: "Trattamento non trovato" }); // Gestisce il caso 404
+    }
+  } catch (err) {
+    console.error("ERRORE DATABASE IN GET /api/trattamenti/:id:", err);
+    res.status(500).json({
+      error: "Errore interno del server durante il recupero del singolo trattamento",
+      details: err.message,
+      stack: err.stack
+    });
+  }
+});
+
 
 app.get("/api/clienti/:id/trattamenti", async (req, res) => {
   try {
