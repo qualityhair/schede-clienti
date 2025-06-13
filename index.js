@@ -10,21 +10,46 @@ app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-const db = new Pool({
-  host: "schede-clienti-db-v2.flycast",
-  user: "postgres",
-  password: "YourStrongPassword123!",
-  database: "postgres",
-  port: 5432,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
+// === INIZIO MODIFICHE PER DEBUGGING E USO VARIABILI D'AMBIENTE ===
+// Cerca la stringa di connessione dal DATABASE_URL ambiente.
+// Se non è definita (es. per sviluppo locale), usa la configurazione hardcoded.
+const connectionString = process.env.DATABASE_URL;
+
+let dbConfig;
+
+if (connectionString) {
+  // Se DATABASE_URL è presente, la usiamo (questa è la best practice per produzione)
+  dbConfig = {
+    connectionString: connectionString,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  };
+  console.log("Connessione DB: Usando DATABASE_URL da variabili d'ambiente.");
+} else {
+  // Altrimenti (es. per test in locale senza DATABASE_URL settato),
+  // usiamo la configurazione hardcoded (NON USARE IN PRODUZIONE CON PASSWORD ESPOSTE!)
+  dbConfig = {
+    host: "schede-clienti-db-v2.flycast",
+    user: "postgres",
+    password: "YourStrongPassword123!", // <-- ASSICURATI DI USARE LA TUA VERA PASSWORD QUI SE NON HAI SETTATO DATABASE_URL
+    database: "postgres",
+    port: 5432,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  };
+  console.log("Connessione DB: Usando configurazione hardcoded (NON PER PRODUZIONE!).");
+}
+
+const db = new Pool(dbConfig);
 
 
+// Il messaggio di connessione ora è generico, non specifica "Fly.io!" o "Render!"
 db.connect()
-  .then(() => console.log("✅ Connesso al database PostgreSQL su Fly.io!"))
-  .catch(err => console.error("Errore connessione DB all'avvio:", err)); // Aggiornato log avvio
+  .then(() => console.log("✅ Connesso al database PostgreSQL!"))
+  .catch(err => console.error("Errore connessione DB all'avvio:", err));
+// === FINE MODIFICHE PER DEBUGGING E USO VARIABILI D'AMBIENTE ===
 
 
 // --- ROTTE CLIENTI ---
