@@ -24,7 +24,7 @@ const db = new Pool({
 
 db.connect()
   .then(() => console.log("✅ Connesso al database PostgreSQL su Fly.io!"))
-  .catch(err => console.error("Errore connessione DB:", err));
+  .catch(err => console.error("Errore connessione DB all'avvio:", err)); // Aggiornato log avvio
 
 
 // --- ROTTE CLIENTI ---
@@ -33,7 +33,14 @@ app.get("/api/clienti", async (req, res) => {
     const result = await db.query("SELECT * FROM clienti");
     res.json(result.rows);
   } catch (err) {
-    res.status(500).send(err.message);
+    // === DEBUGGING START ===
+    console.error("ERRORE DATABASE IN GET /api/clienti:", err);
+    res.status(500).json({
+      error: "Errore interno del server durante il recupero clienti",
+      details: err.message,
+      stack: err.stack // Utile per debug, puoi rimuoverlo in produzione
+    });
+    // === DEBUGGING END ===
   }
 });
 
@@ -48,8 +55,14 @@ app.post("/api/clienti", async (req, res) => {
       id: nuovoClienteId
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Errore durante l'inserimento" });
+    // === DEBUGGING START ===
+    console.error("ERRORE DATABASE IN POST /api/clienti:", err);
+    res.status(500).json({
+      error: "Errore interno del server durante l'inserimento del cliente",
+      details: err.message,
+      stack: err.stack
+    });
+    // === DEBUGGING END ===
   }
 });
 
@@ -61,9 +74,16 @@ app.put("/api/clienti/:id", async (req, res) => {
       "UPDATE clienti SET nome=$1, cognome=$2, telefono=$3, email=$4 WHERE id=$5",
       [nome, cognome, telefono, email, id]
     );
-    res.send("Cliente aggiornato");
+    res.json({ message: "Cliente aggiornato" }); // Invia JSON anche per successo
   } catch (err) {
-    res.status(500).send(err.message);
+    // === DEBUGGING START ===
+    console.error("ERRORE DATABASE IN PUT /api/clienti/:id:", err);
+    res.status(500).json({
+      error: "Errore interno del server durante l'aggiornamento del cliente",
+      details: err.message,
+      stack: err.stack
+    });
+    // === DEBUGGING END ===
   }
 });
 
@@ -77,7 +97,14 @@ app.get("/api/clienti/cerca", async (req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    res.status(500).send("Errore nel database");
+    // === DEBUGGING START ===
+    console.error("ERRORE DATABASE IN GET /api/clienti/cerca:", err);
+    res.status(500).json({
+      error: "Errore interno del server durante la ricerca clienti",
+      details: err.message,
+      stack: err.stack
+    });
+    // === DEBUGGING END ===
   }
 });
 
@@ -89,7 +116,14 @@ app.get("/api/clienti/:id", async (req, res) => {
     const result = await db.query("SELECT * FROM clienti WHERE id = $1", [id]);
     res.json(result.rows[0]);
   } catch (err) {
-    res.status(500).send(err.message);
+    // === DEBUGGING START ===
+    console.error("ERRORE DATABASE IN GET /api/clienti/:id:", err);
+    res.status(500).json({
+      error: "Errore interno del server durante il recupero del singolo cliente",
+      details: err.message,
+      stack: err.stack
+    });
+    // === DEBUGGING END ===
   }
 });
 
@@ -98,7 +132,14 @@ app.get("/api/clienti/:id/trattamenti", async (req, res) => {
     const result = await db.query("SELECT * FROM trattamenti WHERE cliente_id=$1", [req.params.id]);
     res.json(result.rows);
   } catch (err) {
-    res.status(500).send(err.message);
+    // === DEBUGGING START ===
+    console.error("ERRORE DATABASE IN GET /api/clienti/:id/trattamenti:", err);
+    res.status(500).json({
+      error: "Errore interno del server durante il recupero trattamenti per cliente",
+      details: err.message,
+      stack: err.stack
+    });
+    // === DEBUGGING END ===
   }
 });
 
@@ -109,9 +150,16 @@ app.post("/api/trattamenti", async (req, res) => {
       "INSERT INTO trattamenti (cliente_id, tipo_trattamento, descrizione, data_trattamento, note) VALUES ($1, $2, $3, $4, $5)",
       [cliente_id, tipo_trattamento, descrizione, data_trattamento, note]
     );
-    res.send("Trattamento aggiunto");
+    res.status(201).json({ message: "Trattamento aggiunto" }); // Invia JSON anche per successo
   } catch (err) {
-    res.status(500).send(err.message);
+    // === DEBUGGING START ===
+    console.error("ERRORE DATABASE IN POST /api/trattamenti:", err);
+    res.status(500).json({
+      error: "Errore interno del server durante l'aggiunta del trattamento",
+      details: err.message,
+      stack: err.stack
+    });
+    // === DEBUGGING END ===
   }
 });
 
@@ -123,9 +171,16 @@ app.put("/api/trattamenti/:id", async (req, res) => {
       "UPDATE trattamenti SET tipo_trattamento=$1, descrizione=$2, data_trattamento=$3, note=$4 WHERE id=$5",
       [tipo_trattamento, descrizione, data_trattamento, note, id]
     );
-    res.send("Trattamento aggiornato");
+    res.json({ message: "Trattamento aggiornato" }); // Invia JSON anche per successo
   } catch (err) {
-    res.status(500).send(err.message);
+    // === DEBUGGING START ===
+    console.error("ERRORE DATABASE IN PUT /api/trattamenti/:id:", err);
+    res.status(500).json({
+      error: "Errore interno del server durante l'aggiornamento del trattamento",
+      details: err.message,
+      stack: err.stack
+    });
+    // === DEBUGGING END ===
   }
 });
 
@@ -134,9 +189,16 @@ app.delete("/api/trattamenti/:id", async (req, res) => {
   const id = req.params.id;
   try {
     await db.query("DELETE FROM trattamenti WHERE id = $1", [id]);
-    res.send("Trattamento eliminato");
+    res.json({ message: "Trattamento eliminato" }); // Invia JSON anche per successo
   } catch (err) {
-    res.status(500).send(err.message);
+    // === DEBUGGING START ===
+    console.error("ERRORE DATABASE IN DELETE /api/trattamenti/:id:", err);
+    res.status(500).json({
+      error: "Errore interno del server durante l'eliminazione del trattamento",
+      details: err.message,
+      stack: err.stack
+    });
+    // === DEBUGGING END ===
   }
 });
 
@@ -155,9 +217,15 @@ app.delete("/api/clienti/:id", async (req, res) => {
     // Poi elimini il cliente
     await db.query("DELETE FROM clienti WHERE id = $1", [clienteId]);
 
-    res.send("Cliente eliminato con successo");
+    res.json({ message: "Cliente eliminato con successo" }); // Invia JSON anche per successo
   } catch (err) {
-    console.error("Errore nell'eliminazione:", err);
-    res.status(500).json({ error: "Errore durante l'eliminazione" });
+    // === DEBUGGING START ===
+    console.error("ERRORE DATABASE IN DELETE /api/clienti/:id:", err);
+    res.status(500).json({
+      error: "Errore interno del server durante l'eliminazione del cliente",
+      details: err.message,
+      stack: err.stack
+    });
+    // === DEBUGGING END ===
   }
 });
