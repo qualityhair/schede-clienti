@@ -384,23 +384,47 @@
 
         // --- Logica per il bottone "Torna alla Scheda Cliente" ---
         let clienteId = null; // Variabile per memorizzare l'ID del cliente
+        const backToSchedaBtn = document.getElementById('backToSchedaBtn'); // Riferimento al bottone
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => { // Aggiunto async per fetch
             // Estrai l'ID del cliente dall'URL
             const urlParams = new URLSearchParams(window.location.search);
-            clienteId = urlParams.get('clienteId'); // Assumiamo che l'ID sia passato come 'clienteId'
+            clienteId = urlParams.get('id'); // Assumiamo che l'ID sia passato come 'id' nell'URL
 
-            const backToSchedaBtn = document.getElementById('backToSchedaBtn');
-            if (backToSchedaBtn && clienteId) {
+            if (clienteId) {
+                try {
+                    // Chiamata per recuperare i dettagli del cliente (nome e cognome)
+                    const response = await fetch(`/api/clienti/${clienteId}`);
+                    if (response.status === 401) {
+                        showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
+                            redirectTo('/');
+                        });
+                        return;
+                    }
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(`Errore HTTP: ${response.status} - ${errorText}`);
+                    }
+                    const cliente = await response.json();
+                    if (cliente && cliente.nome && cliente.cognome) {
+                        backToSchedaBtn.textContent = `Torna alla scheda di ${cliente.nome} ${cliente.cognome}`;
+                    } else {
+                        backToSchedaBtn.textContent = 'Torna alla Scheda Cliente'; // Fallback se il nome non si trova
+                    }
+                } catch (error) {
+                    console.error('Errore nel recupero del nome cliente per il bottone:', error);
+                    backToSchedaBtn.textContent = 'Torna alla Scheda Cliente'; // Fallback in caso di errore
+                }
+            } else {
+                backToSchedaBtn.textContent = 'Torna alla Lista Clienti'; // Fallback se l'ID non è presente
+                backToSchedaBtn.onclick = () => redirectTo('/lista-clienti.html'); // Cambia destinazione se ID non c'è
+            }
+
+            // Imposta l'onclick del bottone se clienteId è valido
+            if (clienteId && backToSchedaBtn) {
                 backToSchedaBtn.onclick = () => {
                     redirectTo(`/scheda-cliente.html?id=${clienteId}`);
                 };
-            } else if (backToSchedaBtn) {
-                // Se clienteId non è presente, il bottone potrebbe tornare alla lista generale o essere nascosto
-                backToSchedaBtn.onclick = () => {
-                    redirectTo('/lista-clienti.html'); // Fallback per tornare alla lista generale
-                };
-                // showCustomModal('Attenzione: ID Cliente non trovato per il ritorno alla scheda specifica. Tornerai alla lista clienti.', 'alert');
             }
         });
 
