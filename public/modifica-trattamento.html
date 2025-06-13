@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Modifica Trattamento</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="navbar"></div> <main class="container">
+    <h1>Modifica Trattamento</h1>
+
+    <form id="form-modifica-trattamento">
+      <input type="hidden" id="trattamento-id" name="id_trattamento">
+      <input type="hidden" id="cliente-id" name="id_cliente">
+
+      <label for="tipo_trattamento">Tipo:</label>
+      <input type="text" id="tipo_trattamento" name="tipo_trattamento" required />
+
+      <label for="descrizione">Descrizione:</label>
+      <input type="text" id="descrizione" name="descrizione" required />
+
+      <label for="data_trattamento">Data:</label>
+      <input type="date" id="data_trattamento" name="data_trattamento" required />
+
+      <label for="note">Note:</label>
+      <textarea id="note" name="note" placeholder="Note"></textarea>
+
+      <button type="submit">Salva Modifiche</button>
+      <button type="button" onclick="history.back()">Annulla</button>
+    </form>
+  </main>
+
+  <script src="/js/modifica-trattamento.js"></script>
+  <script src="/js/navbar-loader.js"></script>
+</body>
+</html>
