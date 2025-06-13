@@ -2,7 +2,6 @@ if (!localStorage.getItem("risultatiRicercaClienti")) {
   localStorage.removeItem("indiceClienteCorrente");
 }
 
-
 // Estrai ID cliente dall'URL
 const params = new URLSearchParams(window.location.search);
 const clienteId = params.get("id");
@@ -56,8 +55,6 @@ if (info) {
   info.innerText = `Cliente ${indice + 1} di ${lista.length}`;
 }
 
-
-
 // Carica la lista trattamenti
 function caricaTrattamenti(clienteId) {
   fetch(`/api/clienti/${clienteId}/trattamenti`)
@@ -75,6 +72,7 @@ function caricaTrattamenti(clienteId) {
           <td>${new Date(t.data_trattamento).toLocaleDateString()}</td>
           <td>${t.note || ""}</td>
           <td>
+            <button onclick="vaiModificaTrattamento(${t.id}, ${clienteId})">✏️ Modifica</button>
             <button onclick="eliminaTrattamento(${t.id}, ${clienteId})">Elimina</button>
           </td>
         `;
@@ -177,7 +175,6 @@ if (formModifica) {
   });
 }
 
-
 document.getElementById("btnPrecedente").addEventListener("click", () => cambiaCliente(-1));
 document.getElementById("btnSuccessivo").addEventListener("click", () => cambiaCliente(1));
 
@@ -193,4 +190,7 @@ function cambiaCliente(direzione) {
   }
 }
 
-
+// Nuova funzione per reindirizzare alla pagina di modifica trattamento
+function vaiModificaTrattamento(idTrattamento, idCliente) {
+  window.location.href = `/modifica-trattamento.html?idTrattamento=${idTrattamento}&idCliente=${idCliente}`;
+}
