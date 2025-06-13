@@ -1,26 +1,416 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Aggiungi Trattamento</title>
-  <link rel="stylesheet" href="/css/style.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Aggiungi Trattamento - QualityHair</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Stili generali coerenti con il tema giallo e nero */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a; /* Sfondo nero molto scuro */
+            color: #fefefe; /* Testo bianco */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: #ffcc00; /* Giallo brillante per il container principale */
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 600px; /* Larghezza massima per il form */
+            margin-top: 20px;
+            color: #1a1a1a; /* Testo nero sul container giallo */
+        }
+
+        h1 {
+            color: #1a1a1a;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem; /* Dimensione del titolo */
+            font-weight: bold;
+        }
+
+        /* Stili per il form */
+        .form-group {
+            margin-bottom: 1.5rem; /* Aumentato il margine tra i gruppi */
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+
+        .input-field, .select-field, .textarea-field {
+            border: 1px solid #333333;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            color: #1a1a1a;
+            background-color: #fefefe;
+        }
+        .input-field:focus, .select-field:focus, .textarea-field:focus {
+            border-color: #ff9900;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.3);
+        }
+
+        /* Stili specifici per textarea */
+        .textarea-field {
+            min-height: 100px; /* Altezza minima per le aree di testo */
+            resize: vertical; /* Permette solo il ridimensionamento verticale */
+        }
+
+        /* Stili per i bottoni */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            width: 100%; /* Larghezza piena */
+        }
+
+        .btn-primary {
+            background-color: #1a1a1a; /* Nero */
+            color: #ffcc00; /* Giallo */
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #333333;
+            transform: translateY(-2px);
+        }
+
+        /* Stili per la Navbar (copiati da dashboard.html, se usata) */
+        /* Nota: Se la navbar è caricata da navbar-loader.js, questi stili potrebbero essere in style.css */
+        /* Li ho inclusi qui per completezza ma se hai un file CSS esterno puoi rimuoverli */
+        .navbar {
+            background-color: #f8f8f8;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .navbar h1 {
+            color: #333;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .navbar ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .navbar li a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: color 0.3s ease;
+            border-radius: 6px;
+        }
+
+        .navbar li a:hover {
+            color: #007bff;
+        }
+
+        .navbar-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-weight: 600;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            font-size: 0.9rem;
+            padding: 0.6rem 1rem;
+            min-width: 100px;
+        }
+
+        .navbar-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        /* Stili per il responsive design della navbar */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem;
+            }
+
+            .navbar ul {
+                flex-direction: column;
+                gap: 0.5rem;
+                width: 100%;
+                margin-top: 1rem;
+            }
+
+            .navbar li {
+                width: 100%;
+            }
+
+            .navbar li a,
+            .navbar-btn {
+                width: 100%;
+                text-align: center;
+                padding: 0.8rem;
+            }
+        }
+
+        /* MODALE PERSONALIZZATA (copiata da lista-clienti.html) */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            color: #1a1a1a;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .modal-button.confirm {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+        }
+        .modal-button.confirm:hover {
+            background-color: #bd2130;
+        }
+
+        .modal-button.cancel {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+        }
+        .modal-button.cancel:hover {
+            background-color: #5a6268;
+        }
+        
+        .modal-button.ok {
+            background-color: #1a1a1a;
+            color: #ffcc00;
+            border: none;
+        }
+        .modal-button.ok:hover {
+            background-color: #333333;
+        }
+
+        /* Responsive per il container del form */
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+                border-radius: 8px;
+                box-shadow: none;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .input-field, .select-field, .textarea-field, .btn {
+                padding: 0.75rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div id="navbar"></div>
+    <div id="navbar"></div> <!-- Qui verrà caricata la navbar -->
 
-  <main class="container">
-    <h1>Aggiungi Trattamento</h1>
-    <form id="form-trattamento">
-      <input type="text" name="tipo_trattamento" placeholder="Tipo trattamento" required />
-      <input type="text" name="descrizione" placeholder="Descrizione" required />
-      <input type="date" name="data_trattamento" required />
-      <input type="text" name="note" placeholder="Note" />
-      <button type="submit">Aggiungi</button>
-    </form>
-  </main>
+    <main class="container">
+        <h1>Aggiungi Trattamento</h1>
+        <form id="form-trattamento" class="flex flex-col">
+            <div class="form-group">
+                <label for="tipo_trattamento" class="form-label">Tipo Trattamento</label>
+                <select id="tipo_trattamento" name="tipo_trattamento" class="select-field" required>
+                    <option value="">Seleziona un tipo di trattamento</option>
+                    <option value="Colore">Colore</option>
+                    <option value="Trattamento">Trattamento</option>
+                    <option value="Meches">Meches</option>
+                    <option value="Permanente">Permanente</option>
+                    <option value="Taglio">Taglio</option>
+                    <option value="Piega">Piega</option>
+                    <option value="Manicure">Manicure</option>
+                    <option value="Pedicure">Pedicure</option>
+                    <option value="Acconciatura">Acconciatura</option>
+                    <option value="Barba">Barba</option>
+                    <option value="Altro">Altro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="descrizione" class="form-label">Descrizione</label>
+                <textarea id="descrizione" name="descrizione" class="textarea-field" placeholder="Descrizione del trattamento" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="data_trattamento" class="form-label">Data Trattamento</label>
+                <input type="date" id="data_trattamento" name="data_trattamento" class="input-field" required />
+            </div>
+            <div class="form-group">
+                <label for="note" class="form-label">Note</label>
+                <textarea id="note" name="note" class="textarea-field" placeholder="Note aggiuntive"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Aggiungi</button>
+            <!-- Modificato il bottone per tornare alla Scheda Cliente -->
+            <button type="button" id="backToSchedaBtn" class="btn btn-secondary mt-4">Torna alla Scheda Cliente</button>
+        </form>
+    </main>
 
-  <script src="/js/aggiungi-trattamento.js"></script>
-  <script src="/js/navbar-loader.js"></script>
+    <!-- Modale personalizzata per alert e confirm -->
+    <div id="customModal" class="modal">
+        <div class="modal-content">
+            <p id="modalMessage" class="text-lg mb-4"></p>
+            <div id="modalButtons" class="modal-buttons">
+                <!-- I bottoni saranno aggiunti qui via JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/navbar-loader.js"></script>
+    <script src="/js/aggiungi-trattamento.js"></script> <!-- Mantenuto lo script originale -->
+    <script>
+        // Riferimenti al DOM della modale
+        const customModal = document.getElementById('customModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalButtons = document.getElementById('modalButtons');
+
+        // Funzione per mostrare la modale (copiata da lista-clienti.html)
+        function showCustomModal(message, type = 'alert', onConfirmCallback = null) {
+            modalMessage.textContent = message;
+            modalButtons.innerHTML = '';
+
+            if (type === 'confirm') {
+                const confirmBtn = document.createElement('button');
+                confirmBtn.textContent = 'Conferma';
+                confirmBtn.className = 'modal-button confirm';
+                confirmBtn.onclick = () => {
+                    customModal.classList.remove('open');
+                    if (onConfirmCallback) onConfirmCallback(true);
+                };
+                modalButtons.appendChild(confirmBtn);
+
+                const cancelBtn = document.createElement('button');
+                cancelBtn.textContent = 'Annulla';
+                cancelBtn.className = 'modal-button cancel';
+                cancelBtn.onclick = () => {
+                    customModal.classList.remove('open');
+                    if (onConfirmCallback) onConfirmCallback(false);
+                };
+                modalButtons.appendChild(cancelBtn);
+            } else {
+                const okBtn = document.createElement('button');
+                okBtn.textContent = 'OK';
+                okBtn.className = 'modal-button ok';
+                okBtn.onclick = () => {
+                    customModal.classList.remove('open');
+                    if (onConfirmCallback) onConfirmCallback();
+                };
+                modalButtons.appendChild(okBtn);
+            }
+            customModal.classList.add('open');
+        }
+
+        // Funzione di utilità per reindirizzare
+        function redirectTo(path) {
+            window.location.href = path;
+        }
+
+        // --- Logica per il bottone "Torna alla Scheda Cliente" ---
+        let clienteId = null; // Variabile per memorizzare l'ID del cliente
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Estrai l'ID del cliente dall'URL
+            const urlParams = new URLSearchParams(window.location.search);
+            clienteId = urlParams.get('clienteId'); // Assumiamo che l'ID sia passato come 'clienteId'
+
+            const backToSchedaBtn = document.getElementById('backToSchedaBtn');
+            if (backToSchedaBtn && clienteId) {
+                backToSchedaBtn.onclick = () => {
+                    redirectTo(`/scheda-cliente.html?id=${clienteId}`);
+                };
+            } else if (backToSchedaBtn) {
+                // Se clienteId non è presente, il bottone potrebbe tornare alla lista generale o essere nascosto
+                backToSchedaBtn.onclick = () => {
+                    redirectTo('/lista-clienti.html'); // Fallback per tornare alla lista generale
+                };
+                // showCustomModal('Attenzione: ID Cliente non trovato per il ritorno alla scheda specifica. Tornerai alla lista clienti.', 'alert');
+            }
+        });
+
+        // --- NOTA IMPORTANTE PER AGGIUNGI-TRATTAMENTO.JS ---
+        // Il tuo file /js/aggiungi-trattamento.js sarà responsabile della logica del form.
+        // Assicurati di aggiornarlo per:
+        // 1. Leggere il valore del campo 'tipo_trattamento' dal nuovo elemento <select> (es. document.getElementById('tipo_trattamento').value).
+        // 2. Utilizzare la funzione `showCustomModal()` al posto di `alert()` o `confirm()` per feedback e conferme.
+        // 3. Eseguire il reindirizzamento alla pagina della scheda cliente (`/scheda-cliente.html?id=CLIENTE_ID`) dopo un successo,
+        //    assicurandoti che il CLIENTE_ID sia disponibile nel tuo script (lo puoi ottenere dall'URL come in questo script).
+    </script>
 </body>
 </html>
