@@ -73,7 +73,7 @@ function caricaTrattamenti(clienteId) {
           <td>${t.note || ""}</td>
           <td>
             <button onclick="vaiModificaTrattamento(${t.id}, ${clienteId})">✏️ Modifica</button>
-            <button onclick="eliminaTrattamento(${t.id}, ${clienteId})">Elimina</button>
+            <button onclick="eliminaTrattamento(${t.id}, ${clienteId})">🗑️ Elimina</button>
           </td>
         `;
         container.appendChild(row);
