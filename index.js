@@ -157,8 +157,8 @@ app.get("/api/clienti/:id", async (req, res) => {
   }
 });
 
-// AGGIUNTA: Rotta per recuperare un singolo trattamento per ID
-app.get("/api/trattamenti/:id", async (req, res) => { // <-- QUESTA È LA NUOVA ROTTA
+// Rotta per recuperare un singolo trattamento per ID
+app.get("/api/trattamenti/:id", async (req, res) => {
   const id = req.params.id;
   try {
     const result = await db.query("SELECT * FROM trattamenti WHERE id = $1", [id]);
@@ -180,7 +180,8 @@ app.get("/api/trattamenti/:id", async (req, res) => { // <-- QUESTA È LA NUOVA 
 
 app.get("/api/clienti/:id/trattamenti", async (req, res) => {
   try {
-    const result = await db.query("SELECT * FROM trattamenti WHERE cliente_id=$1", [req.params.id]);
+    // MODIFICA QUI: Aggiunta ORDER BY per ordinare per data_trattamento ASC
+    const result = await db.query("SELECT * FROM trattamenti WHERE cliente_id=$1 ORDER BY data_trattamento ASC", [req.params.id]);
     res.json(result.rows);
   } catch (err) {
     // === DEBUGGING START ===
