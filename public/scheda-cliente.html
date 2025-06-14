@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Scheda Cliente</title>
     <link rel="stylesheet" href="/css/style.css" />
-    <!-- Tailwind CSS CDN - Necessario per la modale, ma l'avviso di produzione può essere ignorato per ora -->
+    <!-- Tailwind CSS CDN - Necessario per la modale e i bottoni, avviso di produzione ignorabile per ora -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Stili aggiuntivi per i bottoni Modifica/Elimina e la Modale */
+        /* Stili aggiuntivi per i bottoni Modifica/Elimina all'interno della tabella */
         .action-button-group {
             display: flex;
             gap: 0.5rem;
             flex-wrap: wrap;
-            justify-content: center;
+            justify-content: center; /* Centra i bottoni */
         }
 
         .action-button-group button {
@@ -23,8 +23,8 @@
             cursor: pointer;
             transition: background-color 0.2s ease, transform 0.1s ease;
             white-space: nowrap;
-            margin: 0;
-            box-shadow: none;
+            margin: 0; /* Annulla i margini esterni predefiniti dei bottoni generali */
+            box-shadow: none; /* Rimuovi l'ombra per i bottoni più piccoli nella tabella */
         }
         .action-button-group button:hover {
             transform: translateY(-1px);
@@ -133,7 +133,7 @@
 <body>
     <div id="navbar"></div>
 
-    <!-- Modale personalizzata per alert e confirm (SPOSTATA QUI PRIMA DEGLI SCRIPT) -->
+    <!-- Modale personalizzata per alert e confirm - IMPORTANTE: qui prima degli script -->
     <div id="customModal" class="modal">
         <div class="modal-content">
             <p id="modalMessage" class="text-lg mb-4"></p>
@@ -143,13 +143,15 @@
         </div>
     </div>
 
-    <!-- Script che definiscono le funzioni globali (SPOSTATO QUI PRIMA DEGLI ALTRI SCRIPT) -->
+    <!-- Script che definiscono le funzioni globali (showCustomModal, redirectTo, ecc.) -->
+    <!-- IMPORTANTE: Questi devono essere eseguiti PRIMA di scheda-cliente.js e navbar-loader.js -->
     <script>
-        // Riferimenti al DOM della modale (necessari per tutte le pagine)
+        // Riferimenti al DOM della modale
         const customModal = document.getElementById('customModal');
         const modalMessage = document.getElementById('modalMessage');
         const modalButtons = document.getElementById('modalButtons');
 
+        // Funzione per mostrare la modale personalizzata (sostituisce alert/confirm)
         function showCustomModal(message, type = 'alert', onConfirmCallback = null) {
             modalMessage.textContent = message;
             modalButtons.innerHTML = '';
@@ -185,11 +187,12 @@
             customModal.classList.add('open');
         }
 
+        // Funzione di utilità per reindirizzare la pagina
         function redirectTo(path) {
             window.location.href = path;
         }
 
-        // Funzioni esistenti dal tuo HTML
+        // Funzioni per la navigazione e gestione cliente (già presenti nel tuo HTML originale)
         function getIdCliente() {
             const params = new URLSearchParams(window.location.search);
             return params.get("id");
@@ -205,22 +208,61 @@
             window.location.href = `/modifica-cliente.html?id=${id}`;
         }
 
-        // --- FUNZIONE GLOBALE: Reindirizza alla pagina di modifica trattamento ---
-        // Essenziale che sia definita qui per essere disponibile globalmente
+        // Funzione per reindirizzare alla pagina di modifica trattamento
         function modificaTrattamento(trattamentoId) {
             redirectTo(`/modifica-trattamento.html?id=${trattamentoId}`); // Passa l'ID come 'id'
+        }
+
+        // Funzione eliminaTrattamento, usata dall'onclick nei bottoni della tabella
+        // Nota: questa è una funzione globale, deve essere definita qui.
+        async function eliminaTrattamento(trattamentoId) {
+            showCustomModal('Sei sicuro di voler eliminare questo trattamento?', 'confirm', async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const response = await fetch(`/api/trattamenti/${trattamentoId}`, {
+                            method: 'DELETE'
+                        });
+
+                        if (response.ok) {
+                            showCustomModal('Trattamento eliminato con successo!', 'success', () => {
+                                // Dopo aver eliminato, ricarica i trattamenti per il cliente corrente
+                                // Dobbiamo recuperare l'ID del cliente di nuovo, poiché non è passato qui
+                                const clienteIdFromUrl = getIdCliente(); 
+                                if (clienteIdFromUrl) {
+                                    // Assumiamo che la funzione fetchClientTreatments sia in scheda-cliente.js
+                                    // e che sia disponibile globalmente o richiamata dopo il caricamento di scheda-cliente.js
+                                    // Se non disponibile globalmente, bisognerà rivedere questa parte o la struttura
+                                    window.location.reload(); // Soluzione rapida per ricaricare i trattamenti
+                                } else {
+                                    console.error('ID Cliente non disponibile per ricaricare i trattamenti.');
+                                }
+                            });
+                        } else if (response.status === 401) {
+                            showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
+                                redirectTo('/');
+                            });
+                        } else {
+                            const errorData = await response.json();
+                            showCustomModal(`Errore durante l'eliminazione del trattamento: ${errorData.message || 'Errore sconosciuto.'}`, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Errore durante l\'eliminazione del trattamento:', error);
+                        showCustomModal(`Errore di rete o server: ${error.message}`, 'error');
+                    }
+                }
+            });
         }
     </script>
 
     <main class="container">
         <h1>Scheda Cliente</h1>
         <div class="scheda">
-            <p><h1><font color="Olive"><strong> <span id="nome-completo"></span></strong></font></h1></p>
+            <p><h2><font color="Olive"><strong> <span id="nome-completo"></span></strong></font></h2></p>
             <p><strong>Email:</strong> <span id="email"></span></p>
             <p><strong>Telefono:</strong> <span id="telefono"></span></p>
         </div>
 
-        <h1>Trattamenti e Servizi</h1>
+        <h2>Trattamenti e Servizi</h2>
         <table class="trattamenti">
             <thead>
                 <tr>
@@ -241,7 +283,8 @@
             <button id="btnSuccessivo">Avanti ➡️</button>
         </div>
 
-        <div style="margin-top: 2rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;">
+        <!-- Al posto dei due form -->
+        <div style="margin-top: 2rem;">
             <button onclick="vaiAggiungiTrattamento()">➕ Aggiungi Trattamento</button>
             <button onclick="vaiModificaCliente()">✏️ Modifica Cliente</button>
         </div>
@@ -249,9 +292,9 @@
         <button id="btnEliminaCliente" style="background-color: red; color: white; margin-top: 1rem;">
             Elimina Cliente
         </button>
-
     </main>
 
+    <!-- Caricamento degli script esterni DOPO le definizioni delle funzioni globali -->
     <script src="/js/navbar-loader.js"></script>
     <script src="/js/scheda-cliente.js"></script>
 </body>
