@@ -1,286 +1,192 @@
-// /js/scheda-cliente.js - Ripristina ricerca e paginazione
+// scheda-cliente.js
+let clienti = []; // Array per memorizzare i clienti caricati
+let indiceClienteCorrente = 0; // Indice del cliente attualmente visualizzato
 
-document.addEventListener("DOMContentLoaded", async () => {
-    // Riferimenti agli elementi DOM principali della pagina
-    const nomeCompletoSpan = document.getElementById("nome-completo");
-    const emailSpan = document.getElementById("email");
-    const telefonoSpan = document.getElementById("telefono");
-    const listaTrattamentiBody = document.getElementById("lista-trattamenti"); // Il tbody della tabella dei trattamenti
-    const btnEliminaCliente = document.getElementById("btnEliminaCliente");
+document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  const idCliente = params.get("id");
 
-    // Elementi per la paginazione e ricerca (dalla tua scheda-cliente.html)
-    const infoPaginazione = document.getElementById("info-paginazione");
-    const btnPrecedente = document.getElementById("btnPrecedente");
-    const btnSuccessivo = document.getElementById("btnSuccessivo");
+  if (idCliente) {
+    // Se è stato passato un ID, prova a caricare quel cliente specifico
+    caricaClientePerId(idCliente);
+  } else {
+    // Altrimenti, carica tutti i clienti e mostra il primo
+    caricaTuttiIClienti();
+  }
 
-    let clienteId = null; // ID del cliente attualmente visualizzato
-    let searchTerm = null; // Termine di ricerca (se la pagina è stata aperta da una ricerca)
-    let currentClientIndex = -1; // Indice del cliente corrente nella lista di ricerca
-    let searchedClientIds = []; // Array degli ID dei clienti trovati con la ricerca
+  // Listener per il bottone di eliminazione del cliente
+  const btnEliminaCliente = document.getElementById("btnEliminaCliente");
+  if (btnEliminaCliente) {
+    btnEliminaCliente.addEventListener("click", () => {
+      if (confirm("Sei sicuro di voler eliminare questo cliente e tutti i suoi trattamenti?")) {
+        eliminaCliente(clienti[indiceClienteCorrente].id);
+      }
+    });
+  }
 
-    // Funzione per ottenere i parametri dall'URL e impostare lo stato
-    function getUrlParams() {
-        const params = new URLSearchParams(window.location.search);
-        clienteId = params.get("id"); // ID del cliente corrente
-        searchTerm = params.get("term"); // Termine di ricerca, se presente
-        currentClientIndex = parseInt(params.get("idx"), 10); // Indice del cliente nella lista di ricerca
-        if (isNaN(currentClientIndex)) currentClientIndex = -1; // Inizializza a -1 se non è un numero valido
-    }
-
-    getUrlParams(); // Carica i parametri all'avvio
-
-    // Se l'ID cliente non è disponibile, mostra un errore e reindirizza
-    if (!clienteId) {
-        showCustomModal("ID cliente mancante nell'URL. Non è possibile caricare la scheda. Verrai reindirizzato alla lista clienti.", 'error', () => {
-            redirectTo('/lista-clienti.html');
-        });
-        return; // Ferma l'esecuzione dello script
-    }
-
-    // --- Logica per la Ricerca e Paginazione ---
-    async function handleSearchContext() {
-        if (searchTerm) { // Se c'è un termine di ricerca, gestiamo il contesto di paginazione
-            try {
-                // Esegui la ricerca sul backend per ottenere tutti gli ID dei clienti corrispondenti
-                const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
-                if (response.status === 401) {
-                    showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
-                        redirectTo('/');
-                    });
-                    return;
-                }
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Errore HTTP: ${response.status} - ${errorText}`);
-                }
-                const results = await response.json(); // Array di oggetti cliente
-                searchedClientIds = results.map(client => client.id); // Estrai solo gli ID
-
-                // Trova l'indice del cliente corrente nell'array dei risultati di ricerca
-                // Questo è cruciale se la pagina è stata caricata direttamente con un ID ma in un contesto di ricerca
-                if (currentClientIndex === -1 || searchedClientIds[currentClientIndex] !== parseInt(clienteId, 10)) {
-                    currentClientIndex = searchedClientIds.indexOf(parseInt(clienteId, 10));
-                }
-
-                updatePaginationButtons(); // Aggiorna lo stato dei bottoni
-                updatePaginationInfo(); // Aggiorna il testo di paginazione
-
-            } catch (error) {
-                console.error("Errore durante la ricerca per la paginazione:", error);
-                showCustomModal(`Errore nel caricamento dei risultati di ricerca: ${error.message}`, 'error');
-                // In caso di errore, nascondi i bottoni di paginazione per evitare confusione
-                btnPrecedente.style.display = 'none';
-                btnSuccessivo.style.display = 'none';
-                infoPaginazione.textContent = '';
-            }
-        } else {
-            // Se non c'è un termine di ricerca, nascondi i bottoni di paginazione
-            btnPrecedente.style.display = 'none';
-            btnSuccessivo.style.display = 'none';
-            infoPaginazione.textContent = '';
-        }
-    }
-
-    // Aggiorna lo stato (abilitato/disabilitato) dei bottoni di navigazione
-    function updatePaginationButtons() {
-        if (searchTerm && searchedClientIds.length > 0) {
-            btnPrecedente.style.display = 'inline-block'; // Mostra i bottoni
-            btnSuccessivo.style.display = 'inline-block';
-            btnPrecedente.disabled = currentClientIndex <= 0; // Disabilita 'Indietro' se siamo al primo
-            btnSuccessivo.disabled = currentClientIndex >= searchedClientIds.length - 1; // Disabilita 'Avanti' se siamo all'ultimo
-        } else {
-            btnPrecedente.style.display = 'none'; // Nascondi i bottoni se non c'è contesto di ricerca
-            btnSuccessivo.style.display = 'none';
-        }
-    }
-
-    // Aggiorna il testo che mostra l'informazione di paginazione (es. "Cliente 1 di 5")
-    function updatePaginationInfo() {
-        if (searchTerm && searchedClientIds.length > 0 && currentClientIndex !== -1) {
-            infoPaginazione.textContent = `Cliente ${currentClientIndex + 1} di ${searchedClientIds.length} (ricerca per "${searchTerm}")`;
-        } else {
-            infoPaginazione.textContent = ''; // Pulisci il testo se non c'è contesto di ricerca
-        }
-    }
-
-    // Aggiungi event listener ai bottoni di paginazione
-    btnPrecedente.addEventListener('click', () => navigateClient(-1));
-    btnSuccessivo.addEventListener('click', () => navigateClient(1));
-
-    // Funzione per navigare al cliente precedente/successivo nella lista di ricerca
-    function navigateClient(direction) {
-        const newIndex = currentClientIndex + direction;
-        if (newIndex >= 0 && newIndex < searchedClientIds.length) {
-            const newClientId = searchedClientIds[newIndex];
-            // Reindirizza alla stessa pagina con il nuovo ID del cliente e il contesto di ricerca
-            redirectTo(`/scheda-cliente.html?id=${newClientId}&term=${encodeURIComponent(searchTerm)}&idx=${newIndex}`);
-        }
-    }
-
-    // --- Funzioni di Recupero Dati dal Backend ---
-
-    // Recupera i dettagli del cliente specifico
-    async function fetchClientDetails(id) {
-        try {
-            const response = await fetch(`/api/clienti/${id}`);
-            if (response.status === 401) {
-                showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
-                    redirectTo('/');
-                });
-                return;
-            }
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Errore HTTP: ${response.status} - ${errorText}`);
-            }
-            const cliente = await response.json();
-            if (cliente) {
-                nomeCompletoSpan.textContent = `${cliente.nome} ${cliente.cognome}`;
-                emailSpan.textContent = cliente.email || 'N/A';
-                telefonoSpan.textContent = cliente.telefono || 'N/A';
-            } else {
-                showCustomModal('Dettagli cliente non trovati per l\'ID specificato.', 'alert', () => {
-                    redirectTo('/lista-clienti.html');
-                });
-            }
-        } catch (error) {
-            console.error('Errore nel recupero dettagli cliente:', error);
-            showCustomModal(`Errore nel caricamento dettagli cliente: ${error.message}`, 'error', () => {
-                redirectTo('/lista-clienti.html');
-            });
-        }
-    }
-
-    // Recupera tutti i trattamenti associati a questo cliente
-    async function fetchClientTreatments(id) {
-        try {
-            // Assumiamo che il backend ordini i trattamenti per data
-            const response = await fetch(`/api/clienti/${id}/trattamenti`);
-            if (response.status === 401) {
-                showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
-                    redirectTo('/');
-                });
-                return;
-            }
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Errore HTTP: ${response.status} - ${errorText}`);
-            }
-            const trattamenti = await response.json();
-            renderTrattamenti(trattamenti); // Passa i trattamenti alla funzione di rendering
-        } catch (error) {
-            console.error('Errore nel recupero trattamenti:', error);
-            showCustomModal(`Errore nel caricamento trattamenti: ${error.message}`, 'error');
-        }
-    }
-
-    // --- Funzione per il Rendering dei Dati ---
-
-    // Renderizza i trattamenti nella tabella HTML
-    function renderTrattamenti(trattamenti) {
-        listaTrattamentiBody.innerHTML = ''; // Pulisci il corpo della tabella
-
-        if (trattamenti.length === 0) {
-            listaTrattamentiBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Nessun trattamento registrato per questo cliente.</td></tr>';
-            return;
-        }
-
-        trattamenti.forEach(trattamento => {
-            const tr = document.createElement('tr'); // Crea un nuovo elemento riga della tabella (tr)
-            // Popola l'HTML interno della riga con i dati del trattamento e i bottoni di azione
-            tr.innerHTML = `
-                <td>${trattamento.tipo_trattamento || ''}</td>
-                <td>${trattamento.descrizione || ''}</td>
-                <td>${new Date(trattamento.data_trattamento).toLocaleDateString('it-IT') || ''}</td>
-                <td>${trattamento.note || ''}</td>
-                <td class="action-button-group">
-                    <button onclick="modificaTrattamento(${trattamento.id})" class="edit-treatment-button">Modifica</button>
-                    <button onclick="eliminaTrattamento(${trattamento.id})" class="delete-treatment-button">Elimina</button>
-                </td>
-            `;
-            listaTrattamentiBody.appendChild(tr); // Aggiungi la riga al corpo della tabella
-        });
-    }
-
-    // --- Funzioni per le Azioni (Elimina Trattamento, Elimina Cliente) ---
-
-    // Funzione per eliminare un trattamento specifico
-    // Nota: questa funzione è globale e viene chiamata direttamente dall'onclick nel HTML
-    async function eliminaTrattamento(trattamentoId) {
-        showCustomModal('Sei sicuro di voler eliminare questo trattamento?', 'confirm', async (confirmed) => {
-            if (confirmed) {
-                try {
-                    const response = await fetch(`/api/trattamenti/${trattamentoId}`, {
-                        method: 'DELETE'
-                    });
-
-                    if (response.status === 401) {
-                        showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
-                            redirectTo('/');
-                        });
-                        return;
-                    }
-
-                    if (response.ok) {
-                        showCustomModal('Trattamento eliminato con successo!', 'success', () => {
-                            fetchClientTreatments(clienteId); // Ricarica la lista dei trattamenti dopo l'eliminazione
-                        });
-                    } else {
-                        const errorData = await response.json();
-                        showCustomModal(`Errore durante l'eliminazione del trattamento: ${errorData.message || 'Errore sconosciuto.'}`, 'error');
-                    }
-                } catch (error) {
-                    console.error('Errore durante l\'eliminazione del trattamento:', error);
-                    showCustomModal(`Errore di rete o server: ${error.message}`, 'error');
-                }
-            }
-        });
-    }
-
-    // Event listener per il bottone 'Elimina Cliente'
-    if (btnEliminaCliente) {
-        btnEliminaCliente.addEventListener('click', () => {
-            showCustomModal('Sei sicuro di voler eliminare questo cliente e TUTTI i suoi trattamenti?', 'confirm', async (confirmed) => {
-                if (confirmed) {
-                    try {
-                        const response = await fetch(`/api/clienti/${clienteId}`, {
-                            method: 'DELETE'
-                        });
-
-                        if (response.status === 401) {
-                            showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
-                                redirectTo('/');
-                            });
-                            return;
-                        }
-
-                        if (response.ok) {
-                            showCustomModal('Cliente eliminato con successo!', 'success', () => {
-                                // Dopo aver eliminato il cliente, torna alla lista principale dei clienti
-                                redirectTo('/lista-clienti.html');
-                            });
-                        } else {
-                            const errorData = await response.json();
-                            showCustomModal(`Errore durante l'eliminazione del cliente: ${errorData.message || 'Errore sconosciuto.'}`, 'error');
-                        }
-                    } catch (error) {
-                        console.error('Errore durante l\'eliminazione del cliente:', error);
-                        showCustomModal(`Errore di rete o server: ${error.message}`, 'error');
-                    }
-                }
-            });
-        });
-    }
-
-    // --- Esecuzione iniziale al caricamento della pagina ---
-    // Carica i dettagli del cliente e i suoi trattamenti all'avvio della pagina
-    await fetchClientDetails(clienteId);
-    await fetchClientTreatments(clienteId);
-
-    // Gestisci il contesto di ricerca e paginazione se la pagina è stata aperta da una ricerca
-    await handleSearchContext();
+  // Listener per i bottoni di navigazione
+  document.getElementById("btnPrecedente").addEventListener("click", () => navigaClienti(-1));
+  document.getElementById("btnSuccessivo").addEventListener("click", () => navigaClienti(1));
 });
 
-// Nota: Le funzioni globali showCustomModal, redirectTo, e modificaTrattamento
-// DEVONO essere definite nel blocco <script> in linea di scheda-cliente.html
-// PRIMA che scheda-cliente.js venga caricato, per garantire che siano accessibili.
+// Funzione per caricare un cliente specifico per ID
+async function caricaClientePerId(id) {
+  try {
+    const response = await fetch(`/api/clienti/${id}`);
+    if (!response.ok) {
+      throw new Error("Cliente non trovato.");
+    }
+    const cliente = await response.json();
+    clienti = [cliente]; // Imposta l'array clienti con solo questo cliente
+    indiceClienteCorrente = 0; // L'indice è 0 perché c'è solo un cliente
+    visualizzaCliente(cliente);
+    aggiornaStatoNavigazione();
+    caricaTrattamenti(id);
+  } catch (error) {
+    console.error("Errore nel caricamento del cliente:", error);
+    alert("Errore nel caricamento del cliente.");
+    // Potresti reindirizzare alla lista clienti se il cliente non esiste
+    window.location.href = "/lista-clienti.html";
+  }
+}
+
+// Funzione per caricare tutti i clienti (usato se nessun ID specifico è passato)
+async function caricaTuttiIClienti() {
+  try {
+    const response = await fetch("/api/clienti");
+    if (!response.ok) {
+      throw new Error("Impossibile caricare i clienti.");
+    }
+    clienti = await response.json(); // Carica tutti i clienti
+    if (clienti.length > 0) {
+      visualizzaCliente(clienti[indiceClienteCorrente]);
+      aggiornaStatoNavigazione();
+      caricaTrattamenti(clienti[indiceClienteCorrente].id);
+    } else {
+      document.getElementById("nome-completo").textContent = "Nessun cliente trovato.";
+      document.getElementById("email").textContent = "";
+      document.getElementById("telefono").textContent = "";
+      document.getElementById("lista-trattamenti").innerHTML = "<tr><td colspan='5'>Nessun trattamento.</td></tr>";
+      aggiornaStatoNavigazione();
+    }
+  } catch (error) {
+    console.error("Errore nel caricamento di tutti i clienti:", error);
+    alert("Errore nel caricamento dei clienti.");
+  }
+}
+
+// Funzione per visualizzare i dettagli di un cliente
+function visualizzaCliente(cliente) {
+  document.getElementById("nome-completo").textContent = `${cliente.nome} ${cliente.cognome}`;
+  document.getElementById("email").textContent = cliente.email;
+  document.getElementById("telefono").textContent = cliente.telefono;
+  caricaTrattamenti(cliente.id); // Carica i trattamenti del cliente visualizzato
+}
+
+// Funzione per caricare i trattamenti di un cliente specifico
+async function caricaTrattamenti(clienteId) {
+  try {
+    const response = await fetch(`/api/clienti/${clienteId}/trattamenti`);
+    if (!response.ok) {
+      throw new Error("Impossibile caricare i trattamenti.");
+    }
+    const trattamenti = await response.json();
+    const listaTrattamentiBody = document.getElementById("lista-trattamenti");
+    listaTrattamentiBody.innerHTML = ""; // Pulisci la lista esistente
+
+    if (trattamenti.length === 0) {
+      listaTrattamentiBody.innerHTML = "<tr><td colspan='5'>Nessun trattamento registrato.</td></tr>";
+      return;
+    }
+
+    trattamenti.forEach(trattamento => {
+      const row = listaTrattamentiBody.insertRow();
+      row.insertCell(0).textContent = trattamento.tipo_trattamento;
+      row.insertCell(1).textContent = trattamento.descrizione;
+      row.insertCell(2).textContent = new Date(trattamento.data_trattamento).toLocaleDateString();
+      row.insertCell(3).textContent = trattamento.note;
+
+      const actionCell = row.insertCell(4);
+      const eliminaBtn = document.createElement("button");
+      eliminaBtn.textContent = "Elimina";
+      eliminaBtn.style.backgroundColor = "red";
+      eliminaBtn.style.color = "white";
+      eliminaBtn.addEventListener("click", () => {
+        if (confirm("Sei sicuro di voler eliminare questo trattamento?")) {
+          eliminaTrattamento(trattamento.id, clienteId);
+        }
+      });
+      actionCell.appendChild(eliminaBtn);
+    });
+  } catch (error) {
+    console.error("Errore nel caricamento dei trattamenti:", error);
+    alert("Errore nel caricamento dei trattamenti.");
+  }
+}
+
+// Funzione per eliminare un trattamento
+async function eliminaTrattamento(trattamentoId, clienteId) {
+  try {
+    const response = await fetch(`/api/trattamenti/${trattamentoId}`, {
+      method: "DELETE"
+    });
+    if (!response.ok) {
+      throw new Error("Errore durante l'eliminazione del trattamento.");
+    }
+    alert("Trattamento eliminato con successo!");
+    caricaTrattamenti(clienteId); // Ricarica i trattamenti del cliente corrente
+  } catch (error) {
+    console.error("Errore durante l'eliminazione del trattamento:", error);
+    alert("Errore durante l'eliminazione del trattamento.");
+  }
+}
+
+// Funzione per eliminare un cliente
+async function eliminaCliente(clienteId) {
+  try {
+    const response = await fetch(`/api/clienti/${clienteId}`, {
+      method: "DELETE"
+    });
+    if (!response.ok) {
+      throw new Error("Errore durante l'eliminazione del cliente.");
+    }
+    alert("Cliente eliminato con successo!");
+    window.location.href = "/lista-clienti.html"; // Torna alla lista clienti
+  } catch (error) {
+    console.error("Errore durante l'eliminazione del cliente:", error);
+    alert("Errore durante l'eliminazione del cliente.");
+  }
+}
+
+// Funzione per navigare tra i clienti (precedente/successivo)
+function navigaClienti(direzione) {
+  indiceClienteCorrente += direzione;
+  if (indiceClienteCorrente < 0) {
+    indiceClienteCorrente = 0;
+  } else if (indiceClienteCorrente >= clientes.length) {
+    indiceClienteCorrente = clientes.length - 1;
+  }
+  visualizzaCliente(clienti[indiceClienteCorrente]);
+  aggiornaStatoNavigazione();
+  // Aggiorna l'URL per riflettere il cliente corrente
+  history.pushState(null, '', `/scheda-cliente.html?id=${clienti[indiceClienteCorrente].id}`);
+}
+
+// Funzione per aggiornare lo stato dei bottoni di navigazione e info paginazione
+function aggiornaStatoNavigazione() {
+  const btnPrecedente = document.getElementById("btnPrecedente");
+  const btnSuccessivo = document.getElementById("btnSuccessivo");
+  const infoPaginazione = document.getElementById("info-paginazione");
+
+  if (clienti.length <= 1) {
+    btnPrecedente.style.display = "none";
+    btnSuccessivo.style.display = "none";
+    infoPaginazione.textContent = "";
+  } else {
+    btnPrecedente.style.display = "inline";
+    btnSuccessivo.style.display = "inline";
+    btnPrecedente.disabled = indiceClienteCorrente === 0;
+    btnSuccessivo.disabled = indiceClienteCorrente === clientes.length - 1;
+    infoPaginazione.textContent = `Cliente ${indiceClienteCorrente + 1} di ${clienti.length}`;
+  }
+}
