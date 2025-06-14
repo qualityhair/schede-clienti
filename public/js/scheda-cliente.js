@@ -1,196 +1,199 @@
-if (!localStorage.getItem("risultatiRicercaClienti")) {
-  localStorage.removeItem("indiceClienteCorrente");
-}
+// scheda-cliente.js
 
-// Estrai ID cliente dall'URL
-const params = new URLSearchParams(window.location.search);
-const clienteId = params.get("id");
+document.addEventListener("DOMContentLoaded", async () => {
+    // Riferimenti agli elementi DOM principali della pagina
+    const nomeCompletoSpan = document.getElementById("nome-completo");
+    const emailSpan = document.getElementById("email");
+    const telefonoSpan = document.getElementById("telefono");
+    const listaTrattamentiBody = document.getElementById("lista-trattamenti"); // Il tbody della tabella dei trattamenti
+    const btnEliminaCliente = document.getElementById("btnEliminaCliente");
 
-// Carica dati cliente e trattamenti
-if (clienteId) {
-  fetch(`/api/clienti/${clienteId}`)
-    .then(res => {
-      if (!res.ok) throw new Error("Cliente non trovato");
-      return res.json();
-    })
-    .then(cliente => mostraCliente(cliente))
-    .catch(err => console.error("Errore caricamento cliente:", err));
+    let clienteId = null; // Variabile per memorizzare l'ID del cliente corrente
 
-  caricaTrattamenti(clienteId);
-}
+    // Funzione per ottenere l'ID cliente dall'URL
+    function getIdCliente() {
+        const params = new URLSearchParams(window.location.search);
+        // La pagina scheda-cliente.html passa l'ID come 'id'
+        return params.get("id"); 
+    }
 
-// Mostra i dati del cliente
-function mostraCliente(cliente) {
-  const nomeEl = document.getElementById("nome-completo");
-  if (nomeEl) nomeEl.innerText = `${cliente.nome} ${cliente.cognome}`;
+    clienteId = getIdCliente();
 
-  const emailEl = document.getElementById("email");
-  if (emailEl) emailEl.innerText = cliente.email;
+    // Se l'ID cliente non è disponibile, mostra un errore e reindirizza
+    if (!clienteId) {
+        showCustomModal("ID cliente mancante nell'URL. Non è possibile caricare la scheda. Verrai reindirizzato alla lista clienti.", 'error', () => {
+            redirectTo('/lista-clienti.html');
+        });
+        return; // Ferma l'esecuzione dello script
+    }
 
-  const telefonoEl = document.getElementById("telefono");
-  if (telefonoEl) telefonoEl.innerText = cliente.telefono;
+    // --- Funzioni di Recupero Dati dal Backend ---
 
-  // Se esiste il form di modifica, precompila i campi
-  const inputNome = document.getElementById("modifica-nome");
-  if (inputNome) inputNome.value = cliente.nome;
+    // Recupera i dettagli del cliente specifico
+    async function fetchClientDetails(id) {
+        try {
+            const response = await fetch(`/api/clienti/${id}`);
+            if (response.status === 401) {
+                // Gestione sessione scaduta/non autorizzato
+                showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
+                    redirectTo('/'); // Reindirizza alla pagina di login
+                });
+                return; // Ferma l'esecuzione
+            }
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Errore HTTP: ${response.status} - ${errorText}`);
+            }
+            const cliente = await response.json();
+            if (cliente) {
+                nomeCompletoSpan.textContent = `${cliente.nome} ${cliente.cognome}`;
+                emailSpan.textContent = cliente.email || 'N/A';
+                telefonoSpan.textContent = cliente.telefono || 'N/A';
+            } else {
+                showCustomModal('Dettagli cliente non trovati per l\'ID specificato.', 'alert', () => {
+                    redirectTo('/lista-clienti.html'); // Torna alla lista se cliente non trovato
+                });
+            }
+        } catch (error) {
+            console.error('Errore nel recupero dettagli cliente:', error);
+            showCustomModal(`Errore nel caricamento dettagli cliente: ${error.message}`, 'error', () => {
+                redirectTo('/lista-clienti.html'); // In caso di errore grave
+            });
+        }
+    }
 
-  const inputCognome = document.getElementById("modifica-cognome");
-  if (inputCognome) inputCognome.value = cliente.cognome;
+    // Recupera tutti i trattamenti associati a questo cliente
+    async function fetchClientTreatments(id) {
+        try {
+            const response = await fetch(`/api/clienti/${id}/trattamenti`);
+            if (response.status === 401) {
+                showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
+                    redirectTo('/');
+                });
+                return;
+            }
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Errore HTTP: ${response.status} - ${errorText}`);
+            }
+            const trattamenti = await response.json();
+            renderTrattamenti(trattamenti); // Passa i trattamenti alla funzione di rendering
+        } catch (error) {
+            console.error('Errore nel recupero trattamenti:', error);
+            showCustomModal(`Errore nel caricamento trattamenti: ${error.message}`, 'error');
+        }
+    }
 
-  const inputEmail = document.getElementById("modifica-email");
-  if (inputEmail) inputEmail.value = cliente.email;
+    // --- Funzione per il Rendering dei Dati ---
 
-  const inputTelefono = document.getElementById("modifica-telefono");
-  if (inputTelefono) inputTelefono.value = cliente.telefono;
+    // Renderizza i trattamenti nella tabella HTML
+    function renderTrattamenti(trattamenti) {
+        listaTrattamentiBody.innerHTML = ''; // Pulisci il corpo della tabella prima di aggiungere nuove righe
 
-  const form = document.getElementById("form-trattamento");
-  if (form) form.dataset.clienteId = cliente.id;
-}
+        if (trattamenti.length === 0) {
+            listaTrattamentiBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">Nessun trattamento registrato per questo cliente.</td></tr>';
+            return;
+        }
 
-const lista = JSON.parse(localStorage.getItem("risultatiRicercaClienti") || "[]");
-const indice = parseInt(localStorage.getItem("indiceClienteCorrente") || "0");
-const info = document.getElementById("info-paginazione");
+        trattamenti.forEach(trattamento => {
+            const tr = document.createElement('tr'); // Crea un nuovo elemento riga della tabella (tr)
+            // Popola l'HTML interno della riga con i dati del trattamento
+            tr.innerHTML = `
+                <td>${trattamento.tipo_trattamento || ''}</td>
+                <td>${trattamento.descrizione || ''}</td>
+                <td>${new Date(trattamento.data_trattamento).toLocaleDateString('it-IT') || ''}</td>
+                <td>${trattamento.note || ''}</td>
+                <td class="action-button-group">
+                    <button onclick="modificaTrattamento(${trattamento.id})" class="edit-treatment-button">✏️ Modifica</button>
+                    <button onclick="eliminaTrattamento(${trattamento.id})" class="delete-treatment-button">🗑️ Elimina</button>
+                </td>
+            `;
+            listaTrattamentiBody.appendChild(tr); // Aggiungi la riga al corpo della tabella
+        });
+    }
 
-if (info) {
-  info.innerText = `Cliente ${indice + 1} di ${lista.length}`;
-}
+    // --- Funzioni per le Azioni (Elimina Trattamento, Elimina Cliente) ---
 
-// Carica la lista trattamenti
-function caricaTrattamenti(clienteId) {
-  fetch(`/api/clienti/${clienteId}/trattamenti`)
-    .then(res => res.json())
-    .then(trattamenti => {
-      const container = document.getElementById("lista-trattamenti");
-      if (!container) return;
+    // Funzione per eliminare un trattamento specifico
+    // Nota: questa funzione è globale e viene chiamata direttamente dall'onclick nel HTML
+    async function eliminaTrattamento(trattamentoId) {
+        showCustomModal('Sei sicuro di voler eliminare questo trattamento?', 'confirm', async (confirmed) => {
+            if (confirmed) {
+                try {
+                    const response = await fetch(`/api/trattamenti/${trattamentoId}`, {
+                        method: 'DELETE'
+                    });
 
-      container.innerHTML = "";
-    trattamenti.forEach(trattamento => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-        <td>${trattamento.tipo_trattamento || ''}</td>
-        <td>${trattamento.descrizione || ''}</td>
-        <td>${new Date(trattamento.data_trattamento).toLocaleDateString('it-IT') || ''}</td>
-        <td>${trattamento.note || ''}</td>
-        <td class="action-button-group">
-            <button onclick="modificaTrattamento(${trattamento.id})" class="edit-treatment-button">✏️ Modifica</button>
-            <button onclick="eliminaTrattamento(${trattamento.id})" class="delete-treatment-button">🗑️ Elimina</button>
-          </td>
-        `;
-        container.appendChild(row);
-      });
-    })
-    .catch(err => console.error("Errore caricamento trattamenti:", err));
-}
+                    if (response.status === 401) {
+                        showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
+                            redirectTo('/');
+                        });
+                        return;
+                    }
 
-// Elimina trattamento
-function eliminaTrattamento(id, clienteId) {
-  if (confirm("Sei sicuro di voler eliminare questo trattamento?")) {
-    fetch(`/api/trattamenti/${id}`, {
-      method: "DELETE"
-    })
-      .then(res => res.text())
-      .then(() => caricaTrattamenti(clienteId));
-  }
-}
+                    if (response.ok) {
+                        showCustomModal('Trattamento eliminato con successo!', 'success', () => {
+                            fetchClientTreatments(clienteId); // Ricarica la lista dei trattamenti dopo l'eliminazione
+                        });
+                    } else {
+                        const errorData = await response.json();
+                        showCustomModal(`Errore durante l'eliminazione del trattamento: ${errorData.message || 'Errore sconosciuto.'}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Errore durante l\'eliminazione del trattamento:', error);
+                    showCustomModal(`Errore di rete o server: ${error.message}`, 'error');
+                }
+            }
+        });
+    }
 
-// Aggiunta trattamento
-const form = document.getElementById("form-trattamento");
-if (form) {
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
+    // Event listener per il bottone 'Elimina Cliente'
+    if (btnEliminaCliente) {
+        btnEliminaCliente.addEventListener('click', () => {
+            showCustomModal('Sei sicuro di voler eliminare questo cliente e TUTTI i suoi trattamenti?', 'confirm', async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        const response = await fetch(`/api/clienti/${clienteId}`, {
+                            method: 'DELETE'
+                        });
 
-    const cliente_id = form.dataset.clienteId;
-    const tipo_trattamento = form.tipo_trattamento.value;
-    const descrizione = form.descrizione.value;
-    const data_trattamento = form.data_trattamento.value;
-    const note = form.note.value;
+                        if (response.status === 401) {
+                            showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
+                                redirectTo('/');
+                            });
+                            return;
+                        }
 
-    fetch('/api/trattamenti', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cliente_id, tipo_trattamento, descrizione, data_trattamento, note })
-    })
-      .then(res => res.text())
-      .then(() => {
-        caricaTrattamenti(cliente_id);
-        form.reset();
-      })
-      .catch(err => {
-        console.error("Errore:", err);
-      });
-  });
-}
+                        if (response.ok) {
+                            showCustomModal('Cliente eliminato con successo!', 'success', () => {
+                                redirectTo('/lista-clienti.html'); // Torna alla lista clienti dopo l'eliminazione
+                            });
+                        } else {
+                            const errorData = await response.json();
+                            showCustomModal(`Errore durante l'eliminazione del cliente: ${errorData.message || 'Errore sconosciuto.'}`, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Errore durante l\'eliminazione del cliente:', error);
+                        showCustomModal(`Errore di rete o server: ${error.message}`, 'error');
+                    }
+                }
+            });
+        });
+    }
 
-// Eliminazione cliente
-const btnElimina = document.getElementById("btnEliminaCliente");
-if (btnElimina) {
-  btnElimina.addEventListener("click", () => {
-    if (!clienteId) return;
+    // --- Esecuzione iniziale al caricamento della pagina ---
+    // Carica i dettagli del cliente e i suoi trattamenti all'avvio della pagina
+    await fetchClientDetails(clienteId);
+    await fetchClientTreatments(clienteId);
+});
 
-    const conferma = confirm("Sei sicuro di voler eliminare questo cliente? L'azione è irreversibile.");
-    if (!conferma) return;
-
-    fetch(`/api/clienti/${clienteId}`, {
-      method: "DELETE"
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Errore nell'eliminazione");
-        alert("Cliente eliminato con successo");
-        window.location.href = "/dashboard.html";
-      })
-      .catch(err => {
-        console.error("Errore durante l'eliminazione del cliente:", err);
-        alert("Errore durante l'eliminazione");
-      });
-  });
-}
-
-// Modifica cliente
-const formModifica = document.getElementById("form-modifica-cliente");
-if (formModifica) {
-  formModifica.addEventListener("submit", (e) => {
-    e.preventDefault();
-
-    const datiAggiornati = {
-      nome: document.getElementById("modifica-nome").value,
-      cognome: document.getElementById("modifica-cognome").value,
-      email: document.getElementById("modifica-email").value,
-      telefono: document.getElementById("modifica-telefono").value,
-    };
-
-    fetch(`/api/clienti/${clienteId}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(datiAggiornati)
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Errore aggiornamento cliente");
-        alert("Cliente aggiornato con successo");
-        window.location.reload();
-      })
-      .catch(err => {
-        console.error("Errore aggiornamento:", err);
-        alert("Errore durante l'aggiornamento del cliente");
-      });
-  });
-}
-
-document.getElementById("btnPrecedente").addEventListener("click", () => cambiaCliente(-1));
-document.getElementById("btnSuccessivo").addEventListener("click", () => cambiaCliente(1));
-
-function cambiaCliente(direzione) {
-  const lista = JSON.parse(localStorage.getItem("risultatiRicercaClienti")) || [];
-  let indice = parseInt(localStorage.getItem("indiceClienteCorrente") || "0");
-
-  indice += direzione;
-
-  if (indice >= 0 && indice < lista.length) {
-    localStorage.setItem("indiceClienteCorrente", indice.toString());
-    window.location.href = `/scheda-cliente.html?id=${lista[indice]}`;
-  }
-}
-
-// Nuova funzione per reindirizzare alla pagina di modifica trattamento
-function vaiModificaTrattamento(idTrattamento, idCliente) {
-  window.location.href = `/modifica-trattamento.html?idTrattamento=${idTrattamento}&idCliente=${idCliente}`;
-}
+// Le funzioni globali showCustomModal, redirectTo, e modificaTrattamento
+// devono essere definite nel blocco <script> in linea di scheda-cliente.html
+// PRIMA che scheda-cliente.js venga caricato.
+// Ad esempio:
+// <script>
+//   function showCustomModal(...) { ... }
+//   function redirectTo(...) { ... }
+//   function modificaTrattamento(trattamentoId) { redirectTo(`/modifica-trattamento.html?id=${trattamentoId}`); }
+// </script>
+// <script src="/js/scheda-cliente.js"></script>
