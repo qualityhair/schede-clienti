@@ -3,6 +3,7 @@ if (!localStorage.getItem("risultatiRicercaClienti")) {
 }
 
 
+
 // Estrai ID cliente dall'URL
 const params = new URLSearchParams(window.location.search);
 const clienteId = params.get("id");
