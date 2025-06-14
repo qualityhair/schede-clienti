@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Scheda Cliente</title>
     <link rel="stylesheet" href="/css/style.css" />
-    <!-- Tailwind CSS CDN - Necessario per la modale e i bottoni, avviso di produzione ignorabile per ora -->
+    <!-- Tailwind CSS CDN - Necessario per la modale e i bottoni -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Stili aggiuntivi per i bottoni Modifica/Elimina all'interno della tabella */
@@ -214,7 +214,6 @@
         }
 
         // Funzione eliminaTrattamento, usata dall'onclick nei bottoni della tabella
-        // Nota: questa è una funzione globale, deve essere definita qui.
         async function eliminaTrattamento(trattamentoId) {
             showCustomModal('Sei sicuro di voler eliminare questo trattamento?', 'confirm', async (confirmed) => {
                 if (confirmed) {
@@ -226,16 +225,10 @@
                         if (response.ok) {
                             showCustomModal('Trattamento eliminato con successo!', 'success', () => {
                                 // Dopo aver eliminato, ricarica i trattamenti per il cliente corrente
-                                // Dobbiamo recuperare l'ID del cliente di nuovo, poiché non è passato qui
-                                const clienteIdFromUrl = getIdCliente(); 
-                                if (clienteIdFromUrl) {
-                                    // Assumiamo che la funzione fetchClientTreatments sia in scheda-cliente.js
-                                    // e che sia disponibile globalmente o richiamata dopo il caricamento di scheda-cliente.js
-                                    // Se non disponibile globalmente, bisognerà rivedere questa parte o la struttura
-                                    window.location.reload(); // Soluzione rapida per ricaricare i trattamenti
-                                } else {
-                                    console.error('ID Cliente non disponibile per ricaricare i trattamenti.');
-                                }
+                                // Si assume che fetchClientTreatments sia definita in scheda-cliente.js
+                                // e che sia chiamata dopo l'eliminazione per aggiornare la tabella.
+                                // Un semplice ricarica pagina (meno efficiente ma funzionale)
+                                window.location.reload(); 
                             });
                         } else if (response.status === 401) {
                             showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
