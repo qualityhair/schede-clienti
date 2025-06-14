@@ -64,16 +64,16 @@ function caricaTrattamenti(clienteId) {
       if (!container) return;
 
       container.innerHTML = "";
-      trattamenti.forEach(t => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${t.tipo_trattamento}</td>
-          <td>${t.descrizione}</td>
-          <td>${new Date(t.data_trattamento).toLocaleDateString()}</td>
-          <td>${t.note || ""}</td>
-          <td>
-            <button onclick="vaiModificaTrattamento(${t.id}, ${clienteId})">✏️ Modifica</button>
-            <button onclick="eliminaTrattamento(${t.id}, ${clienteId})">🗑️ Elimina</button>
+    trattamenti.forEach(trattamento => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td>${trattamento.tipo_trattamento || ''}</td>
+        <td>${trattamento.descrizione || ''}</td>
+        <td>${new Date(trattamento.data_trattamento).toLocaleDateString('it-IT') || ''}</td>
+        <td>${trattamento.note || ''}</td>
+        <td class="action-button-group">
+            <button onclick="modificaTrattamento(${trattamento.id})" class="edit-treatment-button">✏️ Modifica</button>
+            <button onclick="eliminaTrattamento(${trattamento.id})" class="delete-treatment-button">🗑️ Elimina</button>
           </td>
         `;
         container.appendChild(row);
