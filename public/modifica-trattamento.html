@@ -338,7 +338,6 @@
         // Recupera i dettagli di un singolo trattamento per precompilare il form
         async function fetchTrattamentoDetails(id) {
             try {
-                // Nuova rotta API necessaria: GET /api/trattamenti/:id
                 const response = await fetch(`/api/trattamenti/${id}`); 
                 
                 if (response.status === 401) {
@@ -395,7 +394,7 @@
                 tipo_trattamento: tipoTrattamentoSelect.value,
                 descrizione: descrizioneTextarea.value,
                 data_trattamento: dataTrattamentoInput.value,
-                note: noteTextarea.value,
+                note: noteTextarea.value
             };
 
             if (!updatedTreatment.tipo_trattamento || !updatedTreatment.data_trattamento) {
@@ -421,7 +420,9 @@
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(errorData.message || 'Errore durante l\'aggiornamento del trattamento.');
+                    // Non sollevare un nuovo errore qui, gestiscilo direttamente
+                    showCustomModal(`Errore nell'aggiornamento del trattamento: ${errorData.message || 'Errore sconosciuto.'}`, 'error');
+                    return; // Interrompi l'esecuzione
                 }
 
                 const successData = await response.json();
