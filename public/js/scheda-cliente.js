@@ -178,6 +178,7 @@ if (formModifica) {
 }
 
 
+
 document.getElementById("btnPrecedente").addEventListener("click", () => cambiaCliente(-1));
 document.getElementById("btnSuccessivo").addEventListener("click", () => cambiaCliente(1));
 
