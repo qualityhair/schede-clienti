@@ -1,294 +1,77 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Scheda Cliente</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <!-- Tailwind CSS CDN - Necessario per la modale e i bottoni -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Stili aggiuntivi per i bottoni Modifica/Elimina all'interno della tabella */
-        .action-button-group {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            justify-content: center; /* Centra i bottoni */
-        }
-
-        .action-button-group button {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-            white-space: nowrap;
-            margin: 0; /* Annulla i margini esterni predefiniti dei bottoni generali */
-            box-shadow: none; /* Rimuovi l'ombra per i bottoni più piccoli nella tabella */
-        }
-        .action-button-group button:hover {
-            transform: translateY(-1px);
-        }
-
-        .edit-treatment-button {
-            background-color: #007bff; /* Blu per modifica */
-            color: white;
-            border: 1px solid #007bff;
-        }
-        .edit-treatment-button:hover {
-            background-color: #0056b3;
-        }
-
-        .delete-treatment-button {
-            background-color: #dc3545; /* Rosso per elimina */
-            color: white;
-            border: 1px solid #dc3545;
-        }
-        .delete-treatment-button:hover {
-            background-color: #bd2130;
-        }
-
-        /* Stili per la MODALE PERSONALIZZATA */
-        .modal {
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-
-        .modal.open {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-content {
-            background-color: #fff;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            color: #1a1a1a;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .modal-button {
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-        }
-
-        .modal-button.confirm {
-            background-color: #dc3545;
-            color: white;
-            border: none;
-        }
-        .modal-button.confirm:hover {
-            background-color: #bd2130;
-        }
-
-        .modal-button.cancel {
-            background-color: #6c757d;
-            color: white;
-            border: none;
-        }
-        .modal-button.cancel:hover {
-            background-color: #5a6268;
-        }
-        
-        .modal-button.ok {
-            background-color: #1a1a1a;
-            color: #ffcc00;
-            border: none;
-        }
-        .modal-button.ok:hover {
-            background-color: #333333;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scheda Cliente</title>
+  <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
-    <div id="navbar"></div>
+ <div id="navbar"></div>
 
-    <!-- Modale personalizzata per alert e confirm - IMPORTANTE: qui prima degli script -->
-    <div id="customModal" class="modal">
-        <div class="modal-content">
-            <p id="modalMessage" class="text-lg mb-4"></p>
-            <div id="modalButtons" class="modal-buttons">
-                <!-- I bottoni saranno aggiunti qui via JS -->
-            </div>
-        </div>
+  <main class="container">
+    <h1>Scheda Cliente</h1>
+       <div class="scheda">
+      <p><h2><font color= "Olive"><strong> <span id="nome-completo"></strong></font></h2></span></p>
+      <p><strong>Email:</strong> <span id="email"></span></p>
+      <p><strong>Telefono:</strong> <span id="telefono"></span></p>
     </div>
 
-    <!-- Script che definiscono le funzioni globali (showCustomModal, redirectTo, ecc.) -->
-    <!-- IMPORTANTE: Questi devono essere eseguiti PRIMA di scheda-cliente.js e navbar-loader.js -->
-    <script>
-        // Riferimenti al DOM della modale
-        const customModal = document.getElementById('customModal');
-        const modalMessage = document.getElementById('modalMessage');
-        const modalButtons = document.getElementById('modalButtons');
+    <h2>Trattamenti</h2>
+    <table class="trattamenti">
+      <thead>
+        <tr>
+          <th>Tipo</th>
+          <th>Descrizione</th>
+          <th>Data</th>
+          <th>Note</th>
+          <th>Azione</th>
+        </tr>
+      </thead>
+      <tbody id="lista-trattamenti"></tbody>
+    </table>
 
-        // Funzione per mostrare la modale personalizzata (sostituisce alert/confirm)
-        function showCustomModal(message, type = 'alert', onConfirmCallback = null) {
-            modalMessage.textContent = message;
-            modalButtons.innerHTML = '';
+<center><p id="info-paginazione"></p></center>
 
-            if (type === 'confirm') {
-                const confirmBtn = document.createElement('button');
-                confirmBtn.textContent = 'Conferma';
-                confirmBtn.className = 'modal-button confirm';
-                confirmBtn.onclick = () => {
-                    customModal.classList.remove('open');
-                    if (onConfirmCallback) onConfirmCallback(true);
-                };
-                modalButtons.appendChild(confirmBtn);
 
-                const cancelBtn = document.createElement('button');
-                cancelBtn.textContent = 'Annulla';
-                cancelBtn.className = 'modal-button cancel';
-                cancelBtn.onclick = () => {
-                    customModal.classList.remove('open');
-                    if (onConfirmCallback) onConfirmCallback(false);
-                };
-                modalButtons.appendChild(cancelBtn);
-            } else {
-                const okBtn = document.createElement('button');
-                okBtn.textContent = 'OK';
-                okBtn.className = 'modal-button ok';
-                okBtn.onclick = () => {
-                    customModal.classList.remove('open');
-                    if (onConfirmCallback) onConfirmCallback();
-                };
-                modalButtons.appendChild(okBtn);
-            }
-            customModal.classList.add('open');
-        }
+<div id="navigazione-clienti" style="margin-top: 20px; text-align: center;">
+  <button id="btnPrecedente">⬅️ Indietro</button>
+  <button id="btnSuccessivo">Avanti ➡️</button>
+</div>
 
-        // Funzione di utilità per reindirizzare la pagina
-        function redirectTo(path) {
-            window.location.href = path;
-        }
 
-        // Funzioni per la navigazione e gestione cliente (già presenti nel tuo HTML originale)
-        function getIdCliente() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get("id");
-        }
 
-        function vaiAggiungiTrattamento() {
-            const id = getIdCliente();
-            window.location.href = `/aggiungi-trattamento.html?id=${id}`;
-        }
 
-        function vaiModificaCliente() {
-            const id = getIdCliente();
-            window.location.href = `/modifica-cliente.html?id=${id}`;
-        }
+<!-- Al posto dei due form -->
+<div style="margin-top: 2rem;">
+  <button onclick="vaiAggiungiTrattamento()">➕ Aggiungi Trattamento</button>
+  <button onclick="vaiModificaCliente()">✏️ Modifica Cliente</button>
+</div>
 
-        // Funzione per reindirizzare alla pagina di modifica trattamento
-        function modificaTrattamento(trattamentoId) {
-            redirectTo(`/modifica-trattamento.html?id=${trattamentoId}`); // Passa l'ID come 'id'
-        }
+<button id="btnEliminaCliente" style="background-color: red; color: white; margin-top: 1rem;">
+  Elimina Cliente
+</button>
 
-        // Funzione eliminaTrattamento, usata dall'onclick nei bottoni della tabella
-        async function eliminaTrattamento(trattamentoId) {
-            showCustomModal('Sei sicuro di voler eliminare questo trattamento?', 'confirm', async (confirmed) => {
-                if (confirmed) {
-                    try {
-                        const response = await fetch(`/api/trattamenti/${trattamentoId}`, {
-                            method: 'DELETE'
-                        });
+  </main>
 
-                        if (response.ok) {
-                            showCustomModal('Trattamento eliminato con successo!', 'success', () => {
-                                // Dopo aver eliminato, ricarica i trattamenti per il cliente corrente
-                                // Si assume che fetchClientTreatments sia definita in scheda-cliente.js
-                                // e che sia chiamata dopo l'eliminazione per aggiornare la tabella.
-                                // Un semplice ricarica pagina (meno efficiente ma funzionale)
-                                window.location.reload(); 
-                            });
-                        } else if (response.status === 401) {
-                            showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
-                                redirectTo('/');
-                            });
-                        } else {
-                            const errorData = await response.json();
-                            showCustomModal(`Errore durante l'eliminazione del trattamento: ${errorData.message || 'Errore sconosciuto.'}`, 'error');
-                        }
-                    } catch (error) {
-                        console.error('Errore durante l\'eliminazione del trattamento:', error);
-                        showCustomModal(`Errore di rete o server: ${error.message}`, 'error');
-                    }
-                }
-            });
-        }
-    </script>
+  <script src="/js/scheda-cliente.js"></script>
+  <script src="/js/navbar-loader.js"></script>
+<script>
+  function getIdCliente() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("id");
+  }
 
-    <main class="container">
-        <h1>Scheda Cliente</h1>
-        <div class="scheda">
-            <p><h2><font color="Olive"><strong> <span id="nome-completo"></span></strong></font></h2></p>
-            <p><strong>Email:</strong> <span id="email"></span></p>
-            <p><strong>Telefono:</strong> <span id="telefono"></span></p>
-        </div>
+  function vaiAggiungiTrattamento() {
+    const id = getIdCliente();
+    window.location.href = `/aggiungi-trattamento.html?id=${id}`;
+  }
 
-        <h2>Trattamenti e Servizi</h2>
-        <table class="trattamenti">
-            <thead>
-                <tr>
-                    <th>Tipo</th>
-                    <th>Descrizione</th>
-                    <th>Data</th>
-                    <th>Note</th>
-                    <th>Azione</th>
-                </tr>
-            </thead>
-            <tbody id="lista-trattamenti"></tbody>
-        </table>
+  function vaiModificaCliente() {
+    const id = getIdCliente();
+    window.location.href = `/modifica-cliente.html?id=${id}`;
+  }
+</script>
 
-        <center><p id="info-paginazione"></p></center>
-
-        <div id="navigazione-clienti" style="margin-top: 20px; text-align: center;">
-            <button id="btnPrecedente">⬅️ Indietro</button>
-            <button id="btnSuccessivo">Avanti ➡️</button>
-        </div>
-
-        <!-- Al posto dei due form -->
-        <div style="margin-top: 2rem;">
-            <button onclick="vaiAggiungiTrattamento()">➕ Aggiungi Trattamento</button>
-            <button onclick="vaiModificaCliente()">✏️ Modifica Cliente</button>
-        </div>
-
-        <button id="btnEliminaCliente" style="background-color: red; color: white; margin-top: 1rem;">
-            Elimina Cliente
-        </button>
-    </main>
-
-    <!-- Caricamento degli script esterni DOPO le definizioni delle funzioni globali -->
-    <script src="/js/navbar-loader.js"></script>
-    <script src="/js/scheda-cliente.js"></script>
 </body>
 </html>
