@@ -1,128 +1,350 @@
+/* Stili Generali - Consolidati dalla tua aggiungi-trattamento.html */
 body {
-  font-family: Arial, sans-serif;
-  background: url('/img/sfondo.jpg') no-repeat center center fixed;
-  background-size: cover;
-  margin: 0;
-  padding: 0;
+    font-family: 'Inter', sans-serif; /* Preferisco Inter, se disponibile, altrimenti Arial */
+    background-color: #1a1a1a; /* Sfondo nero molto scuro */
+    color: #fefefe; /* Testo bianco */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 1rem;
+    box-sizing: border-box;
+    /* Rimosso background-image per coerenza con il nuovo tema scuro */
 }
 
 .container {
-  background: rgba(255, 255, 255, 0.9);
-  margin: 2rem auto;
-  padding: 2rem;
-  max-width: 800px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px #333;
+    background-color: #ffcc00; /* Giallo brillante per il container principale */
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 600px; /* Larghezza massima per il form */
+    margin-top: 20px;
+    color: #1a1a1a; /* Testo nero sul container giallo */
+    /* Rimosso margin: 2rem auto; per coerenza con flexbox body */
+    /* Rimosso max-width: 800px; per coerenza con 600px specifico per form */
+    /* Rimosso border-radius: 8px; perché già 12px più grande */
+    /* Rimosso box-shadow: 0 0 10px #333; per usare shadow più scuro */
 }
 
+h1 {
+    color: #1a1a1a; /* Nero sul container giallo */
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2.5rem; /* Dimensione del titolo */
+    font-weight: bold;
+}
+
+/* Stili per il form */
+.form-group {
+    margin-bottom: 1.5rem; /* Aumentato il margine tra i gruppi */
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #1a1a1a;
+}
+
+.input-field, .select-field, .textarea-field {
+    border: 1px solid #333333;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    color: #1a1a1a;
+    background-color: #fefefe;
+}
+.input-field:focus, .select-field:focus, .textarea-field:focus {
+    border-color: #ff9900;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.3);
+}
+
+/* Stili specifici per textarea */
+.textarea-field {
+    min-height: 100px; /* Altezza minima per le aree di testo */
+    resize: vertical; /* Permette solo il ridimensionamento verticale */
+}
+
+/* Stili per i bottoni */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    width: 100%; /* Larghezza piena */
+}
+
+.btn-primary {
+    background-color: #1a1a1a; /* Nero */
+    color: #ffcc00; /* Giallo */
+    border: none;
+    margin-top: 1.5rem; /* Aggiungo un po' di margine superiore per separarlo dal form-group */
+}
+.btn-primary:hover {
+    background-color: #333333;
+    transform: translateY(-2px);
+}
+
+.btn-secondary { /* Nuovo stile per il bottone Annulla/Torna */
+    background-color: #6c757d; /* Grigio scuro */
+    color: white;
+    border: none;
+    margin-top: 1rem; /* Margine per separarlo dal bottone primario */
+}
+.btn-secondary:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
+}
+
+
+/* Stili per la Navbar (Consolidati - preferito lo stile di aggiungi-trattamento.html) */
 .navbar {
-  background-color: #000;
-  color: #fff;
-  padding: 1rem;
-  display: flex;
-  gap: 1rem;
+    background-color: #f8f8f8; /* Giallo brillante */
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 1200px; /* Larghezza massima per la navbar */
 }
 
-.navbar a {
-  color: yellow;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-trattamenti,
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
-
-th, td {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  text-align: left;
-}
-
-form input, form button {
-  margin: 0.5rem 0;
-  padding: 0.5rem;
-  width: 100%;
-  box-sizing: border-box;
-}
-.navbar {
-  background-color: #f1c40f; /* Giallo */
-  padding: 1em;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
 .navbar h1 {
-  margin: 0;
-  color: #000;
+    color: #333;
+    margin: 0;
+    font-size: 1.8rem;
+    text-align: left; /* Assicurati che il titolo della navbar non sia centrato */
 }
+
 .navbar ul {
-  list-style: none;
-  display: flex;
-  gap: 1em;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 1.5rem;
 }
-.navbar ul li a {
-  text-decoration: none;
-  color: #000;
-  font-weight: bold;
+
+.navbar li a {
+    text-decoration: none;
+    color: #555;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: color 0.3s ease;
+    border-radius: 6px;
 }
-.navbar ul li a:hover {
-  text-decoration: underline;
+
+.navbar li a:hover {
+    color: #007bff; /* Potresti volerlo cambiare per rimanere nel tema giallo/nero, es. #ffcc00 */
 }
+
+.navbar-btn {
+    background-color: #007bff; /* Blu, potresti volerlo cambiare a #1a1a1a con testo giallo */
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-weight: 600;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+    min-width: 100px;
+}
+
+.navbar-btn:hover {
+    background-color: #0056b3; /* Blu scuro */
+    transform: translateY(-1px);
+}
+
+/* Stili specifici per i bottoni di ricerca/nuovo cliente (mantenuti dal tuo style.css originale) */
 #btnCerca,
 #btnNuovoCliente,
 #btnListaClienti {
-  background: linear-gradient(135deg, #ffd700, #ffb300);
-  color: #000000;
-  border: none;
-  padding: 1.2rem 2.5rem;
-  font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
-  font-size: 1.1rem;
-  font-weight: 700;
-  border-radius: 50px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 
-    0 10px 25px rgba(255, 215, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 0 20px rgba(255, 215, 0, 0.2);
-  position: relative;
-  overflow: hidden;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  min-width: 200px;
-  border: 2px solid rgba(255, 215, 0, 0.3);
+    background: linear-gradient(135deg, #ffd700, #ffb300);
+    color: #000000;
+    border: none;
+    padding: 1.2rem 2.5rem;
+    /* Font family potrebbe causare problemi se non disponibile su tutti i sistemi */
+    font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 10px 25px rgba(255, 215, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        0 0 20px rgba(255, 215, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    min-width: 200px;
+    border: 2px solid rgba(255, 215, 0, 0.3);
 }
 
 #btnListaClienti::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-  transition: left 0.5s ease;
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.5s ease;
 }
 
 #btnListaClienti:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 
-    0 20px 40px rgba(255, 215, 0, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 0 40px rgba(255, 215, 0, 0.4);
-  background: linear-gradient(135deg, #ffeb3b, #ffc107);
-  color: #000000;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow:
+        0 20px 40px rgba(255, 215, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 0 40px rgba(255, 215, 0, 0.4);
+    background: linear-gradient(135deg, #ffeb3b, #ffc107);
+    color: #000000;
 }
 
 #btnListaClienti:hover::before {
-  left: 100%;
+    left: 100%;
 }
 
 #btnListaClienti:active {
-  transform: translateY(-1px) scale(1.02);
-  transition: all 0.1s ease;
+    transform: translateY(-1px) scale(1.02);
+    transition: all 0.1s ease;
 }
+
+/* Responsive per la Navbar */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 1rem;
+    }
+
+    .navbar ul {
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        margin-top: 1rem;
+    }
+
+    .navbar li {
+        width: 100%;
+    }
+
+    .navbar li a,
+    .navbar-btn {
+        width: 100%;
+        text-align: center;
+        padding: 0.8rem;
+    }
+}
+
+/* MODALE PERSONALIZZATA (dal tuo aggiungi-trattamento.html) */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    color: #1a1a1a;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.modal-button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.modal-button.confirm {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+}
+.modal-button.confirm:hover {
+    background-color: #bd2130;
+}
+
+.modal-button.cancel {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+}
+.modal-button.cancel:hover {
+    background-color: #5a6268;
+}
+
+.modal-button.ok {
+    background-color: #1a1a1a;
+    color: #ffcc00;
+    border: none;
+}
+.modal-button.ok:hover {
+    background-color: #333333;
+}
+
+/* Responsive per il container del form */
+@media (max-width: 480px) {
+    .container {
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: none;
+    }
+    h1 {
+        font-size: 2rem;
+    }
+    .input-field, .select-field, .textarea-field, .btn {
+        padding: 0.75rem;
+    }
+}
+
+/* Pulizia: questi stili sembrano essere obsoleti o sovrascritti */
+/* table, th, td (se non usi tabelle in queste pagine, puoi rimuoverli o gestirli separatamente) */
+/* form input, form button (già gestiti da .input-field, .btn ecc.) */
