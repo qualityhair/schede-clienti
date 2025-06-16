@@ -412,6 +412,7 @@ h1 {
     text-transform: uppercase; /* Rende il nome in maiuscolo per evidenziarlo */
     letter-spacing: 1px; /* Spaziatura leggera tra le lettere */
 }
+
 /* Pulizia: questi stili sembrano essere obsoleti o sovrascritti */
 /* table, th, td (se non usi tabelle in queste pagine, puoi rimuoverli o gestirli separatamente) */
 /* form input, form button (già gestiti da .input-field, .btn ecc.) */
