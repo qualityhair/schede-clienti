@@ -345,6 +345,54 @@ h1 {
     }
 }
 
+
+/* Modifiche per la tabella trattamenti */
+.trattamenti-table {
+    width: 100%; /* La tabella occuperà tutta la larghezza disponibile del container */
+    max-width: 900px; /* Imposta una larghezza massima maggiore se il tuo .container lo permette */
+    /* Se il .container è 600px, impostare 900px qui non avrà effetto a meno che non allarghi il container */
+    border-collapse: collapse;
+    margin-bottom: 4px; /* Lascia un po' di spazio sotto la tabella */
+}
+
+.trattamenti-table th, .trattamenti-table td {
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    text-align: left;
+    color: #1a1a1a; /* Testo nero per leggibilità */
+}
+
+.trattamenti-table thead tr {
+    background-color: #f0f0f0; /* Sfondo dell'intestazione della tabella */
+}
+
+/* Stile per i campi in bianco */
+.trattamenti-table tbody td {
+    background-color: white; /* Rende i campi del corpo tabella bianchi */
+    color: #1a1a1a; /* Assicura che il testo sia nero sul bianco */
+}
+
+.trattamenti-table tbody tr:nth-child(even) td {
+    background-color: #fefefe; /* Un bianco leggermente diverso per le righe pari, se vuoi un effetto zebra sottile */
+}
+
+.trattamenti-table tbody tr:hover td {
+    background-color: #ffe066; /* Giallo chiaro al hover sulla riga */
+}
+
+/* Assicurati che i tuoi stili esistenti per:
+   body, .container, h1, .form-group, .form-label,
+   .input-field, .select-field, .textarea-field, .btn,
+   .btn-primary, .btn-secondary, .navbar, .navbar h1,
+   .navbar ul, .navbar li a, .navbar-btn, #btnCerca,
+   #btnNuovoCliente, #btnListaClienti, .modal,
+   .modal-content, .modal-buttons, .modal-button,
+   .modal-button.confirm, .modal-button.cancel,
+   .modal-button.ok, .btn-confirm (se lo hai aggiunto)
+   siano presenti e non vengano modificati da questo blocco.
+*/
+
+
 /* Pulizia: questi stili sembrano essere obsoleti o sovrascritti */
 /* table, th, td (se non usi tabelle in queste pagine, puoi rimuoverli o gestirli separatamente) */
 /* form input, form button (già gestiti da .input-field, .btn ecc.) */
