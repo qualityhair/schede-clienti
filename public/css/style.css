@@ -381,7 +381,37 @@ h1 {
     background-color: #ffe066; /* Giallo chiaro al hover sulla riga */
 }
 
+---
+/* Stili per il blocco dati del cliente in scheda-cliente.html */
+.scheda-cliente-details {
+    background-color: #1a1a1a; /* Sfondo nero */
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    padding: 1.8rem 2.5rem; /* Aumentato il padding per un look più spazioso */
+    margin-bottom: 2rem; /* Spazio sotto il blocco */
+    color: #fefefe; /* Testo generale bianco o grigio chiaro */
+    text-align: center; /* Centra il testo nel blocco */
+}
 
+.scheda-cliente-details p {
+    margin-bottom: 0.8rem; /* Spazio tra le righe */
+    font-size: 1.1rem;
+}
+
+.scheda-cliente-details p:last-child {
+    margin-bottom: 0; /* Nessun margine sotto l'ultimo paragrafo */
+}
+
+/* Stile specifico per il Nome e Cognome del cliente */
+#nome-completo {
+    color: #ffcc00; /* Giallo brillante */
+    font-size: 2.2rem; /* Dimensione maggiore per il nome */
+    font-weight: 700; /* Molto più spesso */
+    display: block; /* Assicura che prenda una nuova riga e possa avere margini verticali */
+    margin-bottom: 1rem; /* Spazio sotto il nome */
+    text-transform: uppercase; /* Rende il nome in maiuscolo per evidenziarlo */
+    letter-spacing: 1px; /* Spaziatura leggera tra le lettere */
+}
 /* Pulizia: questi stili sembrano essere obsoleti o sovrascritti */
 /* table, th, td (se non usi tabelle in queste pagine, puoi rimuoverli o gestirli separatamente) */
 /* form input, form button (già gestiti da .input-field, .btn ecc.) */
