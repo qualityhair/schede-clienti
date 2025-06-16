@@ -104,18 +104,37 @@ async function fetchTrattamentoDetails(id) {
 
             // Memorizza l'ID del cliente per il reindirizzamento
             clienteId = trattamento.cliente_id;
-            pageTitle.textContent = `Modifica Trattamento per ${trattamento.tipo_trattamento}`; // Aggiorna il titolo della pagina
+            // pageTitle.textContent = `Modifica Trattamento per ${trattamento.tipo_trattamento}`; // Vecchia riga
 
-            // Aggiorna anche il testo del bottone "Annulla e Torna"
+            // ** LA TUA MODIFICA ESATTA È QUI **
+            // Ho spostato e modificato la logica del pageTitle qui
+            // per usare il nome del cliente recuperato per il bottone
             if (clienteId) {
                 const clientResponse = await fetch(`/api/clienti/${clienteId}`);
                 if (clientResponse.ok) {
                     const clientData = await clientResponse.json();
                     if (clientData && clientData.nome && clientData.cognome) {
+                        // Aggiorna il titolo della pagina
+                        pageTitle.textContent = `Modifica Servizio di ${clientData.nome} ${clientData.cognome}`;
+                        // Aggiorna anche il testo del bottone "Annulla e Torna"
                         backToSchedaBtn.textContent = `Annulla e Torna alla scheda di ${clientData.nome} ${clientData.cognome}`;
+                    } else {
+                        // Fallback per il titolo se il nome del cliente non è disponibile
+                        pageTitle.textContent = `Modifica Servizio`;
+                        backToSchedaBtn.textContent = `Annulla e Torna alla Lista Clienti`;
                     }
+                } else {
+                    // Fallback per il titolo se la chiamata al cliente fallisce
+                    pageTitle.textContent = `Modifica Servizio`;
+                    backToSchedaBtn.textContent = `Annulla e Torna alla Lista Clienti`;
                 }
+            } else {
+                // Fallback per il titolo se clienteId non è disponibile
+                pageTitle.textContent = `Modifica Servizio`;
+                backToSchedaBtn.textContent = `Annulla e Torna alla Lista Clienti`;
             }
+
+
         } else {
             showCustomModal('Trattamento non trovato.', 'alert', () => {
                 redirectTo('/lista-clienti.html');
