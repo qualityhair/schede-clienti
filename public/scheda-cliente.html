@@ -6,6 +6,284 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Scheda Cliente</title>
   <link rel="stylesheet" href="/css/style.css?v=<%= new Date().getTime() %>" />
+
+    <style>
+        /* Stili generali coerenti con il tema giallo e nero */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a; /* Sfondo nero molto scuro */
+            color: #fefefe; /* Testo bianco */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: #ffcc00; /* Giallo brillante per il container principale */
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 600px; /* Larghezza massima per il form */
+            margin-top: 20px;
+            color: #1a1a1a; /* Testo nero sul container giallo */
+        }
+
+        h1 {
+            color: #1a1a1a;
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem; /* Dimensione del titolo */
+            font-weight: bold;
+        }
+
+        /* Stili per il form */
+        .form-group {
+            margin-bottom: 1.5rem; /* Aumentato il margine tra i gruppi */
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+
+        .input-field, .select-field, .textarea-field {
+            border: 1px solid #333333;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            color: #1a1a1a;
+            background-color: #fefefe;
+        }
+        .input-field:focus, .select-field:focus, .textarea-field:focus {
+            border-color: #ff9900;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.3);
+        }
+
+        /* Stili specifici per textarea */
+        .textarea-field {
+            min-height: 100px; /* Altezza minima per le aree di testo */
+            resize: vertical; /* Permette solo il ridimensionamento verticale */
+        }
+
+        /* Stili per i bottoni */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            width: 100%; /* Larghezza piena */
+        }
+
+        .btn-primary {
+            background-color: #1a1a1a; /* Nero */
+            color: #ffcc00; /* Giallo */
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #333333;
+            transform: translateY(-2px);
+        }
+
+        /* Stili per la Navbar (copiati da dashboard.html, se usata) */
+        /* Nota: Se la navbar è caricata da navbar-loader.js, questi stili potrebbero essere in style.css */
+        /* Li ho inclusi qui per completezza ma se hai un file CSS esterno puoi rimuoverli */
+        .navbar {
+            background-color: #f8f8f8;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .navbar h1 {
+            color: #333;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .navbar ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .navbar li a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            transition: color 0.3s ease;
+            border-radius: 6px;
+        }
+
+        .navbar li a:hover {
+            color: #007bff;
+        }
+
+        .navbar-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-weight: 600;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            font-size: 0.9rem;
+            padding: 0.6rem 1rem;
+            min-width: 100px;
+        }
+
+        .navbar-btn:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        /* Stili per il responsive design della navbar */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem;
+            }
+
+            .navbar ul {
+                flex-direction: column;
+                gap: 0.5rem;
+                width: 100%;
+                margin-top: 1rem;
+            }
+
+            .navbar li {
+                width: 100%;
+            }
+
+            .navbar li a,
+            .navbar-btn {
+                width: 100%;
+                text-align: center;
+                padding: 0.8rem;
+            }
+        }
+
+        /* MODALE PERSONALIZZATA (copiata da lista-clienti.html) */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            color: #1a1a1a;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .modal-button.confirm {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+        }
+        .modal-button.confirm:hover {
+            background-color: #bd2130;
+        }
+
+        .modal-button.cancel {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+        }
+        .modal-button.cancel:hover {
+            background-color: #5a6268;
+        }
+        
+        .modal-button.ok {
+            background-color: #1a1a1a;
+            color: #ffcc00;
+            border: none;
+        }
+        .modal-button.ok:hover {
+            background-color: #333333;
+        }
+
+        /* Responsive per il container del form */
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+                border-radius: 8px;
+                box-shadow: none;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .input-field, .select-field, .textarea-field, .btn {
+                padding: 0.75rem;
+            }
+        }
+    </style>
+
+
+
 </head>
 <body>
  <div id="navbar"></div>
