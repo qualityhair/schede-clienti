@@ -60,28 +60,34 @@ if (info) {
 
 // Carica la lista trattamenti
 function caricaTrattamenti(clienteId) {
-  fetch(`/api/clienti/${clienteId}/trattamenti`)
-    .then(res => res.json())
-    .then(trattamenti => {
-      const container = document.getElementById("lista-trattamenti");
-      if (!container) return;
+    fetch(`/api/clienti/${clienteId}/trattamenti`)
+        .then(res => res.json())
+        .then(trattamenti => {
+            const container = document.getElementById("lista-trattamenti");
+            if (!container) return;
 
-      container.innerHTML = "";
-      trattamenti.forEach(t => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${t.tipo_trattamento}</td>
-          <td>${t.descrizione}</td>
-          <td>${new Date(t.data_trattamento).toLocaleDateString()}</td>
-          <td>${t.note || ""}</td>
-          <td>
-            <button onclick="eliminaTrattamento(${t.id}, ${clienteId})">Elimina</button>
-          </td>
-        `;
-        container.appendChild(row);
-      });
-    })
-    .catch(err => console.error("Errore caricamento trattamenti:", err));
+            container.innerHTML = "";
+            trattamenti.forEach(t => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${t.tipo_trattamento}</td>
+                    <td>${t.descrizione}</td>
+                    <td>${new Date(t.data_trattamento).toLocaleDateString()}</td>
+                    <td>${t.note || ""}</td>
+                    <td>
+                        <button onclick="modificaTrattamento(${t.id})">Modifica</button>
+                        <button onclick="eliminaTrattamento(${t.id}, ${clienteId})">Elimina</button>
+                    </td>
+                `;
+                container.appendChild(row);
+            });
+        })
+        .catch(err => console.error("Errore caricamento trattamenti:", err));
+}
+
+// Aggiungi questa nuova funzione in scheda-cliente.js
+function modificaTrattamento(trattamentoId) {
+    window.location.href = `/modifica-trattamento.html?id=${trattamentoId}`;
 }
 
 // Elimina trattamento
