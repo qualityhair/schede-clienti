@@ -159,32 +159,7 @@ h1 {
     transition: all 0.1s ease;
 }
 
-/* Responsive per la Navbar */
-@media (max-width: 768px) {
-    .navbar {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 1rem;
-    }
 
-    .navbar ul {
-        flex-direction: column;
-        gap: 0.5rem;
-        width: 100%;
-        margin-top: 1rem;
-    }
-
-    .navbar li {
-        width: 100%;
-    }
-
-    .navbar li a,
-    .navbar-btn {
-        width: 100%;
-        text-align: center;
-        padding: 0.8rem;
-    }
-}
 
 /* MODALE PERSONALIZZATA */
 .modal {
@@ -342,4 +317,101 @@ h1 {
     letter-spacing: normal; /* Rimosso letter-spacing */
     text-align: left; /* Allineato a sinistra */
     font-family: 'Great Vibes', cursive; /* NUOVO FONT: Great Vibes, con fallback generico cursive */
+}
+
+/* --- Stili per la Navbar (da aggiungere a style.css) --- */
+.main-navbar {
+    background-color: #34495e; /* Un blu-grigio scuro, coerente ma distinto */
+    color: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3); /* Ombra più pronunciata per staccare */
+    font-family: 'Arial', sans-serif;
+    position: sticky; /* Rende la navbar "appiccicosa" in cima allo scroll */
+    top: 0;
+    width: 100%;
+    z-index: 999; /* Assicura che sia sempre sopra gli altri contenuti */
+    box-sizing: border-box; /* Include padding nel calcolo della larghezza */
+}
+
+.navbar-brand h1 {
+    margin: 0;
+    font-size: 2em; /* Titolo più grande */
+    font-weight: bold;
+    color: #ecf0f1; /* Colore leggermente più chiaro per il testo */
+}
+
+.navbar-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 35px; /* Più spazio tra i link */
+}
+
+.navbar-links li a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.15em; /* Testo leggermente più grande */
+    padding: 8px 12px; /* Aggiungi padding per aree cliccabili */
+    border-radius: 5px; /* Bordi leggermente arrotondati */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar-links li a:hover {
+    background-color: rgba(255,255,255,0.15); /* Sfondo leggero al hover */
+    color: #ecf0f1;
+}
+
+.navbar-btn {
+    background-color: #2ecc71; /* Verde coerente con i bottoni della dashboard */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.05em;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.navbar-btn:hover {
+    background-color: #27ae60; /* Verde più scuro al passaggio del mouse */
+    transform: translateY(-1px); /* Piccolo effetto "sollevamento" */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Media Queries per la responsività della navbar */
+@media (max-width: 768px) {
+    .main-navbar {
+        flex-direction: column;
+        padding: 10px 20px;
+        text-align: center;
+    }
+
+    .navbar-brand {
+        margin-bottom: 15px;
+    }
+
+    .navbar-links {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%; /* I link occupano tutta la larghezza */
+        margin-bottom: 15px;
+    }
+
+    .navbar-links li {
+        width: 100%;
+    }
+
+    .navbar-links li a,
+    .navbar-btn {
+        display: block; /* Rende i link e i bottoni blocchi per occupare la larghezza */
+        width: calc(100% - 20px); /* Larghezza completa con padding */
+        padding: 12px 10px;
+        text-align: center;
+    }
 }
