@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Rimuove il messaggio dopo 3 secondi
         setTimeout(() => {
             messageDiv.remove();
-        }, 3000);
+        }, 10000);
     }
 
 
