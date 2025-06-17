@@ -158,7 +158,8 @@ font-size: 3.5rem;
 
    #btnListaClienti,
     #btnCerca,
-#btnNuovoCliente {
+    #btnMusic,
+    #btnNuovoCliente {
       background: linear-gradient(135deg, #ffd700, #ffb300);
       color: #000000;
       border: none;
@@ -180,7 +181,9 @@ font-size: 3.5rem;
       min-width: 200px;
       border: 2px solid rgba(255, 215, 0, 0.3);
     }
-
+   
+#btnListaClienti::before,
+   #btnMusic::before,
     #btnCerca::before,
 #btnNuovoCliente::before {
       content: '';
@@ -193,6 +196,8 @@ font-size: 3.5rem;
       transition: left 0.5s ease;
     }
 
+#btnListaClienti:hover
+   #btnMusic:hover
     #btnCerca:hover,
 #btnNuovoCliente:hover {
       transform: translateY(-3px) scale(1.05);
