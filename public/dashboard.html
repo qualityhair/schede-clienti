@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard - QualityHair</title>
- 
 
- <style>
+  <style>
+    /* Stili Generali dalla tua dashboard.html originale */
     * {
       margin: 0;
       padding: 0;
@@ -19,6 +19,11 @@
       background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
       position: relative;
       overflow-x: hidden;
+      display: flex;
+      flex-direction: column; /* Cambiato a column per i titoli sopra la griglia */
+      align-items: center; /* Centra orizzontalmente tutto il contenuto del body */
+      justify-content: flex-start; /* Allinea il contenuto in alto */
+      padding: 2rem;
     }
 
     /* Sfondo animato con particelle */
@@ -29,7 +34,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background-image: 
+      background-image:
         radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, rgba(255, 193, 7, 0.08) 0%, transparent 50%),
         radial-gradient(circle at 40% 40%, rgba(255, 235, 59, 0.06) 0%, transparent 50%);
@@ -43,182 +48,6 @@
       66% { transform: translateY(15px) rotate(-1deg); }
     }
 
-    /* Effetto glassmorphism per la navbar */
-    #navbar {
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      background: rgba(0, 0, 0, 0.3);
-      border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-
-    .dashboard {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 2rem;
-      position: relative;
-    }
-
-    .overlay {
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-radius: 30px;
-      padding: 4rem 3rem;
-      border: 2px solid rgba(255, 215, 0, 0.3);
-      box-shadow: 
-        0 25px 50px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(255, 215, 0, 0.2),
-        0 0 60px rgba(255, 215, 0, 0.1);
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s ease;
-      animation: slideUp 1s ease-out;
-    }
-
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(50px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .overlay::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: linear-gradient(45deg, transparent 30%, rgba(255, 215, 0, 0.1) 50%, transparent 70%);
-      transform: rotate(45deg);
-      transition: all 0.6s ease;
-      opacity: 0;
-    }
-
-    .overlay:hover::before {
-      opacity: 1;
-      animation: shimmer 1.5s ease-in-out;
-    }
-
-    @keyframes shimmer {
-      0% { transform: translateX(-100%) rotate(45deg); }
-      100% { transform: translateX(100%) rotate(45deg); }
-    }
-
-    .overlay:hover {
-      transform: translateY(-10px);
-      box-shadow: 
-        0 35px 70px rgba(0, 0, 0, 0.6),
-        inset 0 1px 0 rgba(255, 215, 0, 0.3),
-        0 0 80px rgba(255, 215, 0, 0.2);
-    }
-
-    .brand-title {
-font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;      
-font-size: 3.5rem;
-      font-weight: 900;
-      background: linear-gradient(135deg, #ffd700, #ffeb3b);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.5rem;
-      text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-      animation: glow 2s ease-in-out infinite alternate;
-    }
-
-    @keyframes glow {
-      from { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5)); }
-      to { filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8)); }
-    }
-
-    .brand-subtitle {
-      font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
-      font-size: 1.4rem;
-      color: rgba(255, 215, 0, 0.9);
-      font-style: italic;
-      margin-bottom: 2.5rem;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-      animation: fadeIn 1.5s ease-out 0.5s both;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-   #btnListaClienti,
-    #btnCerca,
-    #btnMusic,
-    #btnNuovoCliente {
-      background: linear-gradient(135deg, #ffd700, #ffb300);
-      color: #000000;
-      border: none;
-      padding: 1.2rem 2.5rem;
-      font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
-      font-size: 1.1rem;
-      font-weight: 700;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 
-        0 10px 25px rgba(255, 215, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3),
-        0 0 20px rgba(255, 215, 0, 0.2);
-      position: relative;
-      overflow: hidden;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      min-width: 200px;
-      border: 2px solid rgba(255, 215, 0, 0.3);
-    }
-   
-#btnListaClienti::before,
-   #btnMusic::before,
-    #btnCerca::before,
-#btnNuovoCliente::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-      transition: left 0.5s ease;
-    }
-
-#btnListaClienti:hover
-   #btnMusic:hover
-    #btnCerca:hover,
-#btnNuovoCliente:hover {
-      transform: translateY(-3px) scale(1.05);
-      box-shadow: 
-        0 20px 40px rgba(255, 215, 0, 0.6),
-        inset 0 1px 0 rgba(255, 255, 255, 0.4),
-        0 0 40px rgba(255, 215, 0, 0.4);
-      background: linear-gradient(135deg, #ffeb3b, #ffc107);
-      color: #000000;
-    }
-
-    #btnCerca:hover::before {
-      left: 100%;
-    }
-
-    #btnCerca:active,
-#btnNuovoCliente:active {
-      transform: translateY(-1px) scale(1.02);
-      transition: all 0.1s ease;
-    }
-
     /* Decorazioni fluttuanti */
     .floating-decoration {
       position: absolute;
@@ -229,47 +58,231 @@ font-size: 3.5rem;
       border: 1px solid rgba(255, 215, 0, 0.2);
     }
 
-    .floating-decoration:nth-child(1) {
-      width: 60px;
-      height: 60px;
-      top: 10%;
-      left: 10%;
-      animation-delay: 0s;
-    }
-
-    .floating-decoration:nth-child(2) {
-      width: 40px;
-      height: 40px;
-      top: 70%;
-      right: 15%;
-      animation-delay: 2s;
-    }
-
-    .floating-decoration:nth-child(3) {
-      width: 80px;
-      height: 80px;
-      bottom: 20%;
-      left: 5%;
-      animation-delay: 4s;
-    }
+    .floating-decoration:nth-child(1) { width: 60px; height: 60px; top: 10%; left: 10%; animation-delay: 0s; }
+    .floating-decoration:nth-child(2) { width: 40px; height: 40px; top: 70%; right: 15%; animation-delay: 2s; }
+    .floating-decoration:nth-child(3) { width: 80px; height: 80px; bottom: 20%; left: 5%; animation-delay: 4s; }
 
     @keyframes float {
       0%, 100% { transform: translateY(0px) rotate(0deg); }
       50% { transform: translateY(-20px) rotate(180deg); }
     }
 
+    /* Stili per i titoli principali della pagina (come nella tua dashboard originale) */
+    .brand-title {
+        font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
+        font-size: 5rem; /* Dimensione aumentata per essere un titolo principale */
+        font-weight: 900;
+        background: linear-gradient(135deg, #ffd700, #ffeb3b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-top: 2rem; /* Spazio sopra il titolo */
+        margin-bottom: 0.5rem; /* Spazio sotto il titolo */
+        text-shadow: 0 0 30px rgba(255, 215, 0, 0.5); /* Effetto glow più pronunciato */
+        animation: glow 2s ease-in-out infinite alternate;
+        text-align: center; /* Centra il testo */
+    }
+
+    .brand-subtitle {
+        font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
+        font-size: 2.2rem; /* Dimensione aumentata */
+        color: rgba(255, 215, 0, 0.8); /* Colore giallo con trasparenza */
+        margin-bottom: 3rem; /* Spazio sotto il sottotitolo, prima della griglia */
+        text-align: center; /* Centra il testo */
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 10px rgba(255, 215, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.2); }
+      to { text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4); }
+    }
+
+
+    /* Nuovi stili per il layout a griglia della dashboard */
+    .dashboard-grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 2 colonne su schermi grandi, si adatta */
+      gap: 2rem; /* Spazio tra i pannelli */
+      width: 100%;
+      max-width: 1200px; /* Larghezza massima del grid container */
+      padding: 1rem; /* Padding interno del contenitore della griglia */
+    }
+
+    /* Stile per i singoli pannelli (simili all'overlay originale) */
+    .dashboard-panel {
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 30px;
+      padding: 2.5rem; /* Padding leggermente ridotto per più pannelli */
+      border: 2px solid rgba(255, 215, 0, 0.3);
+      box-shadow:
+        0 15px 30px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 215, 0, 0.2),
+        0 0 40px rgba(255, 215, 0, 0.1);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      animation: slideUp 1s ease-out; /* Mantiene l'animazione di entrata */
+    }
+
+    /* Stile per i pannelli che occupano tutta la larghezza (es. Lista Clienti) */
+    .full-width-panel {
+        grid-column: 1 / -1; /* Occupa tutte le colonne disponibili nella griglia */
+        max-width: unset; /* Rimuove max-width se impostato per il pannello singolo */
+    }
+
+
+    /* Animazione di entrata per i pannelli */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Effetto hover per i pannelli */
+    .dashboard-panel:hover {
+      transform: translateY(-10px);
+      box-shadow:
+        0 25px 50px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 215, 0, 0.3),
+        0 0 60px rgba(255, 215, 0, 0.2);
+    }
+
+    /* Stile per i titoli dei pannelli (simili a brand-title) */
+    .panel-title {
+        font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
+        font-size: 2.5rem; /* Leggermente più piccoli del titolo principale della dashboard */
+        font-weight: 900;
+        background: linear-gradient(135deg, #ffd700, #ffeb3b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 1.5rem; /* Spazio sotto il titolo del pannello */
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    /* Stile per sottotitoli o descrizioni all'interno dei pannelli */
+    .panel-subtitle {
+        font-size: 1.1rem;
+        color: rgba(255, 215, 0, 0.8);
+        margin-bottom: 1rem;
+    }
+
+    /* Stile per i bottoni all'interno dei pannelli (adattati dai bottoni originali) */
+    .dashboard-panel button {
+        background: linear-gradient(135deg, #ffd700, #ffb300);
+        color: #000000;
+        border: none;
+        padding: 0.8rem 1.8rem; /* Padding leggermente ridotto */
+        font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
+        font-size: 1rem; /* Dimensione del font leggermente ridotta */
+        font-weight: 700;
+        border-radius: 50px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow:
+            0 5px 15px rgba(255, 215, 0, 0.4),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        position: relative;
+        overflow: hidden;
+        text-transform: uppercase;
+        letter-spacing: 0.5px; /* Spazio tra le lettere leggermente ridotto */
+        min-width: 160px; /* Larghezza minima ridotta */
+        border: 2px solid rgba(255, 215, 0, 0.3);
+        margin-top: 0.8rem; /* Spazio sopra il bottone */
+        margin-bottom: 0.8rem; /* Spazio sotto il bottone */
+    }
+
+    .dashboard-panel button:hover {
+        transform: translateY(-3px) scale(1.03); /* Effetto hover leggermente meno pronunciato */
+        box-shadow:
+            0 10px 20px rgba(0, 0, 0, 0.6),
+            inset 0 1px 0 rgba(255, 215, 0, 0.3);
+        background: linear-gradient(135deg, #ffeb3b, #ffc107);
+        color: #000000;
+    }
+
+    .dashboard-panel button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .dashboard-panel button:hover::before {
+        left: 100%;
+    }
+
+    .dashboard-panel button:active {
+        transform: translateY(-1px) scale(1.01);
+    }
+
+    /* Stili per input e textarea */
+    .dashboard-panel input[type="text"],
+    .dashboard-panel input[type="email"],
+    .dashboard-panel input[type="tel"],
+    .dashboard-panel input[type="date"],
+    .dashboard-panel textarea {
+        width: calc(100% - 20px); /* Quasi piena larghezza con padding */
+        padding: 0.8rem;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        border-radius: 8px;
+        background-color: rgba(26, 26, 26, 0.7); /* Sfondo scuro semi-trasparente */
+        color: #fefefe; /* Testo chiaro */
+        font-size: 1rem;
+        outline: none; /* Rimuove il bordo al focus */
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .dashboard-panel input[type="text"]:focus,
+    .dashboard-panel input[type="email"]:focus,
+    .dashboard-panel input[type="tel"]:focus,
+    .dashboard-panel input[type="date"]:focus,
+    .dashboard-panel textarea:focus {
+        border-color: #ffd700; /* Bordo giallo al focus */
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); /* Effetto glow al focus */
+    }
+
+    /* Placeholder color */
+    .dashboard-panel input::placeholder,
+    .dashboard-panel textarea::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+
     /* Responsive design */
     @media (max-width: 768px) {
-      .overlay {
-        padding: 2rem 1.5rem;
-        margin: 1rem;
-      }
-      
-      #btnCerca {
-        padding: 1rem 2rem;
-        font-size: 1rem;
-        min-width: 180px;
-      }
+        body {
+            padding: 1rem;
+        }
+        .brand-title {
+            font-size: 3.5rem;
+        }
+        .brand-subtitle {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+        }
+        .dashboard-grid-container {
+            grid-template-columns: 1fr; /* Una colonna su schermi piccoli */
+            gap: 1.5rem;
+        }
+        .dashboard-panel {
+            padding: 1.5rem;
+        }
+        .panel-title {
+            font-size: 2rem;
+        }
+        .dashboard-panel button {
+            min-width: 140px;
+            padding: 0.7rem 1.5rem;
+            font-size: 0.9rem;
+        }
     }
 
     /* Miglioramenti per accessibilità */
@@ -280,117 +293,60 @@ font-size: 3.5rem;
         transition-duration: 0.01ms !important;
       }
     }
- 
-
-.modal {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-
-.modal.hidden {
-  display: none;
-}
-
-.modal-content {
-  background: #111;
-  padding: 2rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 215, 0, 0.3);
-  box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
-  color: white;
-  width: 90%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.modal-content input {
-  padding: 0.8rem;
-  border: 1px solid #444;
-  border-radius: 8px;
-  background: #222;
-  color: white;
-}
-
-.modal-buttons {
-  display: flex;
-  justify-content: space-between;
-}
-
-.modal-buttons button {
-  padding: 0.6rem 1.2rem;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  background: linear-gradient(135deg, #ffd700, #ffb300);
-  color: black;
-  transition: transform 0.2s ease;
-}
-
-.modal-buttons button:hover {
-  transform: scale(1.05);
-}
-
-
-
-
-</style>
+  </style>
 </head>
 <body>
 
-
-  <!-- Decorazioni fluttuanti -->
   <div class="floating-decoration"></div>
   <div class="floating-decoration"></div>
   <div class="floating-decoration"></div>
-
-  
-
-
-
 
   <main class="dashboard">
-    <div class="overlay">
-   <p class="brand-title">Quality Hair</p>
-     <p class="brand-subtitle">gestione clienti</p>
-      <button id="btnCerca">Cerca Cliente</button><br><br>
-      <button id="btnNuovoCliente">Nuovo Cliente</button><br><br>
-      <button id="btnListaClienti">Lista Clienti</button><br><br>
-     <button id="btnMusic" onclick="window.open('http://79.6.136.236:32400/web/index.html#!/media/6ebfb71d58fed1206d2c273ca1b96e2e9c3ead61/com.plexapp.plugins.library?source=2', '_blank')">Music</button>
+    <p class="brand-title">Quality Hair</p>
+    <p class="brand-subtitle">gestione clienti</p>
 
+    <div class="dashboard-grid-container">
+
+      <div class="dashboard-panel">
+        <h2 class="panel-title">Cerca Cliente</h2>
+        <p class="panel-subtitle">Trova rapidamente i dettagli di un cliente.</p>
+        <input type="text" placeholder="Nome o Cognome Cliente" />
+        <button>Cerca</button>
+      </div>
+
+      <div class="dashboard-panel">
+        <h2 class="panel-title">Nuovo Cliente</h2>
+        <p class="panel-subtitle">Aggiungi un nuovo cliente al database.</p>
+        <input type="text" placeholder="Nome" />
+        <input type="text" placeholder="Cognome" />
+        <input type="email" placeholder="Email (opzionale)" />
+        <input type="tel" placeholder="Telefono (opzionale)" />
+        <button>Aggiungi Cliente</button>
+      </div>
+
+      <div class="dashboard-panel">
+        <h2 class="panel-title">Controllo Musica</h2>
+        <p class="panel-subtitle">Gestisci la musica d'ambiente del barbershop.</p>
+        <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 1rem;">Riproduzione Attuale: Brano Esempio</p>
+        <button onclick="window.open('http://79.6.136.236:32400/web/index.html#!/media/6ebfb71d58fed1206d2c273ca1b96e2e9c3ead61/com.plexapp.plugins.library?source=2', '_blank')">Apri Player Musica</button>
+      </div>
+
+      <div class="dashboard-panel full-width-panel">
+        <h2 class="panel-title">Gestione Lista Clienti</h2>
+        <p class="panel-subtitle">Visualizza e gestisci tutti i clienti registrati.</p>
+        <div style="background-color: rgba(255, 255, 255, 0.9); border-radius: 8px; padding: 1rem; min-height: 150px; color: #1a1a1a; text-align: left; overflow-x: auto;">
+            <p>Lista Clienti...</p>
+            <ul>
+                <li>Mario Rossi - tel: 3331234567</li>
+                <li>Giulia Verdi - email: giulia@example.com</li>
+                <li>...</li>
+            </ul>
+        </div>
+        <button>Visualizza Tutti</button>
+      </div>
 
     </div>
   </main>
 
-<div id="modal-nuovo-cliente" class="modal hidden">
-  <div class="modal-content">
-    <h2>Nuovo Cliente</h2>
-    <input type="text" id="input-nome" placeholder="Nome" />
-    <input type="text" id="input-cognome" placeholder="Cognome" />
-    <input type="email" id="input-email" placeholder="Email (opzionale)" />
-    <input type="tel" id="input-telefono" placeholder="Telefono (opzionale)" />
-    <div class="modal-buttons">
-      <button id="salvaCliente">Salva</button>
-      <button id="annullaCliente">Annulla</button>
-    </div>
-  </div>
-</div>
-
-
-
-
-
-  <script src="/js/navbar-loader.js"></script>
-  <script src="/js/dashboard.js"></script>
-
-
-
-</body>
+  </body>
 </html>
