@@ -688,9 +688,9 @@ h1 {
     background: linear-gradient(135deg, #ffd700, #ffb300);
     color: #000000;
     border: none;
-    padding: 10px 20px;
+    padding: 8px 15px;
     font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
-    font-size: 1.1em;
+    font-size: 0.95em;
     font-weight: 700;
     border-radius: 50px;
     cursor: pointer;
