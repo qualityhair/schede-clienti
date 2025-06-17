@@ -254,6 +254,12 @@ app.delete("/api/trattamenti/:id", async (req, res) => {
   }
 });
 
+// === MODIFICA QUI: Rotta per la home page (dashboard.html) ===
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+});
+// ==========================================================
+
 app.listen(port, () => {
   console.log(`🚀 QualityHair intranet in ascolto su http://localhost:${port}`);
 });
