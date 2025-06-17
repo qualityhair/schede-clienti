@@ -255,6 +255,37 @@
         color: rgba(255, 255, 255, 0.6);
     }
 
+    /* Stili per la lista clienti */
+    .client-list-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.7rem 1rem;
+        margin-bottom: 0.5rem;
+        background-color: #fefefe;
+        border-radius: 5px;
+        color: #1a1a1a;
+        font-size: 0.95rem;
+        transition: background-color 0.2s ease;
+        cursor: pointer;
+        border: 1px solid #ddd;
+    }
+
+    .client-list-item:hover {
+        background-color: #ffe066;
+    }
+
+    .client-list-item .client-name {
+        font-weight: bold;
+    }
+
+    .client-list-item .client-actions button {
+        margin-left: 0.5rem;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        min-width: unset; /* Rimuove la larghezza minima dei bottoni generali */
+    }
+
 
     /* Responsive design */
     @media (max-width: 768px) {
@@ -310,18 +341,18 @@
       <div class="dashboard-panel">
         <h2 class="panel-title">Cerca Cliente</h2>
         <p class="panel-subtitle">Trova rapidamente i dettagli di un cliente.</p>
-        <input type="text" placeholder="Nome o Cognome Cliente" />
-        <button>Cerca</button>
+        <input type="text" id="search-input" placeholder="Nome o Cognome Cliente" />
+        <button id="search-button">Cerca</button>
       </div>
 
       <div class="dashboard-panel">
         <h2 class="panel-title">Nuovo Cliente</h2>
         <p class="panel-subtitle">Aggiungi un nuovo cliente al database.</p>
-        <input type="text" placeholder="Nome" />
-        <input type="text" placeholder="Cognome" />
-        <input type="email" placeholder="Email (opzionale)" />
-        <input type="tel" placeholder="Telefono (opzionale)" />
-        <button>Aggiungi Cliente</button>
+        <input type="text" id="new-client-name" placeholder="Nome" required />
+        <input type="text" id="new-client-surname" placeholder="Cognome" required />
+        <input type="email" id="new-client-email" placeholder="Email (opzionale)" />
+        <input type="tel" id="new-client-phone" placeholder="Telefono (opzionale)" />
+        <button id="add-new-client-button">Aggiungi Cliente</button>
       </div>
 
       <div class="dashboard-panel">
@@ -334,19 +365,16 @@
       <div class="dashboard-panel full-width-panel">
         <h2 class="panel-title">Gestione Lista Clienti</h2>
         <p class="panel-subtitle">Visualizza e gestisci tutti i clienti registrati.</p>
-        <div style="background-color: rgba(255, 255, 255, 0.9); border-radius: 8px; padding: 1rem; min-height: 150px; color: #1a1a1a; text-align: left; overflow-x: auto;">
-            <p>Lista Clienti...</p>
-            <ul>
-                <li>Mario Rossi - tel: 3331234567</li>
-                <li>Giulia Verdi - email: giulia@example.com</li>
-                <li>...</li>
-            </ul>
+        <div id="client-list-container" style="background-color: rgba(255, 255, 255, 0.9); border-radius: 8px; padding: 1rem; min-height: 150px; color: #1a1a1a; text-align: left; overflow-y: auto; max-height: 400px;">
+            <p style="text-align: center; color: #666;">Caricamento clienti...</p>
         </div>
-        <button>Visualizza Tutti</button>
+        <button id="view-all-clients-button">Ricarica Lista</button>
       </div>
 
     </div>
   </main>
 
-  </body>
+  <script src="/js/dashboard-app.js"></script>
+
+</body>
 </html>
