@@ -19,14 +19,9 @@ body {
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
     padding: 2.5rem;
     width: 100%;
-    /* HO AUMENTATO IL MAX-WIDTH DEL CONTAINER per far spazio alla tabella */
-    max-width: 900px; /* MODIFICA: Aumentato per la tabella */
+    max-width: 900px;
     margin-top: 20px;
     color: #1a1a1a; /* Testo nero sul container giallo */
-    /* Rimosso margin: 2rem auto; per coerenza con flexbox body */
-    /* Rimosso max-width: 800px; per coerenza con 600px specifico per form */
-    /* Rimosso border-radius: 8px; perché già 12px più grande */
-    /* Rimosso box-shadow: 0 0 10px #333; per usare shadow più scuro */
 }
 
 h1 {
@@ -105,7 +100,7 @@ h1 {
 }
 
 
-/* Stili per la Navbar (Consolidati - preferito lo stile di aggiungi-trattamento.html) */
+/* Stili per la Navbar */
 .navbar {
     background-color: #f8f8f8; /* Giallo brillante */
     padding: 1rem 2rem;
@@ -144,11 +139,11 @@ h1 {
 }
 
 .navbar li a:hover {
-    color: #007bff; /* Potresti volerlo cambiare per rimanere nel tema giallo/nero, es. #ffcc00 */
+    color: #007bff;
 }
 
 .navbar-btn {
-    background-color: #007bff; /* Blu, potresti volerlo cambiare a #1a1a1a con testo giallo */
+    background-color: #007bff;
     color: white;
     border: none;
     cursor: pointer;
@@ -162,11 +157,11 @@ h1 {
 }
 
 .navbar-btn:hover {
-    background-color: #0056b3; /* Blu scuro */
+    background-color: #0056b3;
     transform: translateY(-1px);
 }
 
-/* Stili specifici per i bottoni di ricerca/nuovo cliente (mantenuti dal tuo style.css originale) */
+/* Stili specifici per i bottoni di ricerca/nuovo cliente */
 #btnCerca,
 #btnNuovoCliente,
 #btnListaClienti {
@@ -174,7 +169,6 @@ h1 {
     color: #000000;
     border: none;
     padding: 1.2rem 2.5rem;
-    /* Font family potrebbe causare problemi se non disponibile su tutti i sistemi */
     font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
     font-size: 1.1rem;
     font-weight: 700;
@@ -250,8 +244,7 @@ h1 {
     }
 }
 
-/* MODALE PERSONALIZZATA (dal tuo aggiungi-trattamento.html) */
-/* SPOSTATI QUI DA scheda-cliente.html PER CENTRALIZZAZIONE */
+/* MODALE PERSONALIZZATA */
 .modal {
     position: fixed;
     z-index: 1000;
@@ -349,48 +342,46 @@ h1 {
 
 
 /* Stili per la tabella trattamenti */
-/* HO CAMBIATO IL SELETTORE DA .trattamenti-table A .trattamenti */
 .trattamenti {
-    width: 100%; /* La tabella occuperà tutta la larghezza disponibile del container */
-    /* La max-width della tabella sarà limitata dal max-width del .container */
+    width: 100%;
     border-collapse: collapse;
-    margin-bottom: 4px; /* Lascia un po' di spazio sotto la tabella */
+    margin-bottom: 4px;
 }
 
 .trattamenti th, .trattamenti td {
     padding: 0.75rem;
     border: 1px solid #e2e8f0;
     text-align: left;
-    color: #1a1a1a; /* Testo nero per leggibilità */
+    color: #1a1a1a;
 }
 
 .trattamenti thead tr {
-    background-color: #f0f0f0; /* Sfondo dell'intestazione della tabella */
+    background-color: #f0f0f0;
 }
 
 /* Stile per i campi in bianco */
 .trattamenti tbody td {
-    background-color: white; /* Rende i campi del corpo tabella bianchi */
-    color: #1a1a1a; /* Assicura che il testo sia nero sul bianco */
+    background-color: white;
+    color: #1a1a1a;
 }
 
 .trattamenti tbody tr:nth-child(even) td {
-    background-color: #fefefe; /* Un bianco leggermente diverso per le righe pari, se vuoi un effetto zebra sottile */
+    background-color: #fefefe;
 }
 
 .trattamenti tbody tr:hover td {
-    background-color: #ffe066; /* Giallo chiaro al hover sulla riga */
+    background-color: #ffe066;
 }
 
 /* Stili per il blocco dati del cliente in scheda-cliente.html */
 .scheda-cliente-details {
-    background-color: #333333; /* Grigio scuro */
+    background-color: #333333;
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
     padding: 1.8rem 2.5rem;
     margin-bottom: 2rem;
-    color: #cccccc; /* Testo generale grigio chiaro */
-    text-align: center;
+    color: #cccccc;
+    text-align: left; /* MODIFICA: Allineato a sinistra */
 }
 
 .scheda-cliente-details p {
@@ -399,11 +390,13 @@ h1 {
 }
 
 #nome-completo {
-    color: #ffcc00; /* Giallo brillante */
+    color: #ffcc00;
     font-size: 2.2rem;
     font-weight: 700;
     display: block;
     margin-bottom: 1rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+    text-align: left; /* MODIFICA: Allineato a sinistra */
+    font-family: 'Georgia', serif; /* MODIFICA: Nuovo font per il nome */
 }
