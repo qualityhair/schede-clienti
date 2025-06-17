@@ -163,6 +163,7 @@ h1 {
 /* Stili specifici per i bottoni di ricerca/nuovo cliente */
 #btnCerca,
 #btnNuovoCliente,
+#btnMusic,
 #btnListaClienti {
     background: linear-gradient(135deg, #ffd700, #ffb300);
     color: #000000;
