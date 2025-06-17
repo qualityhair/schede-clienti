@@ -12,37 +12,48 @@ document.addEventListener("DOMContentLoaded", () => {
     const clientListContainer = document.getElementById("client-list-container");
     const viewAllClientsButton = document.getElementById("view-all-clients-button");
 
-    // Funzione per mostrare un messaggio temporaneo
-    function showMessage(message, type = 'info') {
-        const messageDiv = document.createElement('div');
-        messageDiv.textContent = message;
-        messageDiv.style.padding = '10px';
-        messageDiv.style.margin = '10px 0';
-        messageDiv.style.borderRadius = '5px';
-        messageDiv.style.fontWeight = 'bold';
-        messageDiv.style.color = '#1a1a1a'; // Testo scuro
+// Funzione per mostrare un messaggio temporaneo
+function showMessage(message, type = 'info') {
+    const messageDiv = document.createElement('div');
+    messageDiv.textContent = message;
+    messageDiv.style.padding = '10px';
+    // messageDiv.style.margin = '10px 0'; // Rimuovi o commenta questa riga
+    messageDiv.style.borderRadius = '5px';
+    messageDiv.style.fontWeight = 'bold';
+    messageDiv.style.color = '#1a1a1a'; // Testo scuro
 
-        if (type === 'success') {
-            messageDiv.style.backgroundColor = '#d4edda'; // Verde chiaro
-            messageDiv.style.borderColor = '#28a745'; // Verde scuro
-        } else if (type === 'error') {
-            messageDiv.style.backgroundColor = '#f8d7da'; // Rosso chiaro
-            messageDiv.style.borderColor = '#dc3545'; // Rosso scuro
-        } else {
-            messageDiv.style.backgroundColor = '#fff3cd'; // Giallo chiaro
-            messageDiv.style.borderColor = '#ffc107'; // Giallo scuro
-        }
-        messageDiv.style.border = '1px solid';
-        messageDiv.style.textAlign = 'center';
-
-        // Inserisce il messaggio all'inizio del body per visibilità
-        document.body.insertBefore(messageDiv, document.body.firstChild);
-
-        // Rimuove il messaggio dopo 3 secondi
-        setTimeout(() => {
-            messageDiv.remove();
-        }, 10000);
+    if (type === 'success') {
+        messageDiv.style.backgroundColor = '#d4edda'; // Verde chiaro
+        messageDiv.style.borderColor = '#28a745'; // Verde scuro
+    } else if (type === 'error') {
+        messageDiv.style.backgroundColor = '#f8d7da'; // Rosso chiaro
+        messageDiv.style.borderColor = '#dc3545'; // Rosso scuro
+    } else {
+        messageDiv.style.backgroundColor = '#fff3cd'; // Giallo chiaro
+        messageDiv.style.borderColor = '#ffc107'; // Giallo scuro
     }
+    messageDiv.style.border = '1px solid';
+    messageDiv.style.textAlign = 'center';
+
+    // === NUOVE STILI PER POSIZIONAMENTO E VISIBILITÀ ===
+    messageDiv.style.position = 'fixed';       // Lo rende fisso sullo schermo
+    messageDiv.style.top = '20px';             // Distanza da 20px dal bordo superiore
+    messageDiv.style.left = '50%';             // Lo sposta al 50% della larghezza della pagina
+    messageDiv.style.transform = 'translateX(-50%)'; // Lo centra perfettamente orizzontalmente
+    messageDiv.style.zIndex = '1000';          // Assicura che sia sopra a tutti gli altri elementi
+    messageDiv.style.minWidth = '280px';       // Larghezza minima per una buona leggibilità
+    messageDiv.style.maxWidth = '90%';         // Larghezza massima per schermi piccoli
+    messageDiv.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; // Un'ombra leggera per farlo risaltare
+    // ====================================================
+
+    // Inserisce il messaggio all'inizio del body
+    document.body.insertBefore(messageDiv, document.body.firstChild);
+
+    // Rimuove il messaggio dopo 3 secondi (o il valore che hai messo tu)
+    setTimeout(() => {
+        messageDiv.remove();
+    }, 3000); // Se l'avevi messo a 10000 per il test, puoi rimetterlo a 3000 qui.
+}
 
 
     // --- Funzioni per la Gestione Clienti ---
