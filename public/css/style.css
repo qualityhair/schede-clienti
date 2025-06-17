@@ -101,25 +101,22 @@ h1 {
 }
 
 
-/* Stili per la Navbar */
+/* Stili per la Navbar (da integrare nel tuo style.css) */
 .navbar {
-    background-color: #f8f8f8;
-    padding: 1rem 2rem;
+    background-color: #3498db; /* Un blu pulito */
+    color: white;
+    padding: 15px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    margin-bottom: 20px;
-    width: 100%;
-    max-width: 1200px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Ombra leggera per profondità */
+    font-family: 'Arial', sans-serif; /* Consistente con la dashboard */
 }
 
 .navbar h1 {
-    color: #333;
     margin: 0;
-    font-size: 1.8rem;
-    text-align: left;
+    font-size: 1.8em; /* Dimensione del titolo */
+    font-weight: bold;
 }
 
 .navbar ul {
@@ -127,39 +124,64 @@ h1 {
     margin: 0;
     padding: 0;
     display: flex;
-    gap: 1.5rem;
+    gap: 25px; /* Spazio tra gli elementi del menu */
 }
 
-.navbar li a {
+.navbar ul li a {
+    color: white;
     text-decoration: none;
-    color: #555;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    transition: color 0.3s ease;
-    border-radius: 6px;
+    font-size: 1.1em;
+    padding: 5px 0;
+    transition: color 0.3s ease, border-bottom 0.3s ease;
 }
 
-.navbar li a:hover {
-    color: #007bff;
+.navbar ul li a:hover {
+    color: #ecf0f1; /* Colore più chiaro al passaggio del mouse */
+    border-bottom: 2px solid #ecf0f1; /* Sottolineatura al passaggio del mouse */
 }
 
 .navbar-btn {
-    background-color: #007bff;
+    background-color: #2ecc71; /* Verde per i bottoni */
     color: white;
     border: none;
+    padding: 10px 18px;
+    border-radius: 5px;
     cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
     transition: background-color 0.3s ease, transform 0.2s ease;
-    font-weight: 600;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    font-size: 0.9rem;
-    padding: 0.6rem 1rem;
-    min-width: 100px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .navbar-btn:hover {
-    background-color: #0056b3;
-    transform: translateY(-1px);
+    background-color: #27ae60; /* Verde più scuro al passaggio del mouse */
+    transform: translateY(-1px); /* Piccolo effetto "sollevamento" */
+}
+
+/* Media Queries per la responsività */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        text-align: center;
+        padding: 10px;
+    }
+
+    .navbar h1 {
+        margin-bottom: 10px;
+    }
+
+    .navbar ul {
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+
+    .navbar ul li a,
+    .navbar-btn {
+        width: 100%; /* Rende i link e i bottoni a piena larghezza su schermi piccoli */
+        padding: 12px 0;
+        text-align: center;
+    }
 }
 
 /* Stili specifici per i bottoni di ricerca/nuovo cliente */
