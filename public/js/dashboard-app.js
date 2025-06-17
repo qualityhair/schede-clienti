@@ -17,7 +17,6 @@ function showMessage(message, type = 'info') {
     const messageDiv = document.createElement('div');
     messageDiv.textContent = message;
     messageDiv.style.padding = '10px';
-    // messageDiv.style.margin = '10px 0'; // Rimuovi o commenta questa riga
     messageDiv.style.borderRadius = '5px';
     messageDiv.style.fontWeight = 'bold';
     messageDiv.style.color = '#1a1a1a'; // Testo scuro
@@ -35,11 +34,11 @@ function showMessage(message, type = 'info') {
     messageDiv.style.border = '1px solid';
     messageDiv.style.textAlign = 'center';
 
-    // === NUOVE STILI PER POSIZIONAMENTO E VISIBILITÀ ===
+    // === NUOVE STILI PER POSIZIONAMENTO E VISIBILITÀ (aggiornati per il centro) ===
     messageDiv.style.position = 'fixed';       // Lo rende fisso sullo schermo
-    messageDiv.style.top = '20px';             // Distanza da 20px dal bordo superiore
+    messageDiv.style.top = '50%';              // <--- MODIFICATO: Lo sposta al 50% dall'alto
     messageDiv.style.left = '50%';             // Lo sposta al 50% della larghezza della pagina
-    messageDiv.style.transform = 'translateX(-50%)'; // Lo centra perfettamente orizzontalmente
+    messageDiv.style.transform = 'translate(-50%, -50%)'; // <--- MODIFICATO: Lo centra perfettamente sia orizzontalmente che verticalmente
     messageDiv.style.zIndex = '1000';          // Assicura che sia sopra a tutti gli altri elementi
     messageDiv.style.minWidth = '280px';       // Larghezza minima per una buona leggibilità
     messageDiv.style.maxWidth = '90%';         // Larghezza massima per schermi piccoli
