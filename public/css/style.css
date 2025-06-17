@@ -1,4 +1,4 @@
-//* Stili Generali - Consolidati dalla tua aggiungi-trattamento.html */
+/* Stili Generali - Consolidati dalla tua aggiungi-trattamento.html */
 body {
     font-family: 'Inter', sans-serif; /* Preferisco Inter, se disponibile, altrimenti Arial */
     background-color: #1a1a1a; /* Sfondo nero molto scuro */
@@ -20,7 +20,7 @@ body {
     padding: 2.5rem;
     width: 100%;
     /* HO AUMENTATO IL MAX-WIDTH DEL CONTAINER per far spazio alla tabella */
-    max-width: 900px; 
+    max-width: 900px; /* MODIFICA: Aumentato per la tabella */
     margin-top: 20px;
     color: #1a1a1a; /* Testo nero sul container giallo */
     /* Rimosso margin: 2rem auto; per coerenza con flexbox body */
@@ -251,6 +251,7 @@ h1 {
 }
 
 /* MODALE PERSONALIZZATA (dal tuo aggiungi-trattamento.html) */
+/* SPOSTATI QUI DA scheda-cliente.html PER CENTRALIZZAZIONE */
 .modal {
     position: fixed;
     z-index: 1000;
@@ -381,7 +382,6 @@ h1 {
     background-color: #ffe066; /* Giallo chiaro al hover sulla riga */
 }
 
----
 /* Stili per il blocco dati del cliente in scheda-cliente.html */
 .scheda-cliente-details {
     background-color: #333333; /* Grigio scuro */
