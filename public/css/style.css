@@ -21,7 +21,9 @@ body {
     max-width: 900px;
     margin-top: 20px;
     color: #1a1a1a; /* Testo nero sul container giallo */
-}
+    .container {
+    line-height: 1.3; /* Applica un'altezza di linea generale */
+    }
 
 h1 {
     color: #1a1a1a; /* Nero sul container giallo */
