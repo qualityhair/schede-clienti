@@ -765,3 +765,20 @@ h1 {
         margin: 0 auto;
     }
 }
+
+/* Stili specifici per il pannello Controllo Musica per ridurne l'altezza */
+#music-panel {
+    padding: 1.5rem; /* Riduci il padding generale del pannello per compattarlo */
+}
+
+#music-panel .panel-title {
+    margin-bottom: 1rem; /* Riduci il margine sotto il titolo */
+}
+
+#music-panel .panel-subtitle {
+    margin-bottom: 0.8rem; /* Riduci il margine sotto il sottotitolo */
+}
+
+#music-panel p {
+    margin-bottom: 0.5rem !important; /* Riduci il margine sotto il paragrafo con !important per sovrascrivere stili inline */
+}
