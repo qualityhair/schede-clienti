@@ -766,19 +766,42 @@ h1 {
     }
 }
 
-/* Stili specifici per il pannello Controllo Musica per ridurne l'altezza */
-#music-panel {
-    padding: 1.5rem; /* Riduci il padding generale del pannello per compattarlo */
+/* Stili per compattare i pannelli con meno contenuto (es. Musica, Appuntamenti) */
+.compact-panel {
+    padding: 1.2rem; /* Ridotto drasticamente il padding generale */
+    min-height: 250px; /* Imposta un'altezza minima per uniformare, puoi modificarla */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Distribuisce lo spazio tra gli elementi */
+    align-items: center;
 }
 
-#music-panel .panel-title {
-    margin-bottom: 1rem; /* Riduci il margine sotto il titolo */
+.compact-panel .panel-title {
+    margin-bottom: 0.8rem; /* Riduci il margine sotto il titolo */
 }
 
-#music-panel .panel-subtitle {
-    margin-bottom: 0.8rem; /* Riduci il margine sotto il sottotitolo */
+.compact-panel .panel-subtitle {
+    margin-bottom: 0.5rem; /* Riduci il margine sotto il sottotitolo */
 }
 
-#music-panel p {
-    margin-bottom: 0.5rem !important; /* Riduci il margine sotto il paragrafo con !important per sovrascrivere stili inline */
+.compact-panel p {
+    margin-bottom: 0.3rem !important; /* Riduci ulteriormente il margine per i paragrafi */
+}
+
+.compact-panel button {
+    margin-top: 1rem !important; /* Assicurati che il bottone non abbia troppo margine superiore */
+}
+
+/* Modifica il padding generale dei pannelli leggermente, se necessario per uniformità generale */
+.dashboard-panel {
+    /* Trova questa regola e assicurati che il suo padding sia 
+       compatibile con il compact-panel, potresti volerlo ridurre un po' */
+    padding: 2rem; /* Potresti volerlo ridurre a 2rem o 2.2rem se i compact-panel sono troppo piccoli */
+}
+
+/* Per i dispositivi mobili, assicurati che i pannelli compatti siano ancora gestibili */
+@media (max-width: 768px) {
+    .compact-panel {
+        min-height: unset; /* Rimuovi l'altezza minima sui mobili se preferisci che si adattino al contenuto */
+    }
 }
