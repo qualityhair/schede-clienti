@@ -766,14 +766,38 @@ h1 {
     }
 }
 
-/* Modifica del padding generale dei pannelli */
+/* Modifica la griglia per 3 colonne fisse, senza auto-fit */
+.dashboard-grid-container {
+  display: grid;
+  /* Definisci 3 colonne di larghezza uguale. Utilizza fr per flessibilità. */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem; /* Manteniamo lo stesso spazio tra le celle */
+  width: 100%;
+  max-width: 1200px;
+  padding: 1rem;
+  /* Aggiungi allineamento items per uniformare le altezze delle righe */
+  align-items: start; /* Importante per allineare gli elementi in alto e permettere agli impilati di non forzare l'altezza */
+}
+
+
+/* Stile per il nuovo contenitore che impila i pannelli nella terza colonna */
+.column-stack-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem; /* Stesso gap dei pannelli della griglia */
+    /* Assicurati che questo contenitore sia alto quanto gli altri pannelli della prima riga, se possibile */
+    height: 100%; /* Permetti al contenitore di riempire l'altezza della cella della griglia */
+    justify-content: space-between; /* Distribuisci i pannelli musica e appuntamenti verticalmente */
+}
+
+
+/* Stile generale per i pannelli (RIDUCI IL SUO PADDING) */
 .dashboard-panel {
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 30px;
-  /* Modifica il padding qui per renderli tutti un po' più compatti */
-  padding: 1.8rem; /* Ridotto da 2.5rem, questo influenzerà tutti i pannelli */
+  padding: 1.8rem; /* Un padding iniziale più ridotto per tutti i pannelli */
   border: 2px solid rgba(255, 215, 0, 0.3);
   box-shadow:
     0 15px 30px rgba(0, 0, 0, 0.5),
@@ -784,49 +808,68 @@ h1 {
   overflow: hidden;
   transition: all 0.3s ease;
   animation: slideUp 1s ease-out;
-  /* Aggiungiamo flexbox per un migliore controllo del contenuto */
+  /* Aggiungi Flexbox per controllare il contenuto dei pannelli individualmente */
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Distribuisce lo spazio verticalmente */
+  justify-content: flex-start; /* Inizia il contenuto dall'alto */
 }
 
-/* Rivedi anche il margine dei titoli e sottotitoli dei pannelli */
-.panel-title {
-    /* ... (altre proprietà) ... */
-    margin-bottom: 1rem; /* Ridotto da 1.5rem */
-}
 
-.panel-subtitle {
-    /* ... (altre proprietà) ... */
-    margin-bottom: 0.8rem; /* Ridotto da 1rem */
-}
-
-/* Stili specifici per i pannelli con meno contenuto per compattarli ulteriormente */
-/* Questi sovrascriveranno le regole .dashboard-panel se i valori sono più bassi */
+/* Stili specifici per i pannelli compatti (Controllo Musica e Appuntamenti) */
 .compact-panel {
-    padding: 1.2rem; /* Ancora più ridotto per questi pannelli */
+    padding: 1rem; /* Ancora più piccolo per questi due pannelli */
+    /* Nessuna altezza minima fissa qui, lasciala al contenuto + padding */
 }
 
-/* Assicuriamoci che i bottoni all'interno dei pannelli abbiano un margine inferiore uniforme */
-.dashboard-panel button {
-    /* ... (altre proprietà) ... */
-    margin-bottom: 0.5rem; /* Assicurati che sia coerente per tutti i bottoni del pannello */
-    margin-top: auto; /* Questo spingerà il bottone in fondo al pannello, se il contenuto è poco */
+.compact-panel .panel-title {
+    margin-bottom: 0.8rem; /* Riduci il margine sotto il titolo */
 }
 
-/* Per il paragrafo "Riproduzione Attuale" nel pannello musica, riduci il suo margine */
-#music-panel p { /* Assicurati che tu abbia aggiunto l'id="music-panel" in dashboard.html */
-    margin-bottom: 0.5rem !important; /* Riduci questo margine specifico */
+.compact-panel .panel-subtitle {
+    margin-bottom: 0.5rem; /* Riduci il margine sotto il sottotitolo */
+}
+
+.compact-panel button {
+    margin-top: auto; /* Questo spingerà il bottone verso il basso all'interno del pannello */
 }
 
 
-/* Responsive design - Assicurati che anche qui i padding siano coerenti */
+/* Per i campi input nei pannelli Cerca Cliente e Nuovo Cliente */
+.dashboard-panel input[type="text"],
+.dashboard-panel input[type="email"],
+.dashboard-panel input[type="tel"] {
+    margin-bottom: 0.8rem; /* Riduci leggermente il margine inferiore per compattare */
+}
+
+/* Assicurati che il bottone finale dei pannelli (Cerca, Aggiungi) sia ben posizionato */
+.dashboard-panel button:last-of-type {
+    margin-top: 1rem; /* Margine superiore specifico per l'ultimo bottone */
+}
+
+
+/* Responsive design per la griglia e i pannelli */
 @media (max-width: 768px) {
-    /* ... (altre regole media query) ... */
+    .dashboard-grid-container {
+        grid-template-columns: 1fr; /* Una singola colonna per schermi piccoli */
+        align-items: stretch; /* Le colonne si allungano */
+    }
+
+    .column-stack-container {
+        gap: 1.5rem; /* Riduci il gap per i pannelli impilati su mobile */
+    }
+
     .dashboard-panel {
-        padding: 1rem; /* Riduci anche il padding generale sui mobili */
+        padding: 1.2rem; /* Padding ridotto per tutti i pannelli su mobile */
     }
     .compact-panel {
-        padding: 0.8rem; /* E ancora di più sui mobili per i pannelli compatti */
+        padding: 0.8rem; /* Padding ancora più ridotto per i compatti su mobile */
+    }
+}
+
+/* Responsive per la griglia su tablet o schermi intermedi, se necessario */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .dashboard-grid-container {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Potrebbe essere utile per layout più flessibili */
+        gap: 1.5rem;
     }
 }
