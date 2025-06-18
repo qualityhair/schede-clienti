@@ -5,218 +5,135 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - QualityHair</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/style.css"> <!-- Assicurati che si appoggi al tuo style.css -->
     <style>
-        /* Font personalizzato per l'intera pagina */
+        /* Stili specifici per la pagina di login se non li hai già in style.css */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #1a1a1a; /* Sfondo nero molto scuro */
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh; /* Altezza minima della viewport */
-            margin: 0;
-            padding: 1rem; /* Padding generale per schermi piccoli */
-            box-sizing: border-box;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+            flex-direction: column; /* Per allineare elementi verticalmente */
         }
 
-        /* Stili aggiuntivi per un aspetto più pulito e moderno */
         .login-container {
-            background-color: #ffcc00; /* Giallo brillante per il container */
-            border-radius: 12px; /* Angoli più arrotondati */
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); /* Ombra più pronunciata e scura */
-            padding: 2.5rem; /* Padding interno maggiore */
-            width: 100%;
-            max-width: 400px; /* Larghezza massima per il form */
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem; /* Spazio tra gli elementi */
-            animation: fadeIn 0.5s ease-out; /* Animazione all'apparizione */
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .input-field {
-            border: 1px solid #333333; /* Bordo grigio scuro/quasi nero */
-            border-radius: 8px; /* Angoli arrotondati per gli input */
-            padding: 0.75rem 1rem; /* Padding per gli input */
-            width: 100%;
-            box-sizing: border-box;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            color: #1a1a1a; /* Testo input nero */
-            background-color: #fefefe; /* Sfondo input quasi bianco per leggibilità */
-        }
-
-        .input-field::placeholder {
-            color: #666666; /* Colore placeholder più chiaro */
-        }
-
-        .input-field:focus {
-            border-color: #ff9900; /* Colore arancio-giallo al focus */
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(255, 153, 0, 0.3); /* Ombra al focus */
-        }
-
-        .login-button {
-            background-color: #1a1a1a; /* Bottone nero */
-            color: #ffcc00; /* Testo bottone giallo */
-            border: none;
-            border-radius: 8px; /* Angoli arrotondati per il bottone */
-            padding: 0.85rem 1.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); /* Ombra più scura al bottone */
-            width: 100%; /* Larghezza piena */
-        }
-
-        .login-button:hover {
-            background-color: #333333; /* Colore nero leggermente più chiaro al hover */
-            transform: translateY(-2px); /* Effetto leggero di sollevamento */
-        }
-
-        .message-box {
-            padding: 0.75rem;
-            border-radius: 8px;
-            font-weight: 500;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 2.5rem;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            box-shadow:
+                0 15px 30px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 215, 0, 0.2),
+                0 0 40px rgba(255, 215, 0, 0.1);
             text-align: center;
+            width: 90%;
+            max-width: 400px;
+            color: white;
+            animation: slideUp 1s ease-out;
         }
 
-        /* Messaggi di errore/successo mantengono colori standard ma con sfondo adattato */
-        .message-error {
-            background-color: #fcd7d7; /* Rosso chiaro */
-            color: #cc0000; /* Rosso scuro */
-            border: 1px solid #cc0000;
+        .login-container h2 {
+            font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
+            font-size: 3rem;
+            color: #ffd700; /* Oro */
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
         }
 
-        .message-success {
-            background-color: #d7fcd7; /* Verde chiaro */
-            color: #008000; /* Verde scuro */
-            border: 1px solid #008000;
+        .login-container input[type="text"],
+        .login-container input[type="password"] {
+            width: calc(100% - 40px); /* Piena larghezza con padding */
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            background-color: rgba(26, 26, 26, 0.7);
+            color: #fefefe;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
-        
-        /* Stili per il responsive: il contenitore si adatta bene, i campi rimangono grandi */
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 1.5rem;
-                border-radius: 8px; /* Meno arrotondato su mobile */
-                box-shadow: none; /* Rimuovi ombra su mobile per un look più pulito */
-            }
-            .input-field, .login-button {
-                padding: 0.75rem; /* Padding leggermente ridotto su mobile */
-            }
+
+        .login-container input[type="text"]:focus,
+        .login-container input[type="password"]:focus {
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .login-container button[type="submit"] {
+            background: linear-gradient(135deg, #ffd700, #ffb300);
+            color: #000000;
+            border: none;
+            padding: 1rem 2rem;
+            font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 180px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            margin-top: 1rem;
+        }
+
+        .login-container button[type="submit"]:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+            background: linear-gradient(135deg, #ffeb3b, #ffc107);
+        }
+
+        /* Stili per messaggi di errore/info (opzionale) */
+        .message {
+            color: #ffeb3b;
+            margin-top: 1rem;
+            font-size: 0.9em;
+        }
+        .error-message {
+            color: #dc3545; /* Rosso per errori */
         }
     </style>
 </head>
 <body>
-
     <div class="login-container">
-        <h2 class="text-3xl font-bold text-center" style="color: #1a1a1a;">Accedi alla gestione clienti di QualityHair</h2>
-        <p class="text-center" style="color: #333333;">Inserisci le tue credenziali</p>
-
-        <form id="loginForm" class="flex flex-col gap-4">
-            <div>
-                <label for="username" class="block text-sm font-medium mb-2" style="color: #1a1a1a;">Username o Email</label>
-                <input type="text" id="username" name="username" class="input-field" placeholder="john.doe@example.com" required>
-            </div>
-            <div>
-                <label for="password" class="block text-sm font-medium mb-2" style="color: #1a1a1a;">Password</label>
-                <input type="password" id="password" name="password" class="input-field" placeholder="********" required>
-            </div>
-            
-            <button type="submit" class="login-button" id="loginButton">Accedi</button>
+        <h2>Login Accesso</h2>
+        <form action="/login" method="POST">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Accedi</button>
         </form>
-
-        <div id="message" class="message-box hidden" role="alert">
-            <!-- Messaggi di errore o successo verranno mostrati qui -->
-        </div>
-
-        <div id="loadingIndicator" class="hidden text-center" style="color: #333333;">
-            Caricamento...
-        </div>
+        <!-- Messaggio di errore/info (JavaScript potrebbe popolarlo se ricevi un parametro dall'URL) -->
+        <p id="login-message" class="message"></p>
     </div>
 
     <script>
-        // Ottieni riferimenti agli elementi del DOM
-        const loginForm = document.getElementById('loginForm');
-        const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
-        const loginButton = document.getElementById('loginButton');
-        const messageDiv = document.getElementById('message');
-        const loadingIndicator = document.getElementById('loadingIndicator');
+        // Opzionale: Mostra messaggi di errore dall'URL
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorMessage = urlParams.get('error');
+            const messageElement = document.getElementById('login-message');
 
-        // Funzione per mostrare un messaggio (errore/successo)
-        function showMessage(msg, type) {
-            messageDiv.textContent = msg;
-            messageDiv.className = `message-box ${type === 'error' ? 'message-error' : 'message-success'} flex justify-center items-center`;
-            messageDiv.classList.remove('hidden');
-        }
-
-        // Funzione per nascondere il messaggio
-        function hideMessage() {
-            messageDiv.classList.add('hidden');
-            messageDiv.textContent = '';
-        }
-
-        // Funzione per mostrare/nascondere l'indicatore di caricamento
-        function showLoading(show) {
-            if (show) {
-                loadingIndicator.classList.remove('hidden');
-                loginButton.disabled = true; // Disabilita il bottone durante il caricamento
-                loginButton.textContent = 'Accesso in corso...';
-            } else {
-                loadingIndicator.classList.add('hidden');
-                loginButton.disabled = false;
-                loginButton.textContent = 'Accedi';
-            }
-        }
-
-        // Simula la chiamata API di login
-        async function authenticateUser(username, password) {
-            // Per il momento, usiamo delle credenziali hardcoded per la simulazione
-            // In un'applicazione reale, qui faresti una chiamata fetch() al tuo backend
-            // es: const response = await fetch('/api/login', { /* ... */ });
-
-            return new Promise(resolve => {
-                showLoading(true);
-                setTimeout(() => { // Simula un ritardo di rete
-                    if (username === 'sandro' && password === 'sandro') {
-                        resolve({ success: true, message: 'Accesso riuscito!' });
-                    } else {
-                        resolve({ success: false, message: 'Credenziali non valide. Riprova.' });
-                    }
-                    showLoading(false);
-                }, 1500); // 1.5 secondi di ritardo simulato
-            });
-        }
-
-        // Gestore dell'evento di submit del form
-        loginForm.addEventListener('submit', async (event) => {
-            event.preventDefault(); // Impedisce il ricaricamento della pagina
-            hideMessage(); // Nasconde eventuali messaggi precedenti
-
-            const username = usernameInput.value;
-            const password = passwordInput.value;
-
-            if (!username || !password) {
-                showMessage('Per favore, inserisci username e password.', 'error');
-                return;
-            }
-
-            const result = await authenticateUser(username, password);
-
-            if (result.success) {
-                showMessage(result.message, 'success');
-                // In un'applicazione reale, reindirizzeresti l'utente alla dashboard
-                setTimeout(() => {
-                    window.location.href = '/dashboard.html'; // Reindirizza dopo un breve ritardo
-                }, 1000);
-            } else {
-                showMessage(result.message, 'error');
+            if (messageElement && errorMessage) {
+                if (errorMessage === 'invalid_credentials') {
+                    messageElement.textContent = 'Credenziali non valide. Riprova.';
+                    messageElement.classList.add('error-message');
+                } else if (errorMessage === 'auth_required') {
+                    messageElement.textContent = 'Accedi per visualizzare questa pagina.';
+                    messageElement.classList.add('error-message');
+                } else if (errorMessage === 'server_error') {
+                    messageElement.textContent = 'Errore del server. Riprova più tardi.';
+                    messageElement.classList.add('error-message');
+                } else {
+                    messageElement.textContent = 'Si è verificato un errore.';
+                    messageElement.classList.add('error-message');
+                }
             }
         });
     </script>
