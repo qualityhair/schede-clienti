@@ -16,8 +16,8 @@
     "csv-parser": "^3.2.0",
     "express": "^4.17.1",
     "path-to-regexp": "^6.1.0",
-    "express-session": "^1.18.0",  <-- NUOVA DIPENDENZA
-    "bcrypt": "^5.1.1"              <-- NUOVA DIPENDENZA
+    "express-session": "^1.18.0",
+    "bcrypt": "^5.1.1"
   },
   "description": ""
 }
