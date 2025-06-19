@@ -282,8 +282,11 @@ app.delete("/api/trattamenti/:id", isAuthenticated, async (req, res) => {
     }
 });
 
+// Definisci la porta, prendendola dalle variabili d'ambiente o usando 8080 come fallback
+const port = process.env.PORT || 8080; 
 
 // Avvio del server: DEVE ESSERE L'ULTIMA COSA NEL FILE
-app.listen(port, () => {
-    console.log(`🚀 QualityHair intranet in ascolto su http://localhost:${port}`);
+// Importante: ascolta su '0.0.0.0' per essere accessibile da Fly.io
+app.listen(port, '0.0.0.0', () => {
+    console.log(`🚀 QualityHair intranet in ascolto su http://0.0.0.0:${port}`); // Modifica il messaggio di log per conferma
 });
