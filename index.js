@@ -6,7 +6,7 @@ const session = require('express-session'); // NUOVO: Modulo per le sessioni
 const bcrypt = require('bcrypt');       // NUOVO: Modulo per hashing delle password
 
 const app = express();
-const port = process.env.PORT || 3000;
+// RIMOZIONE: La riga 'const port = process.env.PORT || 3000;' è stata rimossa da qui.
 
 
 // --- Configurazione del Database ---
@@ -283,7 +283,7 @@ app.delete("/api/trattamenti/:id", isAuthenticated, async (req, res) => {
 });
 
 // Definisci la porta, prendendola dalle variabili d'ambiente o usando 8080 come fallback
-const port = process.env.PORT || 8080; 
+const port = process.env.PORT || 8080;
 
 // Avvio del server: DEVE ESSERE L'ULTIMA COSA NEL FILE
 // Importante: ascolta su '0.0.0.0' per essere accessibile da Fly.io
