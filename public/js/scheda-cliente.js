@@ -6,7 +6,7 @@ if (!localStorage.getItem("risultatiRicercaClienti")) {
 const params = new URLSearchParams(window.location.search);
 const clienteId = params.get("id");
 
-// --- NUOVA FUNZIONE: Funzione per mostrare un messaggio temporaneo ---
+// --- Funzione per mostrare un messaggio temporaneo ---
 function showMessage(message, type = 'info') {
     const messageDiv = document.createElement('div');
     messageDiv.textContent = message;
@@ -44,7 +44,7 @@ function showMessage(message, type = 'info') {
     }, 3000);
 }
 
-// --- NUOVA FUNZIONE: Gestione generica delle risposte API ---
+// --- Gestione generica delle risposte API ---
 async function handleApiResponse(response) {
     const contentType = response.headers.get("content-type");
 
@@ -52,45 +52,53 @@ async function handleApiResponse(response) {
         showMessage('La tua sessione è scaduta o non sei autorizzato. Effettua nuovamente il login.', 'error');
         setTimeout(() => {
             window.location.href = '/'; // Reindirizza alla pagina di login dopo un breve ritardo
-        }, 1500); // Diamo tempo all'utente di leggere il messaggio
-        return null; // Indica che l'operazione non è andata a buon fine e c'è stato un reindirizzamento
+        }, 1500);
+        return null;
     } else if (contentType && contentType.includes("application/json")) {
         return await response.json();
     } else {
-        // Questo è il caso in cui ricevi HTML (es. la pagina di login) quando ti aspetti JSON
         showMessage('Accesso non autorizzato o sessione scaduta. Verrai reindirizzato al login.', 'error');
         setTimeout(() => {
-            window.location.href = '/'; // Reindirizza alla pagina di login dopo un breve ritardo
-        }, 1500); // Diamo tempo all'utente di leggere il messaggio
-        return null; // Indica che l'operazione non è andata a buon fine e c'è stato un reindirizzamento
+            window.location.href = '/';
+        }, 1500);
+        return null;
     }
 }
 
+// *** BLOCCO AGGIUNTO/MODIFICATO PER GESTIRE L'ASSENZA DI UN ID CLIENTE ***
+// Questa è la parte cruciale che abbiamo discusso
+if (!clienteId) {
+    showMessage("Nessun ID cliente specificato. Verrai reindirizzato alla Dashboard.", 'info');
+    setTimeout(() => {
+        window.location.href = '/dashboard.html'; // Reindirizza alla dashboard
+    }, 2000);
+    // Interrompe l'esecuzione del resto dello script se l'ID manca
+    throw new Error("No client ID provided, redirecting.");
+}
 
 // Carica dati cliente e trattamenti
-if (clienteId) {
-    fetch(`/api/clienti/${clienteId}`)
-        .then(async res => { // Aggiunto async qui per await handleApiResponse
-            const data = await handleApiResponse(res);
-            if (data === null) {
-                throw new Error("Reindirizzamento handled"); // Ferma la catena .then()
-            }
-            if (!res.ok) {
-                const errorDetails = data.error || "Errore sconosciuto";
-                throw new Error(`Cliente non trovato: ${errorDetails}`);
-            }
-            return data; // Ritorna i dati parsati
-        })
-        .then(cliente => mostraCliente(cliente))
-        .catch(err => {
-            if (err.message !== "Reindirizzamento handled") { // Non mostrare errore se è stato un reindirizzamento
-                console.error("Errore caricamento cliente:", err);
-                showMessage('Errore nel caricamento del cliente.', 'error');
-            }
-        });
+fetch(`/api/clienti/${clienteId}`)
+    .then(async res => {
+        const data = await handleApiResponse(res);
+        if (data === null) {
+            throw new Error("Reindirizzamento handled");
+        }
+        if (!res.ok) {
+            const errorDetails = data.error || "Errore sconosciuto";
+            throw new Error(`Cliente non trovato: ${errorDetails}`);
+        }
+        return data;
+    })
+    .then(cliente => mostraCliente(cliente))
+    .catch(err => {
+        if (err.message !== "Reindirizzamento handled" && err.message !== "No client ID provided, redirecting.") {
+            console.error("Errore caricamento cliente:", err);
+            showMessage('Errore nel caricamento del cliente.', 'error');
+        }
+    });
 
-    caricaTrattamenti(clienteId);
-}
+caricaTrattamenti(clienteId);
+
 
 // Mostra i dati del cliente
 function mostraCliente(cliente) {
@@ -128,12 +136,10 @@ if (info) {
     info.innerText = `Cliente ${indice + 1} di ${lista.length}`;
 }
 
-
-
 // Carica la lista trattamenti
 function caricaTrattamenti(clienteId) {
     fetch(`/api/clienti/${clienteId}/trattamenti`)
-        .then(async res => { // Aggiunto async qui
+        .then(async res => {
             const data = await handleApiResponse(res);
             if (data === null) {
                 throw new Error("Reindirizzamento handled");
@@ -183,7 +189,7 @@ function eliminaTrattamento(id, clienteId) {
         fetch(`/api/trattamenti/${id}`, {
                 method: "DELETE"
             })
-            .then(async res => { // Aggiunto async qui
+            .then(async res => {
                 const data = await handleApiResponse(res);
                 if (data === null) {
                     throw new Error("Reindirizzamento handled");
@@ -192,9 +198,12 @@ function eliminaTrattamento(id, clienteId) {
                     const errorDetails = data.error || "Errore sconosciuto";
                     throw new Error(`Errore eliminazione trattamento: ${errorDetails}`);
                 }
-                return data; // res.text() se la risposta è solo testo
+                return data;
             })
-            .then(() => caricaTrattamenti(clienteId))
+            .then(() => {
+                caricaTrattamenti(clienteId);
+                showMessage('Trattamento eliminato con successo!', 'success'); // Messaggio di successo
+            })
             .catch(err => {
                 if (err.message !== "Reindirizzamento handled") {
                     console.error("Errore eliminazione trattamento:", err);
@@ -221,7 +230,7 @@ if (form) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cliente_id, tipo_trattamento, descrizione, data_trattamento, note })
             })
-            .then(async res => { // Aggiunto async qui
+            .then(async res => {
                 const data = await handleApiResponse(res);
                 if (data === null) {
                     throw new Error("Reindirizzamento handled");
@@ -230,12 +239,12 @@ if (form) {
                     const errorDetails = data.error || "Errore sconosciuto";
                     throw new Error(`Errore aggiunta trattamento: ${errorDetails}`);
                 }
-                return data; // res.text() se la risposta è solo testo
+                return data;
             })
             .then(() => {
                 caricaTrattamenti(cliente_id);
                 form.reset();
-                showMessage('Trattamento aggiunto con successo!', 'success'); // Messaggio di successo
+                showMessage('Trattamento aggiunto con successo!', 'success');
             })
             .catch(err => {
                 if (err.message !== "Reindirizzamento handled") {
@@ -250,7 +259,7 @@ if (form) {
 const btnElimina = document.getElementById("btnEliminaCliente");
 if (btnElimina) {
     btnElimina.addEventListener("click", () => {
-        if (!clienteId) return;
+        if (!clienteId) return; // Già gestito all'inizio, ma precauzione
 
         const conferma = confirm("Sei sicuro di voler eliminare questo cliente? L'azione è irreversibile.");
         if (!conferma) return;
@@ -258,7 +267,7 @@ if (btnElimina) {
         fetch(`/api/clienti/${clienteId}`, {
                 method: "DELETE"
             })
-            .then(async res => { // Aggiunto async qui
+            .then(async res => {
                 const data = await handleApiResponse(res);
                 if (data === null) {
                     throw new Error("Reindirizzamento handled");
@@ -267,11 +276,11 @@ if (btnElimina) {
                     const errorDetails = data.error || "Errore sconosciuto";
                     throw new Error(`Errore eliminazione cliente: ${errorDetails}`);
                 }
-                return data; // res.text() se la risposta è solo testo
+                return data;
             })
             .then(() => {
                 showMessage("Cliente eliminato con successo", 'success');
-                setTimeout(() => { // Dai tempo all'utente di leggere il messaggio
+                setTimeout(() => {
                     window.location.href = "/dashboard.html";
                 }, 1500);
             })
@@ -302,7 +311,7 @@ if (formModifica) {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(datiAggiornati)
             })
-            .then(async res => { // Aggiunto async qui
+            .then(async res => {
                 const data = await handleApiResponse(res);
                 if (data === null) {
                     throw new Error("Reindirizzamento handled");
@@ -311,11 +320,11 @@ if (formModifica) {
                     const errorDetails = data.error || "Errore sconosciuto";
                     throw new Error(`Errore aggiornamento cliente: ${errorDetails}`);
                 }
-                return data; // res.text() se la risposta è solo testo
+                return data;
             })
             .then(() => {
                 showMessage("Cliente aggiornato con successo", 'success');
-                setTimeout(() => { // Dai tempo all'utente di leggere il messaggio
+                setTimeout(() => {
                     window.location.reload();
                 }, 1500);
             })
@@ -327,7 +336,6 @@ if (formModifica) {
             });
     });
 }
-
 
 document.getElementById("btnPrecedente").addEventListener("click", () => cambiaCliente(-1));
 document.getElementById("btnSuccessivo").addEventListener("click", () => cambiaCliente(1));
