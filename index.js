@@ -8,6 +8,7 @@ const bcrypt = require('bcrypt');       // NUOVO: Modulo per hashing delle passw
 const app = express();
 const port = process.env.PORT || 3000;
 
+
 // --- Configurazione del Database ---
 const connectionString = process.env.DATABASE_URL;
 let dbConfig;
