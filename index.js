@@ -3,7 +3,7 @@ const { Pool } = require("pg");
 const path = require("path");
 const bodyParser = require("body-parser");
 const session = require('express-session'); // NUOVO: Modulo per le sessioni
-const bcrypt = require('bcrypt');       // NUOVO: Modulo per hashing delle password
+const bcrypt = require('bcrypt');          // NUOVO: Modulo per hashing delle password
 
 const app = express();
 // RIMOZIONE: La riga 'const port = process.env.PORT || 3000;' è stata rimossa da qui.
@@ -77,10 +77,12 @@ app.post('/login', async (req, res) => {
 
     try {
         // Cerca l'utente nel database
-        const result = await db.query('SELECT id, username, password_hash FROM users WHERE username = $1', [username]);
+        // *** MODIFICA EFFETTUATA QUI: da 'password_hash' a 'password' ***
+        const result = await db.query('SELECT id, username, password FROM users WHERE username = $1', [username]);
         const user = result.rows[0]; // Prende il primo utente trovato
 
-        if (user && await bcrypt.compare(password, user.password_hash)) {
+        // *** MODIFICA EFFETTUATA QUI: da 'user.password_hash' a 'user.password' ***
+        if (user && await bcrypt.compare(password, user.password)) {
             // Credenziali valide: imposta la sessione per l'utente
             req.session.userId = user.id;
             req.session.isLoggedIn = true;
