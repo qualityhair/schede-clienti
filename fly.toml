@@ -10,7 +10,7 @@ primary_region = 'fra'
   builtin = "node"
 
 [http_service]
-  internal_port = 3000
+  internal_port = 8080 # MODIFICATO: Era 3000, ora è 8080 per allinearsi all'app
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
@@ -21,4 +21,3 @@ primary_region = 'fra'
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
-
