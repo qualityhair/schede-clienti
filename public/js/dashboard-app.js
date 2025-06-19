@@ -12,47 +12,68 @@ document.addEventListener("DOMContentLoaded", () => {
     const clientListContainer = document.getElementById("client-list-container");
     const viewAllClientsButton = document.getElementById("view-all-clients-button");
 
-// Funzione per mostrare un messaggio temporaneo
-function showMessage(message, type = 'info') {
-    const messageDiv = document.createElement('div');
-    messageDiv.textContent = message;
-    messageDiv.style.padding = '10px';
-    messageDiv.style.borderRadius = '5px';
-    messageDiv.style.fontWeight = 'bold';
-    messageDiv.style.color = '#1a1a1a'; // Testo scuro
+    // Funzione per mostrare un messaggio temporaneo
+    function showMessage(message, type = 'info') {
+        const messageDiv = document.createElement('div');
+        messageDiv.textContent = message;
+        messageDiv.style.padding = '10px';
+        messageDiv.style.borderRadius = '5px';
+        messageDiv.style.fontWeight = 'bold';
+        messageDiv.style.color = '#1a1a1a'; // Testo scuro
 
-    if (type === 'success') {
-        messageDiv.style.backgroundColor = '#d4edda'; // Verde chiaro
-        messageDiv.style.borderColor = '#28a745'; // Verde scuro
-    } else if (type === 'error') {
-        messageDiv.style.backgroundColor = '#f8d7da'; // Rosso chiaro
-        messageDiv.style.borderColor = '#dc3545'; // Rosso scuro
-    } else {
-        messageDiv.style.backgroundColor = '#fff3cd'; // Giallo chiaro
-        messageDiv.style.borderColor = '#ffc107'; // Giallo scuro
+        if (type === 'success') {
+            messageDiv.style.backgroundColor = '#d4edda'; // Verde chiaro
+            messageDiv.style.borderColor = '#28a745'; // Verde scuro
+        } else if (type === 'error') {
+            messageDiv.style.backgroundColor = '#f8d7da'; // Rosso chiaro
+            messageDiv.style.borderColor = '#dc3545'; // Rosso scuro
+        } else {
+            messageDiv.style.backgroundColor = '#fff3cd'; // Giallo chiaro
+            messageDiv.style.borderColor = '#ffc107'; // Giallo scuro
+        }
+        messageDiv.style.border = '1px solid';
+        messageDiv.style.textAlign = 'center';
+
+        messageDiv.style.position = 'fixed';
+        messageDiv.style.top = '50%';
+        messageDiv.style.left = '50%';
+        messageDiv.style.transform = 'translate(-50%, -50%)';
+        messageDiv.style.zIndex = '1000';
+        messageDiv.style.minWidth = '280px';
+        messageDiv.style.maxWidth = '90%';
+        messageDiv.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
+
+        document.body.insertBefore(messageDiv, document.body.firstChild);
+
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 3000);
     }
-    messageDiv.style.border = '1px solid';
-    messageDiv.style.textAlign = 'center';
 
-    // === NUOVE STILI PER POSIZIONAMENTO E VISIBILITÀ (aggiornati per il centro) ===
-    messageDiv.style.position = 'fixed';       // Lo rende fisso sullo schermo
-    messageDiv.style.top = '50%';              // <--- MODIFICATO: Lo sposta al 50% dall'alto
-    messageDiv.style.left = '50%';             // Lo sposta al 50% della larghezza della pagina
-    messageDiv.style.transform = 'translate(-50%, -50%)'; // <--- MODIFICATO: Lo centra perfettamente sia orizzontalmente che verticalmente
-    messageDiv.style.zIndex = '1000';          // Assicura che sia sopra a tutti gli altri elementi
-    messageDiv.style.minWidth = '280px';       // Larghezza minima per una buona leggibilità
-    messageDiv.style.maxWidth = '90%';         // Larghezza massima per schermi piccoli
-    messageDiv.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)'; // Un'ombra leggera per farlo risaltare
-    // ====================================================
+    // --- NUOVA FUNZIONE: Gestione generica delle risposte API ---
+    // Questa funzione centralizza il controllo dell'autenticazione per le risposte fetch
+    async function handleApiResponse(response) {
+        const contentType = response.headers.get("content-type");
 
-    // Inserisce il messaggio all'inizio del body
-    document.body.insertBefore(messageDiv, document.body.firstChild);
-
-    // Rimuove il messaggio dopo 3 secondi (o il valore che hai messo tu)
-    setTimeout(() => {
-        messageDiv.remove();
-    }, 3000); // Se l'avevi messo a 10000 per il test, puoi rimetterlo a 3000 qui.
-}
+        if (response.status === 401) {
+            // Se il server invia esplicitamente 401 per non autorizzato
+            showMessage('La tua sessione è scaduta o non sei autorizzato. Effettua nuovamente il login.', 'error');
+            setTimeout(() => {
+                window.location.href = '/'; // Reindirizza alla pagina di login dopo un breve ritardo
+            }, 1500); // Diamo tempo all'utente di leggere il messaggio
+            return null; // Indica che l'operazione non è andata a buon fine e c'è stato un reindirizzamento
+        } else if (contentType && contentType.includes("application/json")) {
+            // Se la risposta è JSON (anche se non è OK, per errori specifici dal server)
+            return await response.json();
+        } else {
+            // Se la risposta non è OK e non è JSON (probabilmente HTML di reindirizzamento)
+            showMessage('Accesso non autorizzato o sessione scaduta. Verrai reindirizzato al login.', 'error');
+            setTimeout(() => {
+                window.location.href = '/'; // Reindirizza alla pagina di login dopo un breve ritardo
+            }, 1500); // Diamo tempo all'utente di leggere il messaggio
+            return null; // Indica che l'operazione non è andata a buon fine e c'è stato un reindirizzamento
+        }
+    }
 
 
     // --- Funzioni per la Gestione Clienti ---
@@ -61,11 +82,19 @@ function showMessage(message, type = 'info') {
         clientListContainer.innerHTML = '<p style="text-align: center; color: #666;">Caricamento clienti...</p>';
         try {
             const response = await fetch("/api/clienti");
-            if (!response.ok) {
-                throw new Error("Errore nel recupero della lista clienti");
+
+            // *** Utilizza la nuova funzione handleApiResponse qui ***
+            const data = await handleApiResponse(response);
+            if (data === null) return; // Se handleApiResponse ha gestito un reindirizzamento, ferma la funzione
+
+            if (!response.ok) { // Controlla lo status OK DOPO aver gestito il reindirizzamento
+                 // Se non è 200 ma è JSON valido, allora è un errore specifico dal server
+                const errorDetails = data.error || "Errore sconosciuto";
+                throw new Error(`Errore nel recupero della lista clienti: ${errorDetails}`);
             }
-            const clients = await response.json();
-            
+
+            const clients = data; // I dati JSON sono già stati parsati da handleApiResponse
+
             clientListContainer.innerHTML = ''; // Pulisce il messaggio di caricamento
 
             if (clients.length === 0) {
@@ -96,7 +125,7 @@ function showMessage(message, type = 'info') {
         } catch (error) {
             console.error("Errore fetchAndDisplayClients:", error);
             clientListContainer.innerHTML = '<p style="text-align: center; color: red;">Errore nel caricamento dei clienti.</p>';
-            showMessage('Errore nel caricamento della lista clienti.', 'error');
+            showMessage('Errore critico durante il caricamento dei clienti. Controlla la console per dettagli.', 'error');
         }
     }
 
@@ -109,10 +138,17 @@ function showMessage(message, type = 'info') {
 
         try {
             const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
-            if (!response.ok) {
-                throw new Error("Errore nella ricerca clienti");
+
+            // *** Utilizza la nuova funzione handleApiResponse qui ***
+            const data = await handleApiResponse(response);
+            if (data === null) return; // Se handleApiResponse ha gestito un reindirizzamento, ferma la funzione
+
+            if (!response.ok) { // Controlla lo status OK DOPO aver gestito il reindirizzamento
+                const errorDetails = data.error || "Errore sconosciuto";
+                throw new Error(`Errore nella ricerca clienti: ${errorDetails}`);
             }
-            const clients = await response.json();
+
+            const clients = data; // I dati JSON sono già stati parsati da handleApiResponse
 
             clientListContainer.innerHTML = ''; // Pulisce il container
 
@@ -145,7 +181,7 @@ function showMessage(message, type = 'info') {
         } catch (error) {
             console.error("Errore handleSearchClient:", error);
             clientListContainer.innerHTML = '<p style="text-align: center; color: red;">Errore durante la ricerca.</p>';
-            showMessage('Errore durante la ricerca dei clienti.', 'error');
+            showMessage('Errore critico durante la ricerca dei clienti. Controlla la console per dettagli.', 'error');
         }
     }
 
@@ -169,11 +205,16 @@ function showMessage(message, type = 'info') {
                 body: JSON.stringify(newClientData),
             });
 
-            if (!response.ok) {
-                throw new Error("Errore durante l'aggiunta del cliente");
+            // *** Utilizza la nuova funzione handleApiResponse qui ***
+            const data = await handleApiResponse(response);
+            if (data === null) return; // Se handleApiResponse ha gestito un reindirizzamento, ferma la funzione
+
+            if (!response.ok) { // Controlla lo status OK DOPO aver gestito il reindirizzamento
+                const errorDetails = data.error || "Errore sconosciuto";
+                throw new Error(`Errore durante l'aggiunta del cliente: ${errorDetails}`);
             }
 
-            const result = await response.json();
+            const result = data; // I dati JSON sono già stati parsati da handleApiResponse
             showMessage(`Cliente ${nome} ${cognome} aggiunto con successo!`, 'success');
 
             // Pulisci i campi del form
@@ -190,7 +231,7 @@ function showMessage(message, type = 'info') {
 
         } catch (error) {
             console.error("Errore handleAddNewClient:", error);
-            showMessage('Errore durante l\'aggiunta del cliente.', 'error');
+            showMessage('Errore critico durante l\'aggiunta del cliente. Controlla la console per dettagli.', 'error');
         }
     }
 
