@@ -25,6 +25,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const quantitaAcquistoInput = document.getElementById("quantita-acquisto");
     const noteAcquistoTextarea = document.getElementById("note-acquisto");
 
+    // --- NUOVI Riferimenti per Modale Aggiungi Trattamento ---
+    const aggiungiTrattamentoBtn = document.getElementById("aggiungiTrattamentoBtn"); // Assicurati che questo ID sia sul bottone HTML
+    const modalAggiungiTrattamento = document.getElementById("addTrattamentoModal"); // ID della modale creata prima
+    const formAddTrattamento = document.getElementById("formAddTrattamento"); // ID del form nella modale
+    const cancelTrattamentoBtn = document.getElementById("cancelTrattamentoBtn"); // ID del bottone Annulla nella modale
+
+    // Campi input specifici della modale trattamento
+    const tipoTrattamentoInput = document.getElementById('tipoTrattamento');
+    const dataTrattamentoInput = document.getElementById('dataTrattamento');
+    const prezzoTrattamentoInput = document.getElementById('prezzoTrattamento');
+    const dettagliTrattamentoInput = document.getElementById('dettagliTrattamento');
+
+
     let currentClientId = null;
     let searchResultsIds = []; // Per la paginazione dei risultati di ricerca
     let currentIndex = 0; // Indice corrente nei risultati di ricerca
@@ -65,6 +78,18 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             messageDiv.remove();
         }, 3000);
+    }
+
+    // Funzioni per aprire/chiudere modali (GENERICHE)
+    function openModal(modalElement) {
+        modalElement.classList.add('open');
+    }
+
+    function closeModal(modalElement, formToReset = null) {
+        modalElement.classList.remove('open');
+        if (formToReset) {
+            formToReset.reset();
+        }
     }
 
     // --- Gestione generica delle risposte API ---
@@ -202,6 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const deleteButton = document.createElement("button");
             deleteButton.textContent = "🗑️ Elimina";
             deleteButton.className = "btn btn-delete";
+            deleteButton.style.marginLeft = "5px";
             deleteButton.onclick = () => confirmDeleteAcquisto(index); // Passa l'indice dell'acquisto
             actionCell.appendChild(deleteButton);
         });
@@ -326,12 +352,56 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             showMessage("Acquisto aggiunto con successo!", 'success');
-            modalAggiungiAcquisto.classList.remove('open');
-            formAggiungiAcquisto.reset(); // Resetta il form della modale
+            closeModal(modalAggiungiAcquisto, formAggiungiAcquisto); // Usa la funzione generica
             loadClientData(currentClientId); // Ricarica i dati per aggiornare la lista acquisti
         } catch (error) {
             console.error("Errore aggiunta acquisto:", error);
             showMessage(`Errore nell'aggiunta dell'acquisto: ${error.message}`, 'error');
+        }
+    }
+
+    // --- NUOVA FUNZIONE: Gestione dell'aggiunta Trattamento tramite Modale ---
+    async function handleAddTrattamento(event) {
+        event.preventDefault(); // Impedisce il ricaricamento della pagina
+
+        const tipo = tipoTrattamentoInput.value.trim();
+        const data_trattamento = dataTrattamentoInput.value;
+        const prezzo = parseFloat(prezzoTrattamentoInput.value); // Assumi che il campo prezzo sia presente nel form
+        const descrizione = dettagliTrattamentoInput.value.trim(); // Assumi che il campo dettagli sia per la descrizione
+        const note = ""; // Puoi aggiungere un campo note dedicato se serve
+
+        if (!tipo || !data_trattamento || isNaN(prezzo) || prezzo < 0) {
+            showMessage("Per favore, compila tutti i campi obbligatori (Tipo, Data, Prezzo) con valori validi.", 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/trattamenti`, { // Endpoint POST per aggiungere un trattamento
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    id_cliente: currentClientId, // Assicurati di passare l'ID del cliente
+                    tipo,
+                    data_trattamento,
+                    descrizione,
+                    prezzo, // Invia anche il prezzo
+                    note // Invia anche le note (anche se vuote per ora)
+                })
+            });
+            const data = await handleApiResponse(response);
+
+            if (data === null) return;
+
+            if (!response.ok) {
+                throw new Error(data.error || "Errore nell'aggiunta del trattamento.");
+            }
+
+            showMessage("Trattamento aggiunto con successo!", 'success');
+            closeModal(modalAggiungiTrattamento, formAddTrattamento); // Chiude e resetta la modale
+            loadClientData(currentClientId); // Ricarica i dati per aggiornare la lista trattamenti
+        } catch (error) {
+            console.error("Errore aggiunta trattamento:", error);
+            showMessage(`Errore nell'aggiunta del trattamento: ${error.message}`, 'error');
         }
     }
 
@@ -443,16 +513,37 @@ document.addEventListener("DOMContentLoaded", () => {
     salvaNoteBtn.addEventListener("click", handleSalvaNote);
 
     // Event listener per la modale "Aggiungi Acquisto"
-    aggiungiAcquistoBtn.addEventListener("click", () => {
-        modalAggiungiAcquisto.classList.add('open');
-        // Imposta la data di oggi come default
-        dataAcquistoInput.valueAsDate = new Date();
-    });
-    annullaAcquistoBtn.addEventListener("click", () => {
-        modalAggiungiAcquisto.classList.remove('open');
-        formAggiungiAcquisto.reset(); // Pulisce il form
-    });
-    formAggiungiAcquisto.addEventListener("submit", handleAddAcquisto);
+    if (aggiungiAcquistoBtn) {
+        aggiungiAcquistoBtn.addEventListener("click", () => {
+            openModal(modalAggiungiAcquisto);
+            dataAcquistoInput.valueAsDate = new Date(); // Imposta la data di oggi come default
+        });
+    }
+    if (annullaAcquistoBtn) {
+        annullaAcquistoBtn.addEventListener("click", () => {
+            closeModal(modalAggiungiAcquisto, formAggiungiAcquisto);
+        });
+    }
+    if (formAggiungiAcquisto) {
+        formAggiungiAcquisto.addEventListener("submit", handleAddAcquisto);
+    }
+
+    // --- NUOVI Event Listeners per la modale "Aggiungi Trattamento" ---
+    if (aggiungiTrattamentoBtn) {
+        aggiungiTrattamentoBtn.addEventListener("click", () => {
+            openModal(modalAggiungiTrattamento);
+            dataTrattamentoInput.valueAsDate = new Date(); // Imposta la data di oggi come default
+        });
+    }
+    if (cancelTrattamentoBtn) {
+        cancelTrattamentoBtn.addEventListener("click", () => {
+            closeModal(modalAggiungiTrattamento, formAddTrattamento);
+        });
+    }
+    if (formAddTrattamento) {
+        formAddTrattamento.addEventListener("submit", handleAddTrattamento);
+    }
+
 
     // Event listeners per la paginazione
     btnPrecedente.addEventListener("click", () => navigateClient('prev'));
