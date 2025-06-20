@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     // Riferimenti agli elementi DOM esistenti
-    const nomeCompletoSpan = document.getElementById("nome-completo");
+    const nomeCompletoSpan = document.getElementById("nome-completo"); // <--- Qui è corretto
     const emailSpan = document.getElementById("email");
     const telefonoSpan = document.getElementById("telefono");
     const listaTrattamentiBody = document.getElementById("lista-trattamenti");
@@ -32,10 +32,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const cancelTrattamentoBtn = document.getElementById("cancelTrattamentoBtn");
 
     // Campi input specifici della modale trattamento (AGGIORNATI CON ID COERENTI)
-    const tipoTrattamentoInput = document.getElementById('modal_tipo_trattamento'); // AGGIORNATO
-    const dataTrattamentoInput = document.getElementById('modal_data_trattamento'); // AGGIORNATO
-    const descrizioneTrattamentoInput = document.getElementById('modal_descrizione'); // AGGIORNATO
-    const noteTrattamentoInput = document.getElementById('modal_note'); // AGGIORNATO
+    const tipoTrattamentoInput = document.getElementById('modal_tipo_trattamento');
+    const dataTrattamentoInput = document.getElementById('modal_data_trattamento');
+    const descrizioneTrattamentoInput = document.getElementById('modal_descrizione');
+    const noteTrattamentoInput = document.getElementById('modal_note');
 
 
     let currentClientId = null;
@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Popola i campi del cliente
             const client = data.client;
             if (client) {
-                nomeCompleptoSpan.textContent = `${client.nome} ${client.cognome}`;
+                nomeCompletoSpan.textContent = `${client.nome} ${client.cognome}`; // <--- Ho corretto qui!
                 emailSpan.textContent = client.email || "N/A";
                 telefonoSpan.textContent = client.telefono || "N/A";
 
@@ -237,9 +237,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Funzioni di salvataggio/eliminazione ---
 
     async function confirmDeleteTrattamento(trattamentoId) {
-        // Ho rimosso l'uso di `confirm()` per usare la tua `showCustomModal`
-        // Assicurati che `showCustomModal` sia definita a livello globale o passata qui
-        // (Nel tuo HTML scheda-cliente.html, probabilmente l'hai inclusa)
         if (typeof showCustomModal !== 'function') {
             console.warn('showCustomModal non è definita. Usando confirm() di fallback.');
             if (!confirm("Sei sicuro di voler eliminare questo trattamento?")) {
@@ -267,11 +264,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     showMessage(`Errore: ${error.message}`, 'error');
                 }
             });
-            return; // Esci subito per attendere la risposta della modale
+            return;
         }
 
-        // Questo blocco verrebbe eseguito solo se showCustomModal non è disponibile
-        // e si usa il confirm() nativo.
         try {
             const response = await fetch(`/api/trattamenti/${trattamentoId}`, {
                 method: 'DELETE',
@@ -284,7 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error(data.error || "Errore durante l'eliminazione del trattamento.");
             }
             showMessage("Trattamento eliminato con successo!", 'success');
-            loadClientData(currentClientId); // Ricarica i dati del cliente per aggiornare la lista
+            loadClientData(currentClientId);
         } catch (error) {
             console.error("Errore eliminazione trattamento:", error);
             showMessage(`Errore: ${error.message}`, 'error');
@@ -293,7 +288,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     async function confirmDeleteClient() {
-        // Ho rimosso l'uso di `confirm()` per usare la tua `showCustomModal`
         if (typeof showCustomModal !== 'function') {
             console.warn('showCustomModal non è definita. Usando confirm() di fallback.');
             if (!confirm(`Sei sicuro di voler eliminare il cliente ${nomeCompletoSpan.textContent}? Questa azione è irreversibile e cancellerà anche tutti i trattamenti associati.`)) {
@@ -322,11 +316,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     showMessage(`Errore: ${error.message}`, 'error');
                 }
             });
-            return; // Esci subito per attendere la risposta della modale
+            return;
         }
 
-        // Questo blocco verrebbe eseguito solo se showCustomModal non è disponibile
-        // e si usa il confirm() nativo.
         try {
             const response = await fetch(`/api/clienti/${currentClientId}`, {
                 method: 'DELETE',
@@ -370,7 +362,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function handleAddAcquisto(event) {
-        event.preventDefault(); // Impedisce il ricaricamento della pagina
+        event.preventDefault();
         const prodotto = prodottoAcquistoInput.value.trim();
         const data = dataAcquistoInput.value;
         const prezzo = parseFloat(prezzoAcquistoInput.value);
@@ -385,7 +377,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const nuovoAcquisto = { prodotto, data, prezzo, quantita, note };
 
         try {
-            // Carica i dati attuali del cliente per ottenere lo storico acquisti corrente
             const clientResponse = await fetch(`/api/clienti/${currentClientId}`);
             const clientData = await handleApiResponse(clientResponse);
             if (clientData === null || !clientResponse.ok || !clientData.client) {
@@ -397,17 +388,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 storicoAcquisti = clientData.client.storico_acquisti ? JSON.parse(clientData.client.storico_acquisti) : [];
             } catch (e) {
                 console.error("Errore nel parsing dello storico acquisti esistente:", e);
-                // In caso di errore parsing, riparti da zero per non bloccare
                 storicoAcquisti = [];
             }
 
             storicoAcquisti.push(nuovoAcquisto);
 
-            // Invia lo storico acquisti aggiornato al server
             const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ storico_acquisti: JSON.stringify(storicoAcquisti) }) // Stringifica l'array JSON
+                body: JSON.stringify({ storico_acquisti: JSON.stringify(storicoAcquisti) })
             });
             const dataResponse = await handleApiResponse(response);
 
@@ -418,8 +407,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             showMessage("Acquisto aggiunto con successo!", 'success');
-            closeModal(modalAggiungiAcquisto, formAggiungiAcquisto); // Usa la funzione generica
-            loadClientData(currentClientId); // Ricarica i dati per aggiornare la lista acquisti
+            closeModal(modalAggiungiAcquisto, formAggiungiAcquisto);
+            loadClientData(currentClientId);
         } catch (error) {
             console.error("Errore aggiunta acquisto:", error);
             showMessage(`Errore nell'aggiunta dell'acquisto: ${error.message}`, 'error');
@@ -428,36 +417,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- NUOVA FUNZIONE: Gestione dell'aggiunta Trattamento tramite Modale ---
     async function handleAddTrattamento(event) {
-        event.preventDefault(); // Impedisce il ricaricamento della pagina
+        event.preventDefault();
 
-        // *** AGGIUNTA CHIAVE: Controllo che currentClientId non sia nullo ***
         if (!currentClientId) {
             showMessage("Impossibile aggiungere il trattamento: ID cliente mancante. Ricarica la pagina da un cliente valido.", 'error');
-            return; // Ferma l'esecuzione se l'ID cliente è nullo
+            return;
         }
-        // *******************************************************************
 
         const tipo = tipoTrattamentoInput.value.trim();
         const data_trattamento = dataTrattamentoInput.value;
         const descrizione = descrizioneTrattamentoInput.value.trim();
-        const note = noteTrattamentoInput.value.trim(); // Ora recupera il valore direttamente dal campo 'noteTrattamentoInput'
+        const note = noteTrattamentoInput.value.trim();
 
-        // Validazione aggiornata (senza prezzo)
         if (!tipo || !data_trattamento) {
             showMessage("Per favore, compila tutti i campi obbligatori (Tipo, Data).", 'error');
             return;
         }
 
         try {
-            const response = await fetch(`/api/trattamenti`, { // Endpoint POST per aggiungere un trattamento
+            const response = await fetch(`/api/trattamenti`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    cliente_id: currentClientId, // <-- QUESTO È IL CAMPO FONDAMENTALE (corretto da id_cliente a cliente_id)
+                    cliente_id: currentClientId,
                     tipo,
                     data_trattamento,
                     descrizione,
-                    note // Invia le note
+                    note
                 })
             });
             const data = await handleApiResponse(response);
@@ -469,8 +455,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             showMessage("Trattamento aggiunto con successo!", 'success');
-            closeModal(modalAggiungiTrattamento, formAddTrattamento); // Chiude e resetta la modale
-            loadClientData(currentClientId); // Ricarica i dati per aggiornare la lista trattamenti
+            closeModal(modalAggiungiTrattamento, formAddTrattamento);
+            loadClientData(currentClientId);
         } catch (error) {
             console.error("Errore aggiunta trattamento:", error);
             showMessage(`Errore nell'aggiunta del trattamento: ${error.message}`, 'error');
@@ -478,7 +464,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function confirmDeleteAcquisto(indexToDelete) {
-        // Ho rimosso l'uso di `confirm()` per usare la tua `showCustomModal`
         if (typeof showCustomModal !== 'function') {
             console.warn('showCustomModal non è definita. Usando confirm() di fallback.');
             if (!confirm("Sei sicuro di voler eliminare questo acquisto?")) {
@@ -489,7 +474,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!confirmed) return;
 
                 try {
-                    // Recupera lo storico acquisti attuale
                     const clientResponse = await fetch(`/api/clienti/${currentClientId}`);
                     const clientData = await handleApiResponse(clientResponse);
                     if (clientData === null || !clientResponse.ok || !clientData.client) {
@@ -506,9 +490,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
 
                     if (indexToDelete >= 0 && indexToDelete < storicoAcquisti.length) {
-                        storicoAcquisti.splice(indexToDelete, 1); // Rimuovi l'elemento all'indice specificato
+                        storicoAcquisti.splice(indexToDelete, 1);
 
-                        // Invia lo storico acquisti aggiornato al server
                         const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
@@ -522,7 +505,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             throw new Error(dataResponse.error || "Errore nell'eliminazione dell'acquisto.");
                         }
                         showMessage("Acquisto eliminato con successo!", 'success');
-                        loadClientData(currentClientId); // Ricarica i dati per aggiornare la lista
+                        loadClientData(currentClientId);
                     } else {
                         showMessage("Errore: Indice acquisto non valido.", 'error');
                     }
@@ -532,13 +515,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     showMessage(`Errore nell'eliminazione dell'acquisto: ${error.message}`, 'error');
                 }
             });
-            return; // Esci subito per attendere la risposta della modale
+            return;
         }
 
-        // Questo blocco verrebbe eseguito solo se showCustomModal non è disponibile
-        // e si usa il confirm() nativo.
         try {
-            // Recupera lo storico acquisti attuale
             const clientResponse = await fetch(`/api/clienti/${currentClientId}`);
             const clientData = await handleApiResponse(clientResponse);
             if (clientData === null || !clientResponse.ok || !clientData.client) {
@@ -555,9 +535,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             if (indexToDelete >= 0 && indexToDelete < storicoAcquisti.length) {
-                storicoAcquisti.splice(indexToDelete, 1); // Rimuovi l'elemento all'indice specificato
+                storicoAcquisti.splice(indexToDelete, 1);
 
-                // Invia lo storico acquisti aggiornato al server
                 const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -571,7 +550,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     throw new Error(dataResponse.error || "Errore nell'eliminazione dell'acquisto.");
                 }
                 showMessage("Acquisto eliminato con successo!", 'success');
-                loadClientData(currentClientId); // Ricarica i dati per aggiornare la lista
+                loadClientData(currentClientId);
             } else {
                 showMessage("Errore: Indice acquisto non valido.", 'error');
             }
@@ -605,7 +584,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const newClientId = searchResultsIds[currentIndex];
         window.history.pushState({ clientId: newClientId, searchResultsIds, currentIndex }, '', `/scheda-cliente.html?id=${newClientId}&search_results=${encodeURIComponent(JSON.stringify(searchResultsIds))}&current_index=${currentIndex}`);
-        currentClientId = newClientId; // Aggiorna l'ID cliente corrente
+        currentClientId = newClientId;
         loadClientData(currentClientId);
         updatePaginationButtons();
     }
@@ -621,15 +600,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 searchResultsIds = JSON.parse(decodeURIComponent(searchResultsParam));
                 currentIndex = parseInt(params.get("current_index") || '0');
                 if (isNaN(currentIndex) || currentIndex < 0 || currentIndex >= searchResultsIds.length) {
-                    currentIndex = 0; // Fallback se l'indice non è valido
+                    currentIndex = 0;
                 }
             } catch (e) {
                 console.error("Errore nel parsing dei search_results:", e);
-                searchResultsIds = [currentClientId]; // Fallback al solo cliente corrente
+                searchResultsIds = [currentClientId];
                 currentIndex = 0;
             }
         } else {
-            searchResultsIds = [currentClientId]; // Nessun risultato di ricerca, solo il cliente corrente
+            searchResultsIds = [currentClientId];
             currentIndex = 0;
         }
 
@@ -645,7 +624,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (aggiungiAcquistoBtn) {
         aggiungiAcquistoBtn.addEventListener("click", () => {
             openModal(modalAggiungiAcquisto);
-            dataAcquistoInput.valueAsDate = new Date(); // Imposta la data di oggi come default
+            dataAcquistoInput.valueAsDate = new Date();
         });
     }
     if (annullaAcquistoBtn) {
@@ -661,7 +640,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (aggiungiTrattamentoBtn) {
         aggiungiTrattamentoBtn.addEventListener("click", () => {
             openModal(modalAggiungiTrattamento);
-            dataTrattamentoInput.valueAsDate = new Date(); // Imposta la data di oggi come default
+            dataTrattamentoInput.valueAsDate = new Date();
         });
     }
     if (cancelTrattamentoBtn) {
