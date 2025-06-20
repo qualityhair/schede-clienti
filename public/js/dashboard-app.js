@@ -97,31 +97,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const clients = data; // I dati JSON sono già stati parsati da handleApiResponse
 
-            // clientListContainer.innerHTML = ''; // RIMOSSO: non abbiamo più il container
+            if (clients.length > 0) {
+                // Estrai solo gli ID dei clienti trovati
+                const clientIds = clients.map(client => client.id);
+                // Converti l'array di ID in una stringa JSON e URL-encodala
+                const encodedClientIds = encodeURIComponent(JSON.stringify(clientIds));
 
-            if (clients.length === 1) {
-                // Se trova ESATTAMENTE un cliente, reindirizza direttamente alla sua scheda
-                showMessage(`Cliente trovato: ${clients[0].nome} ${clients[0].cognome}. Reindirizzamento alla scheda...`, 'success');
+                showMessage(`Trovati ${clients.length} clienti per "${searchTerm}". Reindirizzamento alla scheda del primo risultato...`, 'success');
+
                 setTimeout(() => {
-                    window.location.href = `/scheda-cliente.html?id=${clients[0].id}`;
+                    // Reindirizza alla scheda del PRIMO cliente trovato
+                    // e passa tutti gli ID e l'indice corrente (0 per il primo)
+                    window.location.href = `/scheda-cliente.html?id=${clients[0].id}&search_results=${encodedClientIds}&current_index=0`;
                 }, 1500);
-            } else if (clients.length > 1) {
-                // Se trova più clienti, reindirizza alla pagina lista-clienti con il termine di ricerca
-                showMessage(`Trovati ${clients.length} clienti per "${searchTerm}". Reindirizzamento alla lista completa...`, 'info');
-                setTimeout(() => {
-                    // Potresti voler passare il termine di ricerca alla pagina lista-clienti
-                    // per pre-filtrare i risultati lì, se la pagina lista-clienti lo supporta.
-                    // Per ora, reindirizziamo semplicemente alla pagina lista clienti.
-                    window.location.href = `/lista-clienti.html`; // Vai alla pagina lista completa
-                }, 1500);
+
             } else {
                 // Se non trova nessun cliente
-                // clientListContainer.innerHTML = '<p style="text-align: center; color: #666;">Nessun cliente trovato con questo termine.</p>'; // RIMOSSO
                 showMessage(`Nessun cliente trovato per "${searchTerm}".`, 'info');
             }
         } catch (error) {
             console.error("Errore handleSearchClient:", error);
-            // clientListContainer.innerHTML = '<p style="text-align: center; color: red;">Errore durante la ricerca.</p>'; // RIMOSSO
             showMessage('Errore critico durante la ricerca dei clienti. Controlla la console per dettagli.', 'error');
         }
     }
@@ -211,6 +206,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // RIMOSSO: Event listener per il bottone "Ricarica Lista"
     // if (viewAllClientsButton) {
-    //     viewAllClientsButton.addEventListener("click", fetchAndDisplayClients);
+    //      viewAllClientsButton.addEventListener("click", fetchAndDisplayClients);
     // }
 });
