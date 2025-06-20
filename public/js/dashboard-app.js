@@ -9,8 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const newClientPhoneInput = document.getElementById("new-client-phone");
     const addNewClientButton = document.getElementById("add-new-client-button");
 
-    const clientListContainer = document.getElementById("client-list-container");
-    const viewAllClientsButton = document.getElementById("view-all-clients-button");
+    // RIMOSSO: clientListContainer e viewAllClientsButton non sono più necessari
+    // const clientListContainer = document.getElementById("client-list-container");
+    // const viewAllClientsButton = document.getElementById("view-all-clients-button");
 
     // Funzione per mostrare un messaggio temporaneo
     function showMessage(message, type = 'info') {
@@ -50,84 +51,32 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 3000);
     }
 
-    // --- NUOVA FUNZIONE: Gestione generica delle risposte API ---
-    // Questa funzione centralizza il controllo dell'autenticazione per le risposte fetch
+    // --- Gestione generica delle risposte API ---
     async function handleApiResponse(response) {
         const contentType = response.headers.get("content-type");
 
         if (response.status === 401) {
-            // Se il server invia esplicitamente 401 per non autorizzato
             showMessage('La tua sessione è scaduta o non sei autorizzato. Effettua nuovamente il login.', 'error');
             setTimeout(() => {
-                window.location.href = '/'; // Reindirizza alla pagina di login dopo un breve ritardo
-            }, 1500); // Diamo tempo all'utente di leggere il messaggio
-            return null; // Indica che l'operazione non è andata a buon fine e c'è stato un reindirizzamento
+                window.location.href = '/';
+            }, 1500);
+            return null;
         } else if (contentType && contentType.includes("application/json")) {
-            // Se la risposta è JSON (anche se non è OK, per errori specifici dal server)
             return await response.json();
         } else {
-            // Se la risposta non è OK e non è JSON (probabilmente HTML di reindirizzamento)
             showMessage('Accesso non autorizzato o sessione scaduta. Verrai reindirizzato al login.', 'error');
             setTimeout(() => {
-                window.location.href = '/'; // Reindirizza alla pagina di login dopo un breve ritardo
-            }, 1500); // Diamo tempo all'utente di leggere il messaggio
-            return null; // Indica che l'operazione non è andata a buon fine e c'è stato un reindirizzamento
+                window.location.href = '/';
+            }, 1500);
+            return null;
         }
     }
 
 
     // --- Funzioni per la Gestione Clienti ---
 
-    async function fetchAndDisplayClients() {
-        clientListContainer.innerHTML = '<p style="text-align: center; color: #666;">Caricamento clienti...</p>';
-        try {
-            const response = await fetch("/api/clienti");
-
-            // *** Utilizza la nuova funzione handleApiResponse qui ***
-            const data = await handleApiResponse(response);
-            if (data === null) return; // Se handleApiResponse ha gestito un reindirizzamento, ferma la funzione
-
-            if (!response.ok) { // Controlla lo status OK DOPO aver gestito il reindirizzamento
-                    // Se non è 200 ma è JSON valido, allora è un errore specifico dal server
-                const errorDetails = data.error || "Errore sconosciuto";
-                throw new Error(`Errore nel recupero della lista clienti: ${errorDetails}`);
-            }
-
-            const clients = data; // I dati JSON sono già stati parsati da handleApiResponse
-
-            clientListContainer.innerHTML = ''; // Pulisce il messaggio di caricamento
-
-            if (clients.length === 0) {
-                clientListContainer.innerHTML = '<p style="text-align: center; color: #666;">Nessun cliente trovato.</p>';
-                return;
-            }
-
-            clients.forEach(client => {
-                const clientItem = document.createElement("div");
-                clientItem.className = "client-list-item";
-                clientItem.innerHTML = `
-                    <span class="client-name">${client.nome} ${client.cognome}</span>
-                    <div class="client-actions">
-                        <button class="view-client-button" data-id="${client.id}">Visualizza Scheda</button>
-                    </div>
-                `;
-                clientListContainer.appendChild(clientItem);
-            });
-
-            // Aggiungi event listener per i bottoni "Visualizza Scheda"
-            document.querySelectorAll(".view-client-button").forEach(button => {
-                button.addEventListener("click", (event) => {
-                    const clientId = event.target.dataset.id;
-                    window.location.href = `/scheda-cliente.html?id=${clientId}`;
-                });
-            });
-
-        } catch (error) {
-            console.error("Errore fetchAndDisplayClients:", error);
-            clientListContainer.innerHTML = '<p style="text-align: center; color: red;">Errore nel caricamento dei clienti.</p>';
-            showMessage('Errore critico durante il caricamento dei clienti. Controlla la console per dettagli.', 'error');
-        }
-    }
+    // RIMOSSO: fetchAndDisplayClients non è più usata sulla dashboard
+    // async function fetchAndDisplayClients() { /* ... */ }
 
     async function handleSearchClient() {
         const searchTerm = searchInput.value.trim();
@@ -138,49 +87,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
-
-            // *** Utilizza la nuova funzione handleApiResponse qui ***
             const data = await handleApiResponse(response);
-            if (data === null) return; // Se handleApiResponse ha gestito un reindirizzamento, ferma la funzione
+            if (data === null) return;
 
-            if (!response.ok) { // Controlla lo status OK DOPO aver gestito il reindirizzamento
+            if (!response.ok) {
                 const errorDetails = data.error || "Errore sconosciuto";
                 throw new Error(`Errore nella ricerca clienti: ${errorDetails}`);
             }
 
             const clients = data; // I dati JSON sono già stati parsati da handleApiResponse
 
-            clientListContainer.innerHTML = ''; // Pulisce il container
+            // clientListContainer.innerHTML = ''; // RIMOSSO: non abbiamo più il container
 
-            if (clients.length > 0) {
-                showMessage(`Trovati ${clients.length} clienti per "${searchTerm}".`, 'success');
-                clients.forEach(client => {
-                    const clientItem = document.createElement("div");
-                    clientItem.className = "client-list-item";
-                    clientItem.innerHTML = `
-                        <span class="client-name">${client.nome} ${client.cognome}</span>
-                        <div class="client-actions">
-                            <button class="view-client-button" data-id="${client.id}">Visualizza Scheda</button>
-                        </div>
-                    `;
-                    clientListContainer.appendChild(clientItem);
-                });
-
-                // Aggiungi event listener per i bottoni "Visualizza Scheda"
-                document.querySelectorAll(".view-client-button").forEach(button => {
-                    button.addEventListener("click", (event) => {
-                        const clientId = event.target.dataset.id;
-                        window.location.href = `/scheda-cliente.html?id=${clientId}`;
-                    });
-                });
-
+            if (clients.length === 1) {
+                // Se trova ESATTAMENTE un cliente, reindirizza direttamente alla sua scheda
+                showMessage(`Cliente trovato: ${clients[0].nome} ${clients[0].cognome}. Reindirizzamento alla scheda...`, 'success');
+                setTimeout(() => {
+                    window.location.href = `/scheda-cliente.html?id=${clients[0].id}`;
+                }, 1500);
+            } else if (clients.length > 1) {
+                // Se trova più clienti, reindirizza alla pagina lista-clienti con il termine di ricerca
+                showMessage(`Trovati ${clients.length} clienti per "${searchTerm}". Reindirizzamento alla lista completa...`, 'info');
+                setTimeout(() => {
+                    // Potresti voler passare il termine di ricerca alla pagina lista-clienti
+                    // per pre-filtrare i risultati lì, se la pagina lista-clienti lo supporta.
+                    // Per ora, reindirizziamo semplicemente alla pagina lista clienti.
+                    window.location.href = `/lista-clienti.html`; // Vai alla pagina lista completa
+                }, 1500);
             } else {
-                clientListContainer.innerHTML = '<p style="text-align: center; color: #666;">Nessun cliente trovato con questo termine.</p>';
+                // Se non trova nessun cliente
+                // clientListContainer.innerHTML = '<p style="text-align: center; color: #666;">Nessun cliente trovato con questo termine.</p>'; // RIMOSSO
                 showMessage(`Nessun cliente trovato per "${searchTerm}".`, 'info');
             }
         } catch (error) {
             console.error("Errore handleSearchClient:", error);
-            clientListContainer.innerHTML = '<p style="text-align: center; color: red;">Errore durante la ricerca.</p>';
+            // clientListContainer.innerHTML = '<p style="text-align: center; color: red;">Errore durante la ricerca.</p>'; // RIMOSSO
             showMessage('Errore critico durante la ricerca dei clienti. Controlla la console per dettagli.', 'error');
         }
     }
@@ -206,49 +147,49 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             const data = await handleApiResponse(response);
-            if (data === null) return; // Se handleApiResponse ha gestito un reindirizzamento, ferma la funzione
+            if (data === null) return;
 
             if (!response.ok) {
-                const errorDetails = data.error || "Errore sconosciuto";
-                throw new Error(`Errore durante l'aggiunta del cliente: ${errorDetails}`);
+                const errorDetail = data.error || "Errore sconosciuto";
+                throw new Error(`Errore durante l'aggiunta del cliente: ${errorDetail}`);
             }
 
-            // Client added successfully, now check for the ID to redirect
-            if (data.id) { // Check if the backend returned the ID
-                showMessage(`Cliente ${nome} ${cognome} aggiunto con successo! Reindirizzamento...`, 'success');
-                // Clean the form fields AFTER successful addition and before redirect
+            // Cliente aggiunto con successo, reindirizza direttamente alla sua scheda
+            if (data.id) {
+                showMessage(`Cliente ${nome} ${cognome} aggiunto con successo! Reindirizzamento alla scheda cliente...`, 'success');
+                // Pulisci i campi del form dopo l'aggiunta riuscita e prima del reindirizzamento
                 newClientNameInput.value = "";
                 newClientSurnameInput.value = "";
                 newClientEmailInput.value = "";
                 newClientPhoneInput.value = "";
                 setTimeout(() => {
-                    window.location.href = `/scheda-cliente.html?id=${data.id}`; // Redirect to the new client's detail page
-                }, 1500); // Give a moment for the success message to be seen
+                    window.location.href = `/scheda-cliente.html?id=${data.id}`;
+                }, 1500);
             } else {
-                // Fallback: if for some reason the ID is not returned (shouldn't happen with backend change)
+                // Fallback: se per qualche motivo l'ID non viene restituito
                 showMessage(`Cliente ${nome} ${cognome} aggiunto con successo!`, 'success');
-                // Clean the form fields
+                // Pulisci i campi del form
                 newClientNameInput.value = "";
                 newClientSurnameInput.value = "";
                 newClientEmailInput.value = "";
                 newClientPhoneInput.value = "";
-                // Reload client list or redirect to dashboard as a fallback
+                // Poiché non visualizziamo più la lista, un redirect alla dashboard o lista clienti può essere un fallback sensato
                 setTimeout(() => {
-                    window.location.href = '/dashboard.html'; // Or fetchAndDisplayClients();
+                    window.location.href = '/dashboard.html'; // Torna alla dashboard "vuota" o a lista-clienti
                 }, 1500);
             }
 
         } catch (error) {
             console.error("Errore handleAddNewClient:", error);
-            showMessage(`Errore durante l'aggiunta del cliente: ${error.message}`, 'error'); // Use error.message for more detail
+            showMessage(`Errore durante l'aggiunta del cliente: ${error.message}`, 'error');
         }
     }
 
 
     // --- Event Listeners ---
 
-    // Carica la lista clienti all'avvio della pagina
-    fetchAndDisplayClients();
+    // RIMOSSO: Caricamento iniziale della lista clienti
+    // fetchAndDisplayClients();
 
     // Event listener per il bottone "Cerca"
     if (searchButton) {
@@ -268,8 +209,8 @@ document.addEventListener("DOMContentLoaded", () => {
         addNewClientButton.addEventListener("click", handleAddNewClient);
     }
 
-    // Event listener per il bottone "Ricarica Lista"
-    if (viewAllClientsButton) {
-        viewAllClientsButton.addEventListener("click", fetchAndDisplayClients);
-    }
+    // RIMOSSO: Event listener per il bottone "Ricarica Lista"
+    // if (viewAllClientsButton) {
+    //     viewAllClientsButton.addEventListener("click", fetchAndDisplayClients);
+    // }
 });
