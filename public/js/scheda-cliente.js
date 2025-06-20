@@ -32,7 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const cancelTrattamentoBtn = document.getElementById("cancelTrattamentoBtn");
 
     // Campi input specifici della modale trattamento (AGGIORNATI CON ID COERENTI AL TUO HTML)
-    // *** MODIFICATO QUI ***
     const tipoTrattamentoInput = document.getElementById('tipoTrattamento');
     const dataTrattamentoInput = document.getElementById('dataTrattamento');
     const descrizioneTrattamentoInput = document.getElementById('descrizioneTrattamento');
@@ -176,7 +175,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         trattamenti.forEach(trattamento => {
             const row = listaTrattamentiBody.insertRow();
-            row.insertCell().textContent = trattamento.tipo;
+            // *** MODIFICATO QUI: Ora usa 'tipo_trattamento' ***
+            row.insertCell().textContent = trattamento.tipo_trattamento;
+            // ********************
             row.insertCell().textContent = trattamento.descrizione;
             row.insertCell().textContent = new Date(trattamento.data_trattamento).toLocaleDateString('it-IT');
             row.insertCell().textContent = trattamento.note || "N/A";
@@ -426,14 +427,14 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // *** MODIFICATO QUI: Usiamo le variabili con gli ID corretti ***
-        const tipo = tipoTrattamentoInput.value.trim();
+        // *** MODIFICATO QUI: Usiamo le variabili con gli ID corretti e il nome coerente ***
+        const tipo_trattamento = tipoTrattamentoInput.value.trim(); // <-- MODIFICATO
         const data_trattamento = dataTrattamentoInput.value;
         const descrizione = descrizioneTrattamentoInput.value.trim();
         const note = noteTrattamentoInput.value.trim();
         // ********************
 
-        if (!tipo || !data_trattamento) {
+        if (!tipo_trattamento || !data_trattamento) { // <-- MODIFICATO
             showMessage("Per favore, compila tutti i campi obbligatori (Tipo, Data).", 'error');
             return;
         }
@@ -444,7 +445,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     cliente_id: currentClientId,
-                    tipo,
+                    tipo_trattamento, // <-- MODIFICATO: ora è tipo_trattamento
                     data_trattamento,
                     descrizione,
                     note
