@@ -12,9 +12,9 @@ primary_region = 'fra'
 [http_service]
   internal_port = 8080 # MODIFICATO: Era 3000, ora è 8080 per allinearsi all'app
   force_https = true
-  auto_stop_machines = 'stop'
+  # auto_stop_machines = 'stop' # Questa riga è stata commentata/rimossa per evitare lo spegnimento automatico
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1    # <-- MODIFICATO: Mantieni almeno 1 istanza sempre attiva
   processes = ['app']
 
 [[vm]]
