@@ -25,25 +25,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const quantitaAcquistoInput = document.getElementById("quantita-acquisto");
     const noteAcquistoTextarea = document.getElementById("note-acquisto");
 
-    // --- NUOVI Riferimenti per Modale Aggiungi Trattamento ---
-    const aggiungiTrattamentoBtn = document.getElementById("aggiungiTrattamentoBtn"); // Assicurati che questo ID sia sul bottone HTML
-    const modalAggiungiTrattamento = document.getElementById("addTrattamentoModal"); // ID della modale creata prima
-    const formAddTrattamento = document.getElementById("formAddTrattamento"); // ID del form nella modale
-    const cancelTrattamentoBtn = document.getElementById("cancelTrattamentoBtn"); // ID del bottone Annulla nella modale
+    // --- NUOVI Riferimenti per Modale Aggiungi Trattamento (CORRETTI) ---
+    const aggiungiTrattamentoBtn = document.getElementById("aggiungiTrattamentoBtn");
+    const modalAggiungiTrattamento = document.getElementById("addTrattamentoModal");
+    const formAddTrattamento = document.getElementById("formAddTrattamento");
+    const cancelTrattamentoBtn = document.getElementById("cancelTrattamentoBtn");
 
-    // Campi input specifici della modale trattamento
-    const tipoTrattamentoInput = document.getElementById('tipoTrattamento');
-    const dataTrattamentoInput = document.getElementById('dataTrattamento');
-    const descrizioneTrattamentoInput = document.getElementById('descrizioneTrattamento');
-    const noteTrattamentoInput = document.getElementById('noteTrattamento'); // *** MODIFICA QUI: Ora punta all'ID 'noteTrattamento' ***
+    // Campi input specifici della modale trattamento (AGGIORNATI CON ID COERENTI)
+    const tipoTrattamentoInput = document.getElementById('modal_tipo_trattamento'); // AGGIORNATO
+    const dataTrattamentoInput = document.getElementById('modal_data_trattamento'); // AGGIORNATO
+    const descrizioneTrattamentoInput = document.getElementById('modal_descrizione'); // AGGIORNATO
+    const noteTrattamentoInput = document.getElementById('modal_note'); // AGGIORNATO
 
 
     let currentClientId = null;
     let searchResultsIds = []; // Per la paginazione dei risultati di ricerca
     let currentIndex = 0; // Indice corrente nei risultati di ricerca
 
-    // Funzione per mostrare un messaggio temporaneo
-    function showMessage(message, type = 'info') {
+    // Funzione per mostrare un messaggio temporaneo (modificata per callback)
+    function showMessage(message, type = 'info', onCloseCallback = null) {
         const messageDiv = document.createElement('div');
         messageDiv.textContent = message;
         messageDiv.style.padding = '10px';
@@ -77,6 +77,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setTimeout(() => {
             messageDiv.remove();
+            if (onCloseCallback) {
+                onCloseCallback();
+            }
         }, 3000);
     }
 
@@ -92,15 +95,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- Gestione generica delle risposte API ---
+    // --- Gestione generica delle risposte API (modificata per callback) ---
     async function handleApiResponse(response) {
         const contentType = response.headers.get("content-type");
 
         if (response.status === 401) {
-            showMessage('La tua sessione è scaduta o non sei autorizzato. Effettua nuovamente il login.', 'error');
-            setTimeout(() => {
+            showMessage('La tua sessione è scaduta o non sei autorizzato. Effettua nuovamente il login.', 'error', () => {
                 window.location.href = '/';
-            }, 1500);
+            });
             return null;
         } else if (contentType && contentType.includes("application/json")) {
             return await response.json();
@@ -110,10 +112,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 return {}; // Restituisci un oggetto vuoto se non c'è contenuto JSON ma l'operazione è riuscita
             }
             // Altrimenti, è un errore non JSON o un problema generico
-            showMessage('Accesso non autorizzato o sessione scaduta. Verrai reindirizzato al login.', 'error');
-            setTimeout(() => {
+            showMessage('Accesso non autorizzato o sessione scaduta. Verrai reindirizzato al login.', 'error', () => {
                 window.location.href = '/';
-            }, 1500);
+            });
             return null;
         }
     }
@@ -140,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Popola i campi del cliente
             const client = data.client;
             if (client) {
-                nomeCompletoSpan.textContent = `${client.nome} ${client.cognome}`;
+                nomeCompleptoSpan.textContent = `${client.nome} ${client.cognome}`;
                 emailSpan.textContent = client.email || "N/A";
                 telefonoSpan.textContent = client.telefono || "N/A";
 
@@ -236,48 +237,113 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Funzioni di salvataggio/eliminazione ---
 
     async function confirmDeleteTrattamento(trattamentoId) {
-        if (confirm("Sei sicuro di voler eliminare questo trattamento?")) {
-            try {
-                const response = await fetch(`/api/trattamenti/${trattamentoId}`, {
-                    method: 'DELETE',
-                });
-                const data = await handleApiResponse(response);
-
-                if (data === null) return;
-
-                if (!response.ok) {
-                    throw new Error(data.error || "Errore durante l'eliminazione del trattamento.");
-                }
-                showMessage("Trattamento eliminato con successo!", 'success');
-                loadClientData(currentClientId); // Ricarica i dati del cliente per aggiornare la lista
-            } catch (error) {
-                console.error("Errore eliminazione trattamento:", error);
-                showMessage(`Errore: ${error.message}`, 'error');
+        // Ho rimosso l'uso di `confirm()` per usare la tua `showCustomModal`
+        // Assicurati che `showCustomModal` sia definita a livello globale o passata qui
+        // (Nel tuo HTML scheda-cliente.html, probabilmente l'hai inclusa)
+        if (typeof showCustomModal !== 'function') {
+            console.warn('showCustomModal non è definita. Usando confirm() di fallback.');
+            if (!confirm("Sei sicuro di voler eliminare questo trattamento?")) {
+                return;
             }
+        } else {
+            showCustomModal("Sei sicuro di voler eliminare questo trattamento?", 'confirm', async (confirmed) => {
+                if (!confirmed) return;
+
+                try {
+                    const response = await fetch(`/api/trattamenti/${trattamentoId}`, {
+                        method: 'DELETE',
+                    });
+                    const data = await handleApiResponse(response);
+
+                    if (data === null) return;
+
+                    if (!response.ok) {
+                        throw new Error(data.error || "Errore durante l'eliminazione del trattamento.");
+                    }
+                    showMessage("Trattamento eliminato con successo!", 'success');
+                    loadClientData(currentClientId); // Ricarica i dati del cliente per aggiornare la lista
+                } catch (error) {
+                    console.error("Errore eliminazione trattamento:", error);
+                    showMessage(`Errore: ${error.message}`, 'error');
+                }
+            });
+            return; // Esci subito per attendere la risposta della modale
+        }
+
+        // Questo blocco verrebbe eseguito solo se showCustomModal non è disponibile
+        // e si usa il confirm() nativo.
+        try {
+            const response = await fetch(`/api/trattamenti/${trattamentoId}`, {
+                method: 'DELETE',
+            });
+            const data = await handleApiResponse(response);
+
+            if (data === null) return;
+
+            if (!response.ok) {
+                throw new Error(data.error || "Errore durante l'eliminazione del trattamento.");
+            }
+            showMessage("Trattamento eliminato con successo!", 'success');
+            loadClientData(currentClientId); // Ricarica i dati del cliente per aggiornare la lista
+        } catch (error) {
+            console.error("Errore eliminazione trattamento:", error);
+            showMessage(`Errore: ${error.message}`, 'error');
         }
     }
 
+
     async function confirmDeleteClient() {
-        if (confirm(`Sei sicuro di voler eliminare il cliente ${nomeCompletoSpan.textContent}? Questa azione è irreversibile e cancellerà anche tutti i trattamenti associati.`)) {
-            try {
-                const response = await fetch(`/api/clienti/${currentClientId}`, {
-                    method: 'DELETE',
-                });
-                const data = await handleApiResponse(response);
-
-                if (data === null) return;
-
-                if (!response.ok) {
-                    throw new Error(data.error || "Errore durante l'eliminazione del cliente.");
-                }
-                showMessage("Cliente eliminato con successo! Reindirizzamento alla dashboard...", 'success');
-                setTimeout(() => {
-                    window.location.href = "/dashboard.html";
-                }, 1500);
-            } catch (error) {
-                console.error("Errore eliminazione cliente:", error);
-                showMessage(`Errore: ${error.message}`, 'error');
+        // Ho rimosso l'uso di `confirm()` per usare la tua `showCustomModal`
+        if (typeof showCustomModal !== 'function') {
+            console.warn('showCustomModal non è definita. Usando confirm() di fallback.');
+            if (!confirm(`Sei sicuro di voler eliminare il cliente ${nomeCompletoSpan.textContent}? Questa azione è irreversibile e cancellerà anche tutti i trattamenti associati.`)) {
+                return;
             }
+        } else {
+            showCustomModal(`Sei sicuro di voler eliminare il cliente ${nomeCompletoSpan.textContent}? Questa azione è irreversibile e cancellerà anche tutti i trattamenti associati.`, 'confirm', async (confirmed) => {
+                if (!confirmed) return;
+
+                try {
+                    const response = await fetch(`/api/clienti/${currentClientId}`, {
+                        method: 'DELETE',
+                    });
+                    const data = await handleApiResponse(response);
+
+                    if (data === null) return;
+
+                    if (!response.ok) {
+                        throw new Error(data.error || "Errore durante l'eliminazione del cliente.");
+                    }
+                    showMessage("Cliente eliminato con successo! Reindirizzamento alla dashboard...", 'success', () => {
+                        window.location.href = "/dashboard.html";
+                    });
+                } catch (error) {
+                    console.error("Errore eliminazione cliente:", error);
+                    showMessage(`Errore: ${error.message}`, 'error');
+                }
+            });
+            return; // Esci subito per attendere la risposta della modale
+        }
+
+        // Questo blocco verrebbe eseguito solo se showCustomModal non è disponibile
+        // e si usa il confirm() nativo.
+        try {
+            const response = await fetch(`/api/clienti/${currentClientId}`, {
+                method: 'DELETE',
+            });
+            const data = await handleApiResponse(response);
+
+            if (data === null) return;
+
+            if (!response.ok) {
+                throw new Error(data.error || "Errore durante l'eliminazione del cliente.");
+            }
+            showMessage("Cliente eliminato con successo! Reindirizzamento alla dashboard...", 'success', () => {
+                window.location.href = "/dashboard.html";
+            });
+        } catch (error) {
+            console.error("Errore eliminazione cliente:", error);
+            showMessage(`Errore: ${error.message}`, 'error');
         }
     }
 
@@ -387,7 +453,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    id_cliente: currentClientId, // Assicurati di passare l'ID del cliente
+                    cliente_id: currentClientId, // <-- QUESTO È IL CAMPO FONDAMENTALE (corretto da id_cliente a cliente_id)
                     tipo,
                     data_trattamento,
                     descrizione,
@@ -412,50 +478,107 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     async function confirmDeleteAcquisto(indexToDelete) {
-        if (confirm("Sei sicuro di voler eliminare questo acquisto?")) {
-            try {
-                // Recupera lo storico acquisti attuale
-                const clientResponse = await fetch(`/api/clienti/${currentClientId}`);
-                const clientData = await handleApiResponse(clientResponse);
-                if (clientData === null || !clientResponse.ok || !clientData.client) {
-                    throw new Error(clientData ? (clientData.error || "Errore nel recupero dati cliente per eliminazione acquisto.") : "Errore sconosciuto nel recupero dati cliente.");
-                }
-
-                let storicoAcquisti = [];
-                try {
-                    storicoAcquisti = clientData.client.storico_acquisti ? JSON.parse(clientData.client.storico_acquisti) : [];
-                } catch (e) {
-                    console.error("Errore nel parsing dello storico acquisti esistente per eliminazione:", e);
-                    showMessage("Errore: Impossibile eliminare l'acquisto. Dati storici malformati.", 'error');
-                    return;
-                }
-
-                if (indexToDelete >= 0 && indexToDelete < storicoAcquisti.length) {
-                    storicoAcquisti.splice(indexToDelete, 1); // Rimuovi l'elemento all'indice specificato
-
-                    // Invia lo storico acquisti aggiornato al server
-                    const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ storico_acquisti: JSON.stringify(storicoAcquisti) })
-                    });
-                    const dataResponse = await handleApiResponse(response);
-
-                    if (dataResponse === null) return;
-
-                    if (!response.ok) {
-                        throw new Error(dataResponse.error || "Errore nell'eliminazione dell'acquisto.");
-                    }
-                    showMessage("Acquisto eliminato con successo!", 'success');
-                    loadClientData(currentClientId); // Ricarica i dati per aggiornare la lista
-                } else {
-                    showMessage("Errore: Indice acquisto non valido.", 'error');
-                }
-
-            } catch (error) {
-                console.error("Errore eliminazione acquisto:", error);
-                showMessage(`Errore nell'eliminazione dell'acquisto: ${error.message}`, 'error');
+        // Ho rimosso l'uso di `confirm()` per usare la tua `showCustomModal`
+        if (typeof showCustomModal !== 'function') {
+            console.warn('showCustomModal non è definita. Usando confirm() di fallback.');
+            if (!confirm("Sei sicuro di voler eliminare questo acquisto?")) {
+                return;
             }
+        } else {
+            showCustomModal("Sei sicuro di voler eliminare questo acquisto?", 'confirm', async (confirmed) => {
+                if (!confirmed) return;
+
+                try {
+                    // Recupera lo storico acquisti attuale
+                    const clientResponse = await fetch(`/api/clienti/${currentClientId}`);
+                    const clientData = await handleApiResponse(clientResponse);
+                    if (clientData === null || !clientResponse.ok || !clientData.client) {
+                        throw new Error(clientData ? (clientData.error || "Errore nel recupero dati cliente per eliminazione acquisto.") : "Errore sconosciuto nel recupero dati cliente.");
+                    }
+
+                    let storicoAcquisti = [];
+                    try {
+                        storicoAcquisti = clientData.client.storico_acquisti ? JSON.parse(clientData.client.storico_acquisti) : [];
+                    } catch (e) {
+                        console.error("Errore nel parsing dello storico acquisti esistente per eliminazione:", e);
+                        showMessage("Errore: Impossibile eliminare l'acquisto. Dati storici malformati.", 'error');
+                        return;
+                    }
+
+                    if (indexToDelete >= 0 && indexToDelete < storicoAcquisti.length) {
+                        storicoAcquisti.splice(indexToDelete, 1); // Rimuovi l'elemento all'indice specificato
+
+                        // Invia lo storico acquisti aggiornato al server
+                        const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ storico_acquisti: JSON.stringify(storicoAcquisti) })
+                        });
+                        const dataResponse = await handleApiResponse(response);
+
+                        if (dataResponse === null) return;
+
+                        if (!response.ok) {
+                            throw new Error(dataResponse.error || "Errore nell'eliminazione dell'acquisto.");
+                        }
+                        showMessage("Acquisto eliminato con successo!", 'success');
+                        loadClientData(currentClientId); // Ricarica i dati per aggiornare la lista
+                    } else {
+                        showMessage("Errore: Indice acquisto non valido.", 'error');
+                    }
+
+                } catch (error) {
+                    console.error("Errore eliminazione acquisto:", error);
+                    showMessage(`Errore nell'eliminazione dell'acquisto: ${error.message}`, 'error');
+                }
+            });
+            return; // Esci subito per attendere la risposta della modale
+        }
+
+        // Questo blocco verrebbe eseguito solo se showCustomModal non è disponibile
+        // e si usa il confirm() nativo.
+        try {
+            // Recupera lo storico acquisti attuale
+            const clientResponse = await fetch(`/api/clienti/${currentClientId}`);
+            const clientData = await handleApiResponse(clientResponse);
+            if (clientData === null || !clientResponse.ok || !clientData.client) {
+                throw new Error(clientData ? (clientData.error || "Errore nel recupero dati cliente per eliminazione acquisto.") : "Errore sconosciuto nel recupero dati cliente.");
+            }
+
+            let storicoAcquisti = [];
+            try {
+                storicoAcquisti = clientData.client.storico_acquisti ? JSON.parse(clientData.client.storico_acquisti) : [];
+            } catch (e) {
+                console.error("Errore nel parsing dello storico acquisti esistente per eliminazione:", e);
+                showMessage("Errore: Impossibile eliminare l'acquisto. Dati storici malformati.", 'error');
+                return;
+            }
+
+            if (indexToDelete >= 0 && indexToDelete < storicoAcquisti.length) {
+                storicoAcquisti.splice(indexToDelete, 1); // Rimuovi l'elemento all'indice specificato
+
+                // Invia lo storico acquisti aggiornato al server
+                const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ storico_acquisti: JSON.stringify(storicoAcquisti) })
+                });
+                const dataResponse = await handleApiResponse(response);
+
+                if (dataResponse === null) return;
+
+                if (!response.ok) {
+                    throw new Error(dataResponse.error || "Errore nell'eliminazione dell'acquisto.");
+                }
+                showMessage("Acquisto eliminato con successo!", 'success');
+                loadClientData(currentClientId); // Ricarica i dati per aggiornare la lista
+            } else {
+                showMessage("Errore: Indice acquisto non valido.", 'error');
+            }
+
+        } catch (error) {
+            console.error("Errore eliminazione acquisto:", error);
+            showMessage(`Errore nell'eliminazione dell'acquisto: ${error.message}`, 'error');
         }
     }
 
