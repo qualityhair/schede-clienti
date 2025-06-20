@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (data === null) return; // Se handleApiResponse ha gestito un reindirizzamento, ferma la funzione
 
             if (!response.ok) { // Controlla lo status OK DOPO aver gestito il reindirizzamento
-                 // Se non è 200 ma è JSON valido, allora è un errore specifico dal server
+                    // Se non è 200 ma è JSON valido, allora è un errore specifico dal server
                 const errorDetails = data.error || "Errore sconosciuto";
                 throw new Error(`Errore nel recupero della lista clienti: ${errorDetails}`);
             }
@@ -205,33 +205,42 @@ document.addEventListener("DOMContentLoaded", () => {
                 body: JSON.stringify(newClientData),
             });
 
-            // *** Utilizza la nuova funzione handleApiResponse qui ***
             const data = await handleApiResponse(response);
             if (data === null) return; // Se handleApiResponse ha gestito un reindirizzamento, ferma la funzione
 
-            if (!response.ok) { // Controlla lo status OK DOPO aver gestito il reindirizzamento
+            if (!response.ok) {
                 const errorDetails = data.error || "Errore sconosciuto";
                 throw new Error(`Errore durante l'aggiunta del cliente: ${errorDetails}`);
             }
 
-            const result = data; // I dati JSON sono già stati parsati da handleApiResponse
-            showMessage(`Cliente ${nome} ${cognome} aggiunto con successo!`, 'success');
-
-            // Pulisci i campi del form
-            newClientNameInput.value = "";
-            newClientSurnameInput.value = "";
-            newClientEmailInput.value = "";
-            newClientPhoneInput.value = "";
-
-            // Ricarica la lista dei clienti
-            fetchAndDisplayClients();
-
-            // Opzionale: reindirizza alla scheda del nuovo cliente
-            // window.location.href = `/scheda-cliente.html?id=${result.id}`;
+            // Client added successfully, now check for the ID to redirect
+            if (data.id) { // Check if the backend returned the ID
+                showMessage(`Cliente ${nome} ${cognome} aggiunto con successo! Reindirizzamento...`, 'success');
+                // Clean the form fields AFTER successful addition and before redirect
+                newClientNameInput.value = "";
+                newClientSurnameInput.value = "";
+                newClientEmailInput.value = "";
+                newClientPhoneInput.value = "";
+                setTimeout(() => {
+                    window.location.href = `/scheda-cliente.html?id=${data.id}`; // Redirect to the new client's detail page
+                }, 1500); // Give a moment for the success message to be seen
+            } else {
+                // Fallback: if for some reason the ID is not returned (shouldn't happen with backend change)
+                showMessage(`Cliente ${nome} ${cognome} aggiunto con successo!`, 'success');
+                // Clean the form fields
+                newClientNameInput.value = "";
+                newClientSurnameInput.value = "";
+                newClientEmailInput.value = "";
+                newClientPhoneInput.value = "";
+                // Reload client list or redirect to dashboard as a fallback
+                setTimeout(() => {
+                    window.location.href = '/dashboard.html'; // Or fetchAndDisplayClients();
+                }, 1500);
+            }
 
         } catch (error) {
             console.error("Errore handleAddNewClient:", error);
-            showMessage('Errore critico durante l\'aggiunta del cliente. Controlla la console per dettagli.', 'error');
+            showMessage(`Errore durante l'aggiunta del cliente: ${error.message}`, 'error'); // Use error.message for more detail
         }
     }
 
