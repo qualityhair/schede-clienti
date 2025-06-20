@@ -2,355 +2,367 @@
 <html lang="it">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Scheda Cliente</title>
-  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/style.css?v=<%= new Date().getTime() %>" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scheda Cliente</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css?v=<%= new Date().getTime() %>" />
 
-  <style>
-    /* Stili per il responsive design della navbar */
-    @media (max-width: 768px) {
-      .navbar {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 1rem;
-      }
+    <style>
+        /* Stili per il responsive design della navbar */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem;
+            }
 
-      .navbar ul {
-        flex-direction: column;
-        gap: 0.5rem;
-        width: 100%;
-        margin-top: 1rem;
-      }
+            .navbar ul {
+                flex-direction: column;
+                gap: 0.5rem;
+                width: 100%;
+                margin-top: 1rem;
+            }
 
-      .navbar li {
-        width: 100%;
-      }
+            .navbar li {
+                width: 100%;
+            }
 
-      .navbar li a,
-      .navbar-btn {
-        width: 100%;
-        text-align: center;
-        padding: 0.8rem;
-      }
-    }
+            .navbar li a,
+            .navbar-btn {
+                width: 100%;
+                text-align: center;
+                padding: 0.8rem;
+            }
+        }
 
-    /* MODALE PERSONALIZZATA (copiata da lista-clienti.html) */
-    /* Questi stili sono stati mantenuti qui solo per motivi di compatibilità, */
-    /* ma idealmente andrebbero spostati anch'essi in style.css se non sono già lì. */
-    .modal {
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.6);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
+        /* MODALE PERSONALIZZATA (copiata da lista-clienti.html) */
+        /* Questi stili sono stati mantenuti qui solo per motivi di compatibilità, */
+        /* ma idealmente andrebbero spostati anch'essi in style.css se non sono già lì. */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
 
-    .modal.open {
-      opacity: 1;
-      visibility: visible;
-    }
+        .modal.open {
+            opacity: 1;
+            visibility: visible;
+        }
 
-    .modal-content {
-      background-color: #fff;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-      color: #1a1a1a;
-      animation: slideIn 0.3s ease-out;
-    }
+        .modal-content {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            color: #1a1a1a;
+            animation: slideIn 0.3s ease-out;
+        }
 
-    @keyframes slideIn {
-      from {
-        transform: translateY(-50px);
-        opacity: 0;
-      }
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
 
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
 
-    .modal-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-top: 1.5rem;
-    }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
 
-    .modal-button {
-      padding: 0.75rem 1.5rem;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.2s ease, transform 0.1s ease;
-    }
+        .modal-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
 
-    .modal-button.confirm {
-      background-color: #dc3545;
-      color: white;
-      border: none;
-    }
+        .modal-button.confirm {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+        }
 
-    .modal-button.confirm:hover {
-      background-color: #bd2130;
-    }
+        .modal-button.confirm:hover {
+            background-color: #bd2130;
+        }
 
-    .modal-button.cancel {
-      background-color: #6c757d;
-      color: white;
-      border: none;
-    }
+        .modal-button.cancel {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+        }
 
-    .modal-button.cancel:hover {
-      background-color: #5a6268;
-    }
+        .modal-button.cancel:hover {
+            background-color: #5a6268;
+        }
 
-    .modal-button.ok {
-      background-color: #1a1a1a;
-      color: #ffcc00;
-      border: none;
-    }
+        .modal-button.ok {
+            background-color: #1a1a1a;
+            color: #ffcc00;
+            border: none;
+        }
 
-    .modal-button.ok:hover {
-      background-color: #333333;
-    }
+        .modal-button.ok:hover {
+            background-color: #333333;
+        }
 
-    /* Responsive per il container del form */
-    @media (max-width: 480px) {
-      .container {
-        padding: 1.5rem;
-        border-radius: 8px;
-        box-shadow: none;
-      }
+        /* Responsive per il container del form */
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+                border-radius: 8px;
+                box-shadow: none;
+            }
 
-      h1 {
-        font-size: 2rem;
-      }
+            h1 {
+                font-size: 2rem;
+            }
 
-      .input-field,
-      .select-field,
-      .textarea-field,
-      .btn {
-        padding: 0.75rem;
-      }
-    }
-    /* Stili aggiuntivi per le nuove sezioni */
-    .detail-section {
-        margin-top: 2rem;
-        padding: 1rem;
-        background-color: #f9f9f9;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .detail-section h2 {
-        color: #333;
-        margin-bottom: 1rem;
-    }
-    .detail-section textarea {
-        width: 100%;
-        padding: 0.8rem;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        min-height: 100px; /* Altezza minima per le note */
-        resize: vertical; /* Permette all'utente di ridimensionare verticalmente */
-        font-size: 1rem;
-        margin-top: 0.5rem;
-    }
-    /* Rimosso il margine superiore per i bottoni all'interno di detail-section se non necessario */
-    /* .detail-section button {
-        margin-top: 1rem;
-    } */
-    /* Stili per la tabella dello storico acquisti, se diversi da trattamenti */
-    .acquisti-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-    }
-    .acquisti-table th, .acquisti-table td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-    }
-    .acquisti-table th {
-        background-color: #f2f2f2;
-        color: #333;
-    }
-    .acquisti-table tr:nth-child(even) {
-        background-color: #f9f9f9;
-    }
-    .acquisti-table tr:hover {
-        background-color: #f1f1f1;
-    }
-  </style>
+            .input-field,
+            .select-field,
+            .textarea-field,
+            .btn {
+                padding: 0.75rem;
+            }
+        }
 
+        /* Stili aggiuntivi per le nuove sezioni */
+        .detail-section {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
 
+        .detail-section h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .detail-section textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            min-height: 100px;
+            /* Altezza minima per le note */
+            resize: vertical;
+            /* Permette all'utente di ridimensionare verticalmente */
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Stili per la tabella dello storico acquisti, se diversi da trattamenti */
+        .acquisti-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .acquisti-table th,
+        .acquisti-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .acquisti-table th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+
+        .acquisti-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .acquisti-table tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
 </head>
 
 <body>
-  <div id="navbar"></div>
-  <main class="container">
-    <h1>Scheda Cliente</h1>
-    <div class="scheda-cliente-details">
-      <p><span id="nome-completo"></span></p>
-      <p><strong>Email:</strong> <span id="email"></span></p>
-      <p><strong>Telefono:</strong> <span id="telefono"></span></p>
-    </div>
-
-    <div class="detail-section">
-      <h2>Note e Preferenze</h2>
-      <textarea id="cliente-note" placeholder="Inserisci note, preferenze, allergie..."></textarea>
-      <button class="btn btn-primary" id="salva-note-btn">Salva Note</button>
-    </div>
-
-    <h2>Servizi e Trattamenti</h2>
-    <table class="trattamenti">
-      <thead>
-        <tr>
-          <th>Tipo</th>
-          <th>Descrizione</th>
-          <th>Data</th>
-          <th>Note</th>
-          <th>Azione</th>
-        </tr>
-      </thead>
-      <tbody id="lista-trattamenti"></tbody>
-    </table>
-
-    <div class="detail-section">
-      <h2>Storico Acquisti</h2>
-      <table class="acquisti-table">
-        <thead>
-          <tr>
-            <th>Prodotto</th>
-            <th>Data</th>
-            <th>Prezzo</th>
-            <th>Quantità</th>
-            <th>Note</th>
-            <th>Azione</th>
-          </tr>
-        </thead>
-        <tbody id="lista-acquisti">
-          <tr>
-            <td colspan="6" style="text-align: center;">Nessun acquisto registrato per questo cliente.</td>
-          </tr>
-          </tbody>
-      </table>
-    </div>
-    <center>
-      <p id="info-paginazione"></p>
-    </center>
-
-    <div id="navigazione-clienti" style="margin-top: 20px; text-align: center;">
-      <button id="btnPrecedente">⬅️ Indietro</button>
-      <button id="btnSuccessivo">Avanti ➡️</button>
-    </div>
-
-    <div style="margin-top: 2rem;">
-      <button class="btn btn-primary" onclick="vaiAggiungiTrattamento()">➕ Aggiungi Trattamento</button>
-      
-      <button class="btn btn-primary" id="aggiungi-acquisto-btn">➕ Aggiungi Acquisto</button>
-      <button class="btn btn-primary" onclick="vaiModificaCliente()">✏️ Modifica Cliente</button>
-    </div>
-
-    <button id="btnEliminaCliente" class="btn" style="background-color: red; color: white; margin-top: 1rem;">
-      Elimina Cliente
-    </button>
-
-  </main>
-
-  <script src="/js/scheda-cliente.js"></script>
-  <script src="/js/navbar-loader.js"></script>
-  <script>
-    // Queste funzioni sono state spostate qui perché sono usate negli attributi onclick
-    // e devono essere globalmente accessibili.
-    function getIdCliente() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("id");
-    }
-
-    function vaiAggiungiTrattamento() {
-      const id = getIdCliente();
-      window.location.href = `/aggiungi-trattamento.html?id=${id}`;
-    }
-
-    function vaiModificaCliente() {
-      const id = getIdCliente();
-      window.location.href = `/modifica-cliente.html?id=${id}`;
-    }
-  </script>
-
-  <div id="modalAggiungiAcquisto" class="modal">
-    <div class="modal-content">
-      <h3>Aggiungi Nuovo Acquisto</h3>
-      <form id="formAggiungiAcquisto">
-        <div class="form-group">
-          <label for="prodotto-acquisto">Prodotto:</label>
-          <input type="text" id="prodotto-acquisto" required class="input-field">
+    <div id="navbar"></div>
+    <main class="container">
+        <h1>Scheda Cliente</h1>
+        <div class="scheda-cliente-details">
+            <p><span id="nome-completo"></span></p>
+            <p><strong>Email:</strong> <span id="email"></span></p>
+            <p><strong>Telefono:</strong> <span id="telefono"></span></p>
         </div>
-        <div class="form-group">
-          <label for="data-acquisto">Data:</label>
-          <input type="date" id="data-acquisto" required class="input-field">
+
+        <div class="detail-section">
+            <h2>Note e Preferenze</h2>
+            <textarea id="cliente-note" placeholder="Inserisci note, preferenze, allergie..."></textarea>
+            <button class="btn btn-primary" id="salva-note-btn">Salva Note</button>
         </div>
-        <div class="form-group">
-          <label for="prezzo-acquisto">Prezzo (€):</label>
-          <input type="number" id="prezzo-acquisto" step="0.01" min="0" required class="input-field">
+
+        <h2>Servizi e Trattamenti</h2>
+        <table class="trattamenti">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Descrizione</th>
+                    <th>Data</th>
+                    <th>Note</th>
+                    <th>Azione</th>
+                </tr>
+            </thead>
+            <tbody id="lista-trattamenti"></tbody>
+        </table>
+
+        <div class="detail-section">
+            <h2>Storico Acquisti</h2>
+            <table class="acquisti-table">
+                <thead>
+                    <tr>
+                        <th>Prodotto</th>
+                        <th>Data</th>
+                        <th>Prezzo</th>
+                        <th>Quantità</th>
+                        <th>Note</th>
+                        <th>Azione</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-acquisti">
+                    <tr>
+                        <td colspan="6" style="text-align: center;">Nessun acquisto registrato per questo cliente.</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-        <div class="form-group">
-          <label for="quantita-acquisto">Quantità:</label>
-          <input type="number" id="quantita-acquisto" min="1" value="1" required class="input-field">
+        <center>
+            <p id="info-paginazione"></p>
+        </center>
+
+        <div id="navigazione-clienti" style="margin-top: 20px; text-align: center;">
+            <button id="btnPrecedente">⬅️ Indietro</button>
+            <button id="btnSuccessivo">Avanti ➡️</button>
         </div>
-        <div class="form-group">
-          <label for="note-acquisto">Note (Opzionale):</label>
-          <textarea id="note-acquisto" class="textarea-field"></textarea>
+
+        <div style="margin-top: 2rem;">
+            <button class="btn btn-primary" id="aggiungiTrattamentoBtn">➕ Aggiungi Trattamento</button>
+
+            <button class="btn btn-primary" id="aggiungi-acquisto-btn">➕ Aggiungi Acquisto</button>
+            <button class="btn btn-primary" onclick="vaiModificaCliente()">✏️ Modifica Cliente</button>
         </div>
-        <div class="modal-buttons">
-          <button type="submit" class="modal-button confirm">Aggiungi</button>
-          <button type="button" class="modal-button cancel" id="annulla-acquisto-btn">Annulla</button>
+
+        <button id="btnEliminaCliente" class="btn" style="background-color: red; color: white; margin-top: 1rem;">
+            Elimina Cliente
+        </button>
+
+    </main>
+
+    <script src="/js/scheda-cliente.js"></script>
+    <script src="/js/navbar-loader.js"></script>
+    <script>
+        // Le funzioni globali `getIdCliente` e `vaiModificaCliente` rimangono qui
+        // perché `vaiModificaCliente` è ancora usata in un attributo onclick.
+        function getIdCliente() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("id");
+        }
+
+        function vaiModificaCliente() {
+            const id = getIdCliente();
+            window.location.href = `/modifica-cliente.html?id=${id}`;
+        }
+
+        // La funzione `vaiAggiungiTrattamento` non è più necessaria qui
+        // perché la modale è gestita interamente dal JavaScript in scheda-cliente.js
+        // via addEventListener sul bottone con id="aggiungiTrattamentoBtn".
+        // L'ho lasciata commentata per tua riferimento, ma puoi rimuoverla.
+        /*
+        function vaiAggiungiTrattamento() {
+            const id = getIdCliente();
+            window.location.href = `/aggiungi-trattamento.html?id=${id}`;
+        }
+        */
+    </script>
+
+    <div id="modalAggiungiAcquisto" class="modal">
+        <div class="modal-content">
+            <h3>Aggiungi Nuovo Acquisto</h3>
+            <form id="formAggiungiAcquisto">
+                <div class="form-group">
+                    <label for="prodotto-acquisto">Prodotto:</label>
+                    <input type="text" id="prodotto-acquisto" required class="input-field">
+                </div>
+                <div class="form-group">
+                    <label for="data-acquisto">Data:</label>
+                    <input type="date" id="data-acquisto" required class="input-field">
+                </div>
+                <div class="form-group">
+                    <label for="prezzo-acquisto">Prezzo (€):</label>
+                    <input type="number" id="prezzo-acquisto" step="0.01" min="0" required class="input-field">
+                </div>
+                <div class="form-group">
+                    <label for="quantita-acquisto">Quantità:</label>
+                    <input type="number" id="quantita-acquisto" min="1" value="1" required class="input-field">
+                </div>
+                <div class="form-group">
+                    <label for="note-acquisto">Note (Opzionale):</label>
+                    <textarea id="note-acquisto" class="textarea-field"></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="modal-button ok">Aggiungi</button>
+                    <button type="button" class="modal-button cancel" id="annulla-acquisto-btn">Annulla</button>
+                </div>
+            </form>
         </div>
-      </form>
     </div>
-  </div>
-<div id="addTrattamentoModal" class="modal">
-    <div class="modal-content">
-        <h2>Aggiungi Nuovo Trattamento</h2>
-        <form id="formAddTrattamento">
-            <div class="form-group">
-                <label for="tipoTrattamento" class="form-label">Tipo di Trattamento:</label>
-                <input type="text" id="tipoTrattamento" name="tipoTrattamento" class="input-field" required>
-            </div>
-            <div class="form-group">
-                <label for="dataTrattamento" class="form-label">Data del Trattamento:</label>
-                <input type="date" id="dataTrattamento" name="dataTrattamento" class="input-field" required>
-            </div>
-            <div class="form-group">
-                <label for="prezzoTrattamento" class="form-label">Prezzo:</label>
-                <input type="number" id="prezzoTrattamento" name="prezzoTrattamento" class="input-field" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="dettagliTrattamento" class="form-label">Dettagli:</label>
-                <textarea id="dettagliTrattamento" name="dettagliTrattamento" class="textarea-field"></textarea>
-            </div>
-            <div class="modal-buttons">
-                <button type="submit" class="modal-button ok">Salva Trattamento</button>
-                <button type="button" class="modal-button cancel" id="cancelTrattamentoBtn">Annulla</button>
-            </div>
-        </form>
+
+    <div id="addTrattamentoModal" class="modal">
+        <div class="modal-content">
+            <h2>Aggiungi Nuovo Trattamento</h2>
+            <form id="formAddTrattamento">
+                <div class="form-group">
+                    <label for="tipoTrattamento" class="form-label">Tipo di Trattamento:</label>
+                    <input type="text" id="tipoTrattamento" name="tipoTrattamento" class="input-field" required>
+                </div>
+                <div class="form-group">
+                    <label for="dataTrattamento" class="form-label">Data del Trattamento:</label>
+                    <input type="date" id="dataTrattamento" name="dataTrattamento" class="input-field" required>
+                </div>
+                <div class="form-group">
+                    <label for="prezzoTrattamento" class="form-label">Prezzo:</label>
+                    <input type="number" id="prezzoTrattamento" name="prezzoTrattamento" class="input-field" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="dettagliTrattamento" class="form-label">Dettagli:</label>
+                    <textarea id="dettagliTrattamento" name="dettagliTrattamento" class="textarea-field"></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="modal-button ok">Salva Trattamento</button>
+                    <button type="button" class="modal-button cancel" id="cancelTrattamentoBtn">Annulla</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
 </body>
 
