@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Funzione per caricare i dati del cliente ---
     async function loadClientData(clientId) {
         if (!clientId) {
-            showMessage("ID Cliente non fornito nell'URL.", 'error');
+            showMessage("ID Cliente non fornito nell'URL. Ricarica la pagina da un cliente valido.", 'error');
             return;
         }
         try {
@@ -364,10 +364,17 @@ document.addEventListener("DOMContentLoaded", () => {
     async function handleAddTrattamento(event) {
         event.preventDefault(); // Impedisce il ricaricamento della pagina
 
+        // *** AGGIUNTA CHIAVE: Controllo che currentClientId non sia nullo ***
+        if (!currentClientId) {
+            showMessage("Impossibile aggiungere il trattamento: ID cliente mancante. Ricarica la pagina da un cliente valido.", 'error');
+            return; // Ferma l'esecuzione se l'ID cliente è nullo
+        }
+        // *******************************************************************
+
         const tipo = tipoTrattamentoInput.value.trim();
         const data_trattamento = dataTrattamentoInput.value;
         const descrizione = descrizioneTrattamentoInput.value.trim();
-        const note = noteTrattamentoInput.value.trim(); // *** MODIFICA QUI: Ora recupera il valore direttamente dal campo 'noteTrattamentoInput' ***
+        const note = noteTrattamentoInput.value.trim(); // Ora recupera il valore direttamente dal campo 'noteTrattamentoInput'
 
         // Validazione aggiornata (senza prezzo)
         if (!tipo || !data_trattamento) {
