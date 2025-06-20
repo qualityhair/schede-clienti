@@ -1,10 +1,16 @@
-if (!localStorage.getItem("risultatiRicercaClienti")) {
-    localStorage.removeItem("indiceClienteCorrente");
-}
+// --- Inizializzazione e recupero ID cliente ---
+const urlParams = new URLSearchParams(window.location.search);
+const clienteId = urlParams.get("id"); // ID del cliente da caricare immediatamente
 
-// Estrai ID cliente dall'URL
-const params = new URLSearchParams(window.location.search);
-const clienteId = params.get("id");
+// Variabili per la gestione della paginazione dei risultati di ricerca
+let searchResultsIds = []; // Conterrà gli ID di tutti i clienti trovati nella ricerca
+let currentIndex = -1;    // Indice del cliente attualmente visualizzato nell'array searchResultsIds
+
+// Riferimenti agli elementi DOM per la paginazione (NUOVO/AGGIORNATO)
+const paginationControls = document.getElementById('navigazione-clienti'); // Il tuo div di navigazione
+const prevClientButton = document.getElementById('btnPrecedente');
+const nextClientButton = document.getElementById('btnSuccessivo');
+const paginationInfo = document.getElementById('info-paginazione');
 
 // --- Funzione per mostrare un messaggio temporaneo ---
 function showMessage(message, type = 'info') {
@@ -65,78 +71,157 @@ async function handleApiResponse(response) {
     }
 }
 
-// *** BLOCCO AGGIUNTO/MODIFICATO PER GESTIRE L'ASSENZA DI UN ID CLIENTE ***
-// Questa è la parte cruciale che abbiamo discusso
-if (!clienteId) {
-    showMessage("Nessun ID cliente specificato. Verrai reindirizzato alla Dashboard.", 'info');
-    setTimeout(() => {
-        window.location.href = '/dashboard.html'; // Reindirizza alla dashboard
-    }, 2000);
-    // Interrompe l'esecuzione del resto dello script se l'ID manca
-    throw new Error("No client ID provided, redirecting.");
+// *** BLOCCO AGGIUNTO/MODIFICATO PER GESTIRE L'ASSENZA DI UN ID CLIENTE E LA PAGINAZIONE ***
+async function initializeClientData() {
+    if (!clienteId) {
+        showMessage("Nessun ID cliente specificato. Verrai reindirizzato alla Dashboard.", 'info');
+        setTimeout(() => {
+            window.location.href = '/dashboard.html';
+        }, 2000);
+        return; // Interrompe l'esecuzione
+    }
+
+    const rawSearchResults = urlParams.get('search_results');
+    const rawCurrentIndex = urlParams.get('current_index');
+
+    if (rawSearchResults && rawCurrentIndex !== null) {
+        try {
+            searchResultsIds = JSON.parse(decodeURIComponent(rawSearchResults));
+            currentIndex = parseInt(rawCurrentIndex, 10);
+
+            // Validazione dell'indice e dell'array di ricerca
+            if (isNaN(currentIndex) || currentIndex < 0 || currentIndex >= searchResultsIds.length || !Array.isArray(searchResultsIds) || searchResultsIds.length === 0) {
+                console.warn("Parametri di ricerca non validi. Caricamento singolo cliente.");
+                searchResultsIds = [];
+                currentIndex = -1;
+                // Pulisci localStorage se i parametri URL sono invalidi
+                localStorage.removeItem("risultatiRicercaClienti");
+                localStorage.removeItem("indiceClienteCorrente");
+            } else {
+                // Se i parametri URL sono validi, salvali in localStorage per la persistenza della navigazione
+                localStorage.setItem("risultatiRicercaClienti", JSON.stringify(searchResultsIds));
+                localStorage.setItem("indiceClienteCorrente", currentIndex.toString());
+            }
+
+        } catch (e) {
+            console.error("Errore nel parsing dei risultati di ricerca dalla URL:", e);
+            searchResultsIds = [];
+            currentIndex = -1;
+            // Pulisci localStorage in caso di errore di parsing
+            localStorage.removeItem("risultatiRicercaClienti");
+            localStorage.removeItem("indiceClienteCorrente");
+        }
+    } else {
+        // Se non ci sono parametri di ricerca nell'URL, prova a caricare da localStorage
+        const storedResults = localStorage.getItem("risultatiRicercaClienti");
+        const storedIndex = localStorage.getItem("indiceClienteCorrente");
+        if (storedResults && storedIndex !== null) {
+            try {
+                searchResultsIds = JSON.parse(storedResults);
+                currentIndex = parseInt(storedIndex, 10);
+                 if (isNaN(currentIndex) || currentIndex < 0 || currentIndex >= searchResultsIds.length || !Array.isArray(searchResultsIds) || searchResultsIds.length === 0) {
+                    // Se i dati in localStorage non sono validi
+                    localStorage.removeItem("risultatiRicercaClienti");
+                    localStorage.removeItem("indiceClienteCorrente");
+                    searchResultsIds = [];
+                    currentIndex = -1;
+                 }
+            } catch (e) {
+                console.error("Errore nel parsing dei risultati di ricerca dal localStorage:", e);
+                localStorage.removeItem("risultatiRicercaClienti");
+                localStorage.removeItem("indiceClienteCorrente");
+                searchResultsIds = [];
+                currentIndex = -1;
+            }
+        }
+    }
+
+    // Carica i dettagli del cliente corrente (quello passato via URL o il primo del set di ricerca)
+    await fetchClientDetails(clienteId);
+    updatePaginationControls(); // Aggiorna la UI di paginazione
+
+    caricaTrattamenti(clienteId); // Carica i trattamenti per il cliente corrente
 }
 
-// Carica dati cliente e trattamenti
-fetch(`/api/clienti/${clienteId}`)
-    .then(async res => {
-        const data = await handleApiResponse(res);
-        if (data === null) {
-            throw new Error("Reindirizzamento handled");
-        }
-        if (!res.ok) {
-            const errorDetails = data.error || "Errore sconosciuto";
+// Funzione che carica i dettagli del cliente e popola l'HTML
+async function fetchClientDetails(id) {
+    try {
+        const response = await fetch(`/api/clienti/${id}`);
+        const client = await handleApiResponse(response);
+        if (client === null) return; // handleApiResponse gestisce il reindirizzamento
+
+        if (!response.ok) {
+            const errorDetails = client.error || "Errore sconosciuto";
             throw new Error(`Cliente non trovato: ${errorDetails}`);
         }
-        return data;
-    })
-    .then(cliente => mostraCliente(cliente))
-    .catch(err => {
-        if (err.message !== "Reindirizzamento handled" && err.message !== "No client ID provided, redirecting.") {
+
+        // Popola gli elementi HTML con i dati del cliente
+        document.getElementById("nome-completo").innerText = `${client.nome} ${client.cognome}`;
+        document.getElementById("email").innerText = client.email || 'N/A';
+        document.getElementById("telefono").innerText = client.telefono || 'N/A';
+
+        // Precompila il form di modifica (se presente nell'HTML)
+        const inputNome = document.getElementById("modifica-nome");
+        if (inputNome) inputNome.value = client.nome || '';
+        const inputCognome = document.getElementById("modifica-cognome");
+        if (inputCognome) inputCognome.value = client.cognome || '';
+        const inputEmail = document.getElementById("modifica-email");
+        if (inputEmail) inputEmail.value = client.email || '';
+        const inputTelefono = document.getElementById("modifica-telefono");
+        if (inputTelefono) inputTelefono.value = client.telefono || '';
+
+        const formTrattamento = document.getElementById("form-trattamento");
+        if (formTrattamento) formTrattamento.dataset.clienteId = client.id;
+
+    } catch (err) {
+        if (err.message !== "Reindirizzamento handled") {
             console.error("Errore caricamento cliente:", err);
             showMessage('Errore nel caricamento del cliente.', 'error');
         }
-    });
-
-caricaTrattamenti(clienteId);
-
-
-// Mostra i dati del cliente
-function mostraCliente(cliente) {
-    const nomeEl = document.getElementById("nome-completo");
-    if (nomeEl) nomeEl.innerText = `${cliente.nome} ${cliente.cognome}`;
-
-    const emailEl = document.getElementById("email");
-    if (emailEl) emailEl.innerText = cliente.email;
-
-    const telefonoEl = document.getElementById("telefono");
-    if (telefonoEl) telefonoEl.innerText = cliente.telefono;
-
-    // Se esiste il form di modifica, precompila i campi
-    const inputNome = document.getElementById("modifica-nome");
-    if (inputNome) inputNome.value = cliente.nome;
-
-    const inputCognome = document.getElementById("modifica-cognome");
-    if (inputCognome) inputCognome.value = cliente.cognome;
-
-    const inputEmail = document.getElementById("modifica-email");
-    if (inputEmail) inputEmail.value = cliente.email;
-
-    const inputTelefono = document.getElementById("modifica-telefono");
-    if (inputTelefono) inputTelefono.value = cliente.telefono;
-
-    const form = document.getElementById("form-trattamento");
-    if (form) form.dataset.clienteId = cliente.id;
+    }
 }
 
-const lista = JSON.parse(localStorage.getItem("risultatiRicercaClienti") || "[]");
-const indice = parseInt(localStorage.getItem("indiceClienteCorrente") || "0");
-const info = document.getElementById("info-paginazione");
 
-if (info) {
-    info.innerText = `Cliente ${indice + 1} di ${lista.length}`;
+// --- Logica di Paginazione Risultati di Ricerca (AGGIORNATO) ---
+function updatePaginationControls() {
+    if (searchResultsIds.length > 1) {
+        paginationControls.style.display = 'block'; // Mostra il blocco di navigazione
+        paginationInfo.textContent = `Cliente ${currentIndex + 1} di ${searchResultsIds.length}`;
+
+        prevClientButton.disabled = currentIndex === 0;
+        nextClientButton.disabled = currentIndex === searchResultsIds.length - 1;
+    } else {
+        paginationControls.style.display = 'none'; // Nascondi se c'è solo 1 o 0 risultati
+    }
 }
 
-// Carica la lista trattamenti
+// Funzione per cambiare cliente (AGGIORNATO)
+function cambiaCliente(direzione) {
+    let newIndex = currentIndex + direzione;
+
+    if (newIndex >= 0 && newIndex < searchResultsIds.length) {
+        currentIndex = newIndex;
+        const newClientId = searchResultsIds[currentIndex];
+
+        // Aggiorna localStorage
+        localStorage.setItem("indiceClienteCorrente", currentIndex.toString());
+
+        // Aggiorna l'URL senza ricaricare la pagina completamente (importante per l'esperienza utente)
+        // Questo mantiene i parametri di ricerca nella URL per coerenza
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('id', newClientId);
+        currentUrl.searchParams.set('current_index', currentIndex); // Aggiorna anche l'indice nella URL
+        window.history.pushState({ path: currentUrl.href }, '', currentUrl.href);
+
+        // Carica i dettagli del nuovo cliente
+        fetchClientDetails(newClientId);
+        caricaTrattamenti(newClientId); // Ricarica anche i trattamenti per il nuovo cliente
+        updatePaginationControls(); // Aggiorna i controlli di paginazione
+    }
+}
+
+
+// --- Carica la lista trattamenti (La tua funzione esistente) ---
 function caricaTrattamenti(clienteId) {
     fetch(`/api/clienti/${clienteId}/trattamenti`)
         .then(async res => {
@@ -155,13 +240,18 @@ function caricaTrattamenti(clienteId) {
             if (!container) return;
 
             container.innerHTML = "";
+            if (trattamenti.length === 0) {
+                container.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nessun trattamento registrato per questo cliente.</td></tr>';
+                return;
+            }
+
             trattamenti.forEach(t => {
                 const row = document.createElement("tr");
                 row.innerHTML = `
                     <td>${t.tipo_trattamento}</td>
-                    <td>${t.descrizione}</td>
-                    <td>${new Date(t.data_trattamento).toLocaleDateString()}</td>
-                    <td>${t.note || ""}</td>
+                    <td>${t.descrizione || ''}</td>
+                    <td>${new Date(t.data_trattamento).toLocaleDateString('it-IT')}</td>
+                    <td>${t.note || ''}</td>
                     <td>
                         <button onclick="modificaTrattamento(${t.id})">Modifica</button>
                         <button onclick="eliminaTrattamento(${t.id}, ${clienteId})">Elimina</button>
@@ -178,12 +268,24 @@ function caricaTrattamenti(clienteId) {
         });
 }
 
-// Aggiungi questa nuova funzione in scheda-cliente.js
+// --- Funzioni globali (le tue esistenti, usate negli onclick) ---
+// Queste funzioni devono rimanere globali (o essere assegnate agli eventi in JS)
+// per essere raggiungibili dagli attributi `onclick` nell'HTML.
+
+function vaiAggiungiTrattamento() {
+    const id = clienteId; // Usa l'ID del cliente attualmente caricato
+    window.location.href = `/aggiungi-trattamento.html?id=${id}`;
+}
+
+function vaiModificaCliente() {
+    const id = clienteId; // Usa l'ID del cliente attualmente caricato
+    window.location.href = `/modifica-cliente.html?id=${id}`;
+}
+
 function modificaTrattamento(trattamentoId) {
     window.location.href = `/modifica-trattamento.html?id=${trattamentoId}`;
 }
 
-// Elimina trattamento
 function eliminaTrattamento(id, clienteId) {
     if (confirm("Sei sicuro di voler eliminare questo trattamento?")) {
         fetch(`/api/trattamenti/${id}`, {
@@ -202,7 +304,7 @@ function eliminaTrattamento(id, clienteId) {
             })
             .then(() => {
                 caricaTrattamenti(clienteId);
-                showMessage('Trattamento eliminato con successo!', 'success'); // Messaggio di successo
+                showMessage('Trattamento eliminato con successo!', 'success');
             })
             .catch(err => {
                 if (err.message !== "Reindirizzamento handled") {
@@ -213,53 +315,11 @@ function eliminaTrattamento(id, clienteId) {
     }
 }
 
-// Aggiunta trattamento
-const form = document.getElementById("form-trattamento");
-if (form) {
-    form.addEventListener("submit", (e) => {
-        e.preventDefault();
-
-        const cliente_id = form.dataset.clienteId;
-        const tipo_trattamento = form.tipo_trattamento.value;
-        const descrizione = form.descrizione.value;
-        const data_trattamento = form.data_trattamento.value;
-        const note = form.note.value;
-
-        fetch('/api/trattamenti', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cliente_id, tipo_trattamento, descrizione, data_trattamento, note })
-            })
-            .then(async res => {
-                const data = await handleApiResponse(res);
-                if (data === null) {
-                    throw new Error("Reindirizzamento handled");
-                }
-                if (!res.ok) {
-                    const errorDetails = data.error || "Errore sconosciuto";
-                    throw new Error(`Errore aggiunta trattamento: ${errorDetails}`);
-                }
-                return data;
-            })
-            .then(() => {
-                caricaTrattamenti(cliente_id);
-                form.reset();
-                showMessage('Trattamento aggiunto con successo!', 'success');
-            })
-            .catch(err => {
-                if (err.message !== "Reindirizzamento handled") {
-                    console.error("Errore aggiunta trattamento:", err);
-                    showMessage('Errore durante l\'aggiunta del trattamento.', 'error');
-                }
-            });
-    });
-}
-
-// Eliminazione cliente
+// --- Eliminazione cliente (La tua funzione esistente) ---
 const btnElimina = document.getElementById("btnEliminaCliente");
 if (btnElimina) {
     btnElimina.addEventListener("click", () => {
-        if (!clienteId) return; // Già gestito all'inizio, ma precauzione
+        if (!clienteId) return;
 
         const conferma = confirm("Sei sicuro di voler eliminare questo cliente? L'azione è irreversibile.");
         if (!conferma) return;
@@ -293,7 +353,11 @@ if (btnElimina) {
     });
 }
 
-// Modifica cliente
+// --- Modifica cliente (La tua funzione esistente - NOTA: IL TUO HTML NON HA form-modifica-cliente) ---
+// Se non hai un form con id "form-modifica-cliente" nel tuo scheda-cliente.html, questa parte non farà nulla.
+// La tua funzione `vaiModificaCliente()` reindirizza a `modifica-cliente.html` che probabilmente ha un suo JS.
+// Quindi, questa parte potrebbe essere ridondante qui o potrebbe esserci un'incoerenza.
+// La lascio per completezza, ma tieni presente che l'HTML che mi hai dato non la supporta direttamente.
 const formModifica = document.getElementById("form-modifica-cliente");
 if (formModifica) {
     formModifica.addEventListener("submit", (e) => {
@@ -325,7 +389,7 @@ if (formModifica) {
             .then(() => {
                 showMessage("Cliente aggiornato con successo", 'success');
                 setTimeout(() => {
-                    window.location.reload();
+                    window.location.reload(); // Potresti voler ricaricare solo i dettagli del cliente anziché tutta la pagina
                 }, 1500);
             })
             .catch(err => {
@@ -337,17 +401,58 @@ if (formModifica) {
     });
 }
 
-document.getElementById("btnPrecedente").addEventListener("click", () => cambiaCliente(-1));
-document.getElementById("btnSuccessivo").addEventListener("click", () => cambiaCliente(1));
+// --- Event Listeners per i pulsanti di paginazione (AGGIORNATO) ---
+// Questi devono essere attaccati DOPO che gli elementi DOM sono stati caricati e le variabili inizializzate.
+// Si consiglia di avvolgere il tutto in un DOMContentLoaded listener per sicurezza.
+document.addEventListener("DOMContentLoaded", () => {
+    // Chiama la funzione di inizializzazione principale
+    initializeClientData();
 
-function cambiaCliente(direzione) {
-    const lista = JSON.parse(localStorage.getItem("risultatiRicercaClienti")) || [];
-    let indice = parseInt(localStorage.getItem("indiceClienteCorrente") || "0");
-
-    indice += direzione;
-
-    if (indice >= 0 && indice < lista.length) {
-        localStorage.setItem("indiceClienteCorrente", indice.toString());
-        window.location.href = `/scheda-cliente.html?id=${lista[indice]}`;
+    if (prevClientButton) {
+        prevClientButton.addEventListener("click", () => cambiaCliente(-1));
     }
-}
+    if (nextClientButton) {
+        nextClientButton.addEventListener("click", () => cambiaCliente(1));
+    }
+
+    // Le tue funzioni `vaiAggiungiTrattamento`, `vaiModificaCliente`,
+    // `modificaTrattamento`, `eliminaTrattamento` sono già globali o gestite
+    // tramite `onclick` nell'HTML, quindi non richiedono `addEventListener` qui
+    // a meno che tu non voglia centralizzare la gestione degli eventi.
+
+    // Aggiungi un listener per l'evento popstate (quando l'utente usa le frecce avanti/indietro del browser)
+    window.addEventListener('popstate', (event) => {
+        // Quando lo stato della history cambia (es. con frecce del browser), ri-inizializza
+        // per caricare il cliente corretto e aggiornare la UI di paginazione.
+        const newUrlParams = new URLSearchParams(window.location.search);
+        const newClienteId = newUrlParams.get('id');
+        const newRawSearchResults = newUrlParams.get('search_results');
+        const newRawCurrentIndex = newUrlParams.get('current_index');
+
+        if (newClienteId) {
+            // Aggiorna le variabili globali della paginazione
+            if (newRawSearchResults && newRawCurrentIndex !== null) {
+                searchResultsIds = JSON.parse(decodeURIComponent(newRawSearchResults));
+                currentIndex = parseInt(newRawCurrentIndex, 10);
+                localStorage.setItem("risultatiRicercaClienti", JSON.stringify(searchResultsIds));
+                localStorage.setItem("indiceClienteCorrente", currentIndex.toString());
+            } else {
+                // Se non ci sono parametri di ricerca, pulisci i dati di paginazione
+                searchResultsIds = [];
+                currentIndex = -1;
+                localStorage.removeItem("risultatiRicercaClienti");
+                localStorage.removeItem("indiceClienteCorrente");
+            }
+            fetchClientDetails(newClienteId);
+            caricaTrattamenti(newClienteId);
+            updatePaginationControls();
+        } else {
+            // Nessun ID nella URL, reindirizza alla dashboard
+            showMessage("Nessun ID cliente specificato. Reindirizzamento alla Dashboard.", 'info');
+            setTimeout(() => {
+                window.location.href = '/dashboard.html';
+            }, 2000);
+        }
+    });
+
+});
