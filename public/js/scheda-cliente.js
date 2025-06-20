@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     // Riferimenti agli elementi DOM esistenti
-    const nomeCompletoSpan = document.getElementById("nome-completo"); // <--- Qui è corretto
+    const nomeCompletoSpan = document.getElementById("nome-completo");
     const emailSpan = document.getElementById("email");
     const telefonoSpan = document.getElementById("telefono");
     const listaTrattamentiBody = document.getElementById("lista-trattamenti");
@@ -25,17 +25,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const quantitaAcquistoInput = document.getElementById("quantita-acquisto");
     const noteAcquistoTextarea = document.getElementById("note-acquisto");
 
-    // --- NUOVI Riferimenti per Modale Aggiungi Trattamento (CORRETTI) ---
+    // --- NUOVI Riferimenti per Modale Aggiungi Trattamento (CORRETTI CON GLI ID DEL TUO HTML) ---
     const aggiungiTrattamentoBtn = document.getElementById("aggiungiTrattamentoBtn");
     const modalAggiungiTrattamento = document.getElementById("addTrattamentoModal");
     const formAddTrattamento = document.getElementById("formAddTrattamento");
     const cancelTrattamentoBtn = document.getElementById("cancelTrattamentoBtn");
 
-    // Campi input specifici della modale trattamento (AGGIORNATI CON ID COERENTI)
-    const tipoTrattamentoInput = document.getElementById('modal_tipo_trattamento');
-    const dataTrattamentoInput = document.getElementById('modal_data_trattamento');
-    const descrizioneTrattamentoInput = document.getElementById('modal_descrizione');
-    const noteTrattamentoInput = document.getElementById('modal_note');
+    // Campi input specifici della modale trattamento (AGGIORNATI CON ID COERENTI AL TUO HTML)
+    // *** MODIFICATO QUI ***
+    const tipoTrattamentoInput = document.getElementById('tipoTrattamento');
+    const dataTrattamentoInput = document.getElementById('dataTrattamento');
+    const descrizioneTrattamentoInput = document.getElementById('descrizioneTrattamento');
+    const noteTrattamentoInput = document.getElementById('noteTrattamento');
+    // ********************
 
 
     let currentClientId = null;
@@ -141,7 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Popola i campi del cliente
             const client = data.client;
             if (client) {
-                nomeCompletoSpan.textContent = `${client.nome} ${client.cognome}`; // <--- Ho corretto qui!
+                nomeCompletoSpan.textContent = `${client.nome} ${client.cognome}`;
                 emailSpan.textContent = client.email || "N/A";
                 telefonoSpan.textContent = client.telefono || "N/A";
 
@@ -424,10 +426,12 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        // *** MODIFICATO QUI: Usiamo le variabili con gli ID corretti ***
         const tipo = tipoTrattamentoInput.value.trim();
         const data_trattamento = dataTrattamentoInput.value;
         const descrizione = descrizioneTrattamentoInput.value.trim();
         const note = noteTrattamentoInput.value.trim();
+        // ********************
 
         if (!tipo || !data_trattamento) {
             showMessage("Per favore, compila tutti i campi obbligatori (Tipo, Data).", 'error');
@@ -640,7 +644,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (aggiungiTrattamentoBtn) {
         aggiungiTrattamentoBtn.addEventListener("click", () => {
             openModal(modalAggiungiTrattamento);
-            dataTrattamentoInput.valueAsDate = new Date();
+            // *** MODIFICATO QUI: Ora dataTrattamentoInput è correttamente definito ***
+            if (dataTrattamentoInput) {
+                dataTrattamentoInput.valueAsDate = new Date();
+            } else {
+                console.warn("Elemento 'dataTrattamentoInput' non trovato per impostare la data predefinita.");
+            }
+            // ********************
         });
     }
     if (cancelTrattamentoBtn) {
