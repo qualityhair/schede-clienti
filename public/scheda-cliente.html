@@ -280,8 +280,6 @@
     <script src="/js/scheda-cliente.js"></script>
     <script src="/js/navbar-loader.js"></script>
     <script>
-        // Le funzioni globali `getIdCliente` e `vaiModificaCliente` rimangono qui
-        // perché `vaiModificaCliente` è ancora usata in un attributo onclick.
         function getIdCliente() {
             const params = new URLSearchParams(window.location.search);
             return params.get("id");
@@ -291,17 +289,6 @@
             const id = getIdCliente();
             window.location.href = `/modifica-cliente.html?id=${id}`;
         }
-
-        // La funzione `vaiAggiungiTrattamento` non è più necessaria qui
-        // perché la modale è gestita interamente dal JavaScript in scheda-cliente.js
-        // via addEventListener sul bottone con id="aggiungiTrattamentoBtn".
-        // L'ho lasciata commentata per tua riferimento, ma puoi rimuoverla.
-        /*
-        function vaiAggiungiTrattamento() {
-            const id = getIdCliente();
-            window.location.href = `/aggiungi-trattamento.html?id=${id}`;
-        }
-        */
     </script>
 
     <div id="modalAggiungiAcquisto" class="modal">
@@ -342,15 +329,23 @@
             <form id="formAddTrattamento">
                 <div class="form-group">
                     <label for="tipoTrattamento" class="form-label">Tipo di Trattamento:</label>
-                    <input type="text" id="tipoTrattamento" name="tipoTrattamento" class="input-field" required>
+                    <select id="tipoTrattamento" name="tipoTrattamento" class="select-field" required>
+                        <option value="">Seleziona un tipo di trattamento o servizio</option>
+                        <option value="Colore">Colore</option>
+                        <option value="Colore e schiariture">Colore e schiariture</option>
+                        <option value="Permanente">Permanente</option>
+                        <option value="Meches">Meches</option>
+                        <option value="Taglio">Taglio</option>
+                        <option value="Taglio e barba">Taglio e barba</option>
+                        <option value="Piega">Piega</option>
+                        <option value="Barba">Barba</option>
+                        <option value="Trattamento">Trattamento</option>
+                        <option value="Altro">Altro</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="dataTrattamento" class="form-label">Data del Trattamento:</label>
                     <input type="date" id="dataTrattamento" name="dataTrattamento" class="input-field" required>
-                </div>
-                <div class="form-group">
-                    <label for="prezzoTrattamento" class="form-label">Prezzo:</label>
-                    <input type="number" id="prezzoTrattamento" name="prezzoTrattamento" class="input-field" step="0.01" required>
                 </div>
                 <div class="form-group">
                     <label for="dettagliTrattamento" class="form-label">Dettagli:</label>
