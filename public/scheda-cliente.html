@@ -261,8 +261,9 @@
 
     <div style="margin-top: 2rem;">
       <button class="btn btn-primary" onclick="vaiAggiungiTrattamento()">➕ Aggiungi Trattamento</button>
-      <button class="btn btn-primary" onclick="vaiModificaCliente()">✏️ Modifica Cliente</button>
+      
       <button class="btn btn-primary" id="aggiungi-acquisto-btn">➕ Aggiungi Acquisto</button>
+      <button class="btn btn-primary" onclick="vaiModificaCliente()">✏️ Modifica Cliente</button>
     </div>
 
     <button id="btnEliminaCliente" class="btn" style="background-color: red; color: white; margin-top: 1rem;">
@@ -323,7 +324,33 @@
       </form>
     </div>
   </div>
-
+<div id="addTrattamentoModal" class="modal">
+    <div class="modal-content">
+        <h2>Aggiungi Nuovo Trattamento</h2>
+        <form id="formAddTrattamento">
+            <div class="form-group">
+                <label for="tipoTrattamento" class="form-label">Tipo di Trattamento:</label>
+                <input type="text" id="tipoTrattamento" name="tipoTrattamento" class="input-field" required>
+            </div>
+            <div class="form-group">
+                <label for="dataTrattamento" class="form-label">Data del Trattamento:</label>
+                <input type="date" id="dataTrattamento" name="dataTrattamento" class="input-field" required>
+            </div>
+            <div class="form-group">
+                <label for="prezzoTrattamento" class="form-label">Prezzo:</label>
+                <input type="number" id="prezzoTrattamento" name="prezzoTrattamento" class="input-field" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="dettagliTrattamento" class="form-label">Dettagli:</label>
+                <textarea id="dettagliTrattamento" name="dettagliTrattamento" class="textarea-field"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button type="submit" class="modal-button ok">Salva Trattamento</button>
+                <button type="button" class="modal-button cancel" id="cancelTrattamentoBtn">Annulla</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 </body>
 
