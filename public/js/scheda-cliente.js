@@ -34,10 +34,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Campi input specifici della modale trattamento
     const tipoTrattamentoInput = document.getElementById('tipoTrattamento');
     const dataTrattamentoInput = document.getElementById('dataTrattamento');
-    // RIMOSSO: const prezzoTrattamentoInput = document.getElementById('prezzoTrattamento'); // Questo campo non c'è più nell'HTML
-    const descrizioneTrattamentoInput = document.getElementById('descrizioneTrattamento'); // CORRETTO ID: da 'dettagliTrattamento' a 'descrizioneTrattamento'
-    // Considera di aggiungere qui un riferimento per le note se hai un campo note separato nell'HTML della modale
-    const noteTrattamentoInput = null; // Impostato a null per ora, da verificare se serve un campo note separato.
+    const descrizioneTrattamentoInput = document.getElementById('descrizioneTrattamento');
+    const noteTrattamentoInput = document.getElementById('noteTrattamento'); // *** MODIFICA QUI: Ora punta all'ID 'noteTrattamento' ***
 
 
     let currentClientId = null;
@@ -368,8 +366,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const tipo = tipoTrattamentoInput.value.trim();
         const data_trattamento = dataTrattamentoInput.value;
-        const descrizione = descrizioneTrattamentoInput.value.trim(); // Usa il nuovo riferimento
-        const note = (noteTrattamentoInput ? noteTrattamentoInput.value.trim() : ""); // Gestisce se c'è un campo note separato o no
+        const descrizione = descrizioneTrattamentoInput.value.trim();
+        const note = noteTrattamentoInput.value.trim(); // *** MODIFICA QUI: Ora recupera il valore direttamente dal campo 'noteTrattamentoInput' ***
 
         // Validazione aggiornata (senza prezzo)
         if (!tipo || !data_trattamento) {
@@ -386,8 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     tipo,
                     data_trattamento,
                     descrizione,
-                    // RIMOSSO: prezzo, // Non c'è più il campo prezzo
-                    note // Invia le note (anche se vuote se non c'è un campo dedicato)
+                    note // Invia le note
                 })
             });
             const data = await handleApiResponse(response);
