@@ -34,8 +34,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Campi input specifici della modale trattamento
     const tipoTrattamentoInput = document.getElementById('tipoTrattamento');
     const dataTrattamentoInput = document.getElementById('dataTrattamento');
-    const prezzoTrattamentoInput = document.getElementById('prezzoTrattamento');
-    const dettagliTrattamentoInput = document.getElementById('dettagliTrattamento');
+    // RIMOSSO: const prezzoTrattamentoInput = document.getElementById('prezzoTrattamento'); // Questo campo non c'è più nell'HTML
+    const descrizioneTrattamentoInput = document.getElementById('descrizioneTrattamento'); // CORRETTO ID: da 'dettagliTrattamento' a 'descrizioneTrattamento'
+    // Considera di aggiungere qui un riferimento per le note se hai un campo note separato nell'HTML della modale
+    const noteTrattamentoInput = null; // Impostato a null per ora, da verificare se serve un campo note separato.
 
 
     let currentClientId = null;
@@ -366,12 +368,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const tipo = tipoTrattamentoInput.value.trim();
         const data_trattamento = dataTrattamentoInput.value;
-        const prezzo = parseFloat(prezzoTrattamentoInput.value); // Assumi che il campo prezzo sia presente nel form
-        const descrizione = dettagliTrattamentoInput.value.trim(); // Assumi che il campo dettagli sia per la descrizione
-        const note = ""; // Puoi aggiungere un campo note dedicato se serve
+        const descrizione = descrizioneTrattamentoInput.value.trim(); // Usa il nuovo riferimento
+        const note = (noteTrattamentoInput ? noteTrattamentoInput.value.trim() : ""); // Gestisce se c'è un campo note separato o no
 
-        if (!tipo || !data_trattamento || isNaN(prezzo) || prezzo < 0) {
-            showMessage("Per favore, compila tutti i campi obbligatori (Tipo, Data, Prezzo) con valori validi.", 'error');
+        // Validazione aggiornata (senza prezzo)
+        if (!tipo || !data_trattamento) {
+            showMessage("Per favore, compila tutti i campi obbligatori (Tipo, Data).", 'error');
             return;
         }
 
@@ -384,8 +386,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     tipo,
                     data_trattamento,
                     descrizione,
-                    prezzo, // Invia anche il prezzo
-                    note // Invia anche le note (anche se vuote per ora)
+                    // RIMOSSO: prezzo, // Non c'è più il campo prezzo
+                    note // Invia le note (anche se vuote se non c'è un campo dedicato)
                 })
             });
             const data = await handleApiResponse(response);
