@@ -315,8 +315,8 @@ body::before {
 }
 
 /* Stili Generali dalla tua aggiungi-trattamento.html */
-/* Nota: alcuni stili potrebbero essere ridondanti o in conflitto con quelli della dashboard. 
-   È buona norma consolidare stili simili per evitare override inaspettati. */
+/* Nota: alcuni stili potrebbero essere ridondanti o in conflitto con quelli della dashboard.
+    È buona norma consolidare stili simili per evitare override inaspettati. */
 .container {
     background-color: #ffcc00;
     border-radius: 12px;
@@ -872,4 +872,71 @@ h1 {
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Potrebbe essere utile per layout più flessibili */
         gap: 1.5rem;
     }
+}
+
+/* --- NUOVI STILI PER I BOTTONI NELLE TABELLE (Modifica ed Elimina) --- */
+/* Targetta specificamente i bottoni all'interno delle tabelle trattamenti e acquisti */
+.trattamenti .btn,
+.acquisti-table .btn { /* Aggiungi la classe della tua tabella acquisti se diversa da 'acquisti-table' */
+    padding: 5px 10px; /* Riduci il padding interno per renderli più piccoli */
+    font-size: 0.85em; /* Riduci la dimensione del testo all'interno del bottone */
+    margin-left: 3px; /* Piccolo margine per spaziare i bottoni */
+    margin-right: 3px;
+    min-width: unset; /* Rimuovi la larghezza minima, se applicata da regole più generali */
+    width: auto; /* Lascia che la larghezza si adatti al contenuto */
+    text-transform: none; /* Evita l'uppercase se non desiderato per questi bottoni specifici */
+    letter-spacing: normal; /* Normalizza lo spazio tra le lettere */
+    border-radius: 5px; /* Rendi i bordi meno arrotondati, più squadrati */
+    box-shadow: none; /* Rimuovi l'ombra complessa per un look più semplice */
+    background: #007bff; /* Colore blu standard per default */
+    color: white;
+    border: none;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+/* Stili specifici per i bottoni "Modifica" nelle tabelle */
+.trattamenti .btn.btn-edit,
+.acquisti-table .btn.btn-edit {
+    background-color: #007bff; /* Blu */
+}
+
+.trattamenti .btn.btn-edit:hover,
+.acquisti-table .btn.btn-edit:hover {
+    background-color: #0056b3; /* Blu più scuro al hover */
+    transform: translateY(-1px);
+}
+
+/* Stili specifici per i bottoni "Elimina" nelle tabelle */
+.trattamenti .btn.btn-delete,
+.acquisti-table .btn.btn-delete {
+    background-color: #dc3545; /* Rosso */
+}
+
+.trattamenti .btn.btn-delete:hover,
+.acquisti-table .btn.btn-delete:hover {
+    background-color: #bd2130; /* Rosso più scuro al hover */
+    transform: translateY(-1px);
+}
+
+/* Assicurati che i bottoni all'interno delle celle non siano influenzati dagli stili .dashboard-panel button */
+.trattamenti td button,
+.acquisti-table td button {
+    padding: 5px 10px; /* Ridefinisci il padding per essere sicuro */
+    font-size: 0.85em; /* Ridefinisci la dimensione del font */
+    min-width: unset; /* Assicurati che non abbiano una larghezza minima impostata da altre regole */
+    width: auto; /* Lascia che la larghezza si adatti al contenuto */
+    margin: 0 3px; /* Aggiungi un margine tra i bottoni */
+    border-radius: 5px; /* Rimuovi l'arrotondamento estremo */
+    box-shadow: none; /* Rimuovi le ombre */
+    text-transform: none; /* Rimuovi l'uppercase */
+    letter-spacing: normal; /* Rimuovi lo spazio tra le lettere */
+}
+
+/* Piccola ottimizzazione per i bottoni nelle celle per evitare che ereditino stili indesiderati da .btn generali */
+.trattamenti td .btn,
+.acquisti-table td .btn {
+    /* Resetta potenziali stili ereditati per evitare sovrapposizioni indesiderate */
+    background: unset; /* Lascia che sia la classe specifica (btn-edit/delete) a definire il background */
+    color: unset; /* Lascia che sia la classe specifica a definire il colore del testo */
+    border: unset; /* Lascia che sia la classe specifica a definire il bordo */
 }
