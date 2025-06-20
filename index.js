@@ -53,7 +53,7 @@ app.use(session({
     cookie: {
         secure: process.env.NODE_ENV === 'production', // true in produzione (richiede HTTPS)
         httpOnly: true, // Il cookie non è accessibile via JavaScript lato client
-        maxAge: 1000 * 60 * 60 * 24 // Durata del cookie: 24 ore
+        maxAge: 1000 * 60 * 60 * 24 * 7 // Durata del cookie: 7 giorni per persistere di più
     }
 }));
 
@@ -77,11 +77,9 @@ app.post('/login', async (req, res) => {
 
     try {
         // Cerca l'utente nel database
-        // *** MODIFICA EFFETTUATA QUI: da 'password_hash' a 'password' ***
         const result = await db.query('SELECT id, username, password FROM users WHERE username = $1', [username]);
         const user = result.rows[0]; // Prende il primo utente trovato
 
-        // *** MODIFICA EFFETTUATA QUI: da 'user.password_hash' a 'user.password' ***
         if (user && await bcrypt.compare(password, user.password)) {
             // Credenziali valide: imposta la sessione per l'utente
             req.session.userId = user.id;
@@ -198,22 +196,77 @@ app.get("/api/clienti/cerca", isAuthenticated, async (req, res) => {
     }
 });
 
+// --- MODIFICATO: GET /api/clienti/:id - includi preferenze_note e storico_acquisti ---
 app.get("/api/clienti/:id", isAuthenticated, async (req, res) => {
     const id = req.params.id;
     try {
-        const result = await db.query("SELECT * FROM clienti WHERE id = $1", [id]);
-        if (result.rows.length > 0) {
-            res.json(result.rows[0]);
-        } else {
-            res.status(404).json({ message: "Cliente non trovato" });
+        // Query per i dati del cliente, inclusi i nuovi campi
+        const clientResult = await db.query("SELECT id, nome, cognome, email, telefono, preferenze_note, storico_acquisti FROM clienti WHERE id = $1", [id]);
+        const client = clientResult.rows[0];
+
+        if (!client) {
+            return res.status(404).json({ message: "Cliente non trovato" });
         }
+
+        // Query per i trattamenti del cliente
+        const treatmentsResult = await db.query("SELECT * FROM trattamenti WHERE cliente_id = $1 ORDER BY data_trattamento DESC", [id]);
+        const trattamenti = treatmentsResult.rows;
+
+        // Restituisci entrambi i set di dati in un singolo oggetto
+        res.json({ client, trattamenti });
     } catch (err) {
         console.error("ERRORE DATABASE IN GET /api/clienti/:id:", err);
-        res.status(500).json({ error: "Errore interno del server durante il recupero del singolo cliente", details: err.message, stack: err.stack });
+        res.status(500).json({ error: "Errore interno del server durante il recupero del singolo cliente e trattamenti", details: err.message, stack: err.stack });
     }
 });
 
-app.delete("/api/clienti/:id", isAuthenticated, async (req, res) => { // SPOSTATA QUI SOPRA listen()
+// --- NUOVO ENDPOINT: PUT /api/clienti/:id/note per aggiornare preferenze_note ---
+app.put('/api/clienti/:id/note', isAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    const { preferenze_note } = req.body;
+
+    if (preferenze_note === undefined) {
+        return res.status(400).json({ error: 'Campo preferenze_note mancante nel corpo della richiesta.' });
+    }
+
+    try {
+        const result = await db.query('UPDATE clienti SET preferenze_note = $1 WHERE id = $2 RETURNING id', [preferenze_note, id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Cliente non trovato o nessun cambiamento apportato alle note.' });
+        }
+        res.json({ message: 'Note cliente aggiornate con successo!' });
+    } catch (err) {
+        console.error('Errore DB nell\'aggiornamento note:', err);
+        res.status(500).json({ error: 'Errore nell\'aggiornamento delle note del cliente.' });
+    }
+});
+
+// --- NUOVO ENDPOINT: PUT /api/clienti/:id/acquisti per aggiornare storico_acquisti ---
+app.put('/api/clienti/:id/acquisti', isAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    const { storico_acquisti } = req.body; // Ci aspettiamo una stringa JSON qui
+
+    if (storico_acquisti === undefined) {
+        return res.status(400).json({ error: 'Campo storico_acquisti mancante nel corpo della richiesta.' });
+    }
+
+    try {
+        // Valida se la stringa è un JSON valido se strettamente necessario,
+        // ma dato che proviene dal frontend, presumiamo sia valida.
+        // Se vuoi aggiungere validazione: JSON.parse(storico_acquisti);
+        const result = await db.query('UPDATE clienti SET storico_acquisti = $1 WHERE id = $2 RETURNING id', [storico_acquisti, id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Cliente non trovato o nessun cambiamento apportato allo storico acquisti.' });
+        }
+        res.json({ message: 'Storico acquisti cliente aggiornato con successo!' });
+    } catch (err) {
+        console.error('Errore DB nell\'aggiornamento storico acquisti:', err);
+        res.status(500).json({ error: 'Errore nell\'aggiornamento dello storico acquisti del cliente.' });
+    }
+});
+
+
+app.delete("/api/clienti/:id", isAuthenticated, async (req, res) => {
     const clienteId = req.params.id;
     try {
         await db.query("DELETE FROM trattamenti WHERE cliente_id = $1", [clienteId]);
@@ -297,5 +350,5 @@ const port = process.env.PORT || 8080;
 // Avvio del server: DEVE ESSERE L'ULTIMA COSA NEL FILE
 // Importante: ascolta su '0.0.0.0' per essere accessibile da Fly.io
 app.listen(port, '0.0.0.0', () => {
-    console.log(`🚀 QualityHair intranet in ascolto su http://0.0.0.0:${port}`); // Modifica il messaggio di log per conferma
+    console.log(`🚀 Schede Clienti in ascolto su http://0.0.0.0:${port}`); // Modifica il messaggio di log per conferma
 });
