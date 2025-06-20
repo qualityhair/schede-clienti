@@ -3,7 +3,7 @@ const { Pool } = require("pg");
 const path = require("path");
 const bodyParser = require("body-parser");
 const session = require('express-session'); // NUOVO: Modulo per le sessioni
-const bcrypt = require('bcrypt');          // NUOVO: Modulo per hashing delle password
+const bcrypt = require('bcrypt');           // NUOVO: Modulo per hashing delle password
 
 const app = express();
 // RIMOZIONE: La riga 'const port = process.env.PORT || 3000;' è stata rimossa da qui.
@@ -149,15 +149,22 @@ app.get("/api/clienti", isAuthenticated, async (req, res) => {
     }
 });
 
+// --- MODIFICA QUI: POST /api/clienti per restituire l'ID del nuovo cliente ---
 app.post("/api/clienti", isAuthenticated, async (req, res) => {
     const { nome, cognome, email, telefono } = req.body;
-    const sql = "INSERT INTO clienti (nome, cognome, email, telefono) VALUES ($1, $2, $3, $4) RETURNING id";
     try {
+        const sql = "INSERT INTO clienti (nome, cognome, email, telefono) VALUES ($1, $2, $3, $4) RETURNING id"; // Aggiunto RETURNING id
         const result = await db.query(sql, [nome, cognome, email, telefono]);
-        const nuovoClienteId = result.rows[0].id;
-        res.status(201).json({ message: "Cliente aggiunto", id: nuovoClienteId });
+        const nuovoClienteId = result.rows[0].id; // Cattura l'ID restituito
+
+        // Risposta con lo status 201 (Created) e l'ID del nuovo cliente
+        res.status(201).json({ message: "Cliente aggiunto con successo", id: nuovoClienteId }); // Invia l'ID
     } catch (err) {
         console.error("ERRORE DATABASE IN POST /api/clienti:", err);
+        // Migliore gestione degli errori specifici del database
+        if (err.code === '23505') { // Codice errore PostgreSQL per violazione di unique constraint (es. email duplicata)
+            return res.status(409).json({ error: 'Un cliente con questa email (o altro campo unico) esiste già.' });
+        }
         res.status(500).json({ error: "Errore interno del server durante l'inserimento del cliente", details: err.message, stack: err.stack });
     }
 });
