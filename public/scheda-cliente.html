@@ -170,9 +170,10 @@
         font-size: 1rem;
         margin-top: 0.5rem;
     }
-    .detail-section button {
+    /* Rimosso il margine superiore per i bottoni all'interno di detail-section se non necessario */
+    /* .detail-section button {
         margin-top: 1rem;
-    }
+    } */
     /* Stili per la tabella dello storico acquisti, se diversi da trattamenti */
     .acquisti-table {
         width: 100%;
@@ -231,7 +232,6 @@
 
     <div class="detail-section">
       <h2>Storico Acquisti</h2>
-      <button class="btn btn-primary" id="aggiungi-acquisto-btn">➕ Aggiungi Acquisto</button>
       <table class="acquisti-table">
         <thead>
           <tr>
@@ -254,7 +254,6 @@
       <p id="info-paginazione"></p>
     </center>
 
-
     <div id="navigazione-clienti" style="margin-top: 20px; text-align: center;">
       <button id="btnPrecedente">⬅️ Indietro</button>
       <button id="btnSuccessivo">Avanti ➡️</button>
@@ -263,6 +262,7 @@
     <div style="margin-top: 2rem;">
       <button class="btn btn-primary" onclick="vaiAggiungiTrattamento()">➕ Aggiungi Trattamento</button>
       <button class="btn btn-primary" onclick="vaiModificaCliente()">✏️ Modifica Cliente</button>
+      <button class="btn btn-primary" id="aggiungi-acquisto-btn">➕ Aggiungi Acquisto</button>
     </div>
 
     <button id="btnEliminaCliente" class="btn" style="background-color: red; color: white; margin-top: 1rem;">
@@ -274,6 +274,8 @@
   <script src="/js/scheda-cliente.js"></script>
   <script src="/js/navbar-loader.js"></script>
   <script>
+    // Queste funzioni sono state spostate qui perché sono usate negli attributi onclick
+    // e devono essere globalmente accessibili.
     function getIdCliente() {
       const params = new URLSearchParams(window.location.search);
       return params.get("id");
