@@ -1061,69 +1061,200 @@ h1 {
     }
 }
 
-/* --- NUOVI STILI PER I BOTTONI NELLE TABELLE (Modifica ed Elimina) --- */
-/* Targetta specificamente i bottoni all'interno delle tabelle trattamenti e acquisti */
-.trattamenti .btn,
-.acquisti-table .btn { /* Aggiungi la classe della tua tabella acquisti se diversa da 'acquisti-table' */
-    padding: 5px 10px; /* Riduci il padding interno per renderli più piccoli */
-    font-size: 0.85em; /* Riduci la dimensione del testo all'interno del bottone */
-    margin-left: 3px; /* Piccolo margine per spaziare i bottoni */
-    margin-right: 3px;
-    min-width: unset; /* Rimuovi la larghezza minima, se applicata da regole più generali */
-    width: auto; /* Lascia che la larghezza si adatti al contenuto */
-    text-transform: none; /* Evita l'uppercase se non desiderato per questi bottoni specifici */
-    letter-spacing: normal; /* Normalizza lo spazio tra le lettere */
-    border-radius: 5px; /* Rendi i bordi meno arrotondati, più squadrati */
-    box-shadow: none; /* Rimuovi l'ombra complessa per un look più semplice */
-    background: #007bff; /* Colore blu standard per default */
+/* --- STILI PER LAYOUT A PANNELLI (SCHEDA CLIENTE) --- */
+
+/* Colore di sfondo generale della pagina (grigio chiaro) */
+body {
+    background-color: #f5f5f5; /* Grigio molto chiaro */
+}
+
+.container {
+    background-color: #f5f5f5; /* Mantiene lo sfondo del container uguale al body */
+    padding: 2rem;
+    border-radius: 12px;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.page-title {
+    font-family: 'Great Vibes', cursive;
+    font-size: 3.5rem; /* O la dimensione che preferisci per il titolo principale */
+    color: #333; /* Cambiato a grigio scuro per migliore leggibilità su sfondo chiaro */
+    text-align: center;
+    margin-bottom: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2); /* Ombra più leggera */
+}
+
+.panel-grid {
+    display: grid;
+    gap: 2rem; /* Spazio tra i pannelli */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
+    margin-bottom: 2rem;
+}
+
+.panel {
+    background-color: #fff; /* Sfondo bianco per i pannelli */
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 200px; /* Altezza minima per tutti i pannelli */
+}
+
+.panel-title {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #ddd; /* Bordo inferiore più visibile */
+    padding-bottom: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-content {
+    flex-grow: 1; /* Permette al contenuto di espandersi */
+    padding-top: 0.5rem;
+}
+
+.panel-actions {
+    margin-top: 1.5rem;
+    text-align: right;
+}
+
+.full-width-panel {
+    grid-column: 1 / -1; /* Occupa tutta la larghezza in griglia */
+}
+
+/* Stili specifici per i pannelli */
+.client-details-panel p {
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+    color: #555;
+}
+
+.notes-panel textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc; /* Bordo più contrastato */
+    border-radius: 8px;
+    min-height: 120px;
+    resize: vertical;
+    font-size: 1rem;
+    margin-bottom: 1rem; /* Spazio tra textarea e bottone */
+}
+
+.notes-panel .btn {
+    width: auto; /* Il bottone non occupa tutta la larghezza */
+    align-self: flex-end; /* Allinea a destra all'interno del pannello flex */
+}
+
+/* Tabelle all'interno dei pannelli */
+.data-table {
+    width: 100%;
+    border-collapse: separate; /* Per i bordi arrotondati o stili più moderni */
+    border-spacing: 0;
+    margin-top: 1rem;
+}
+
+.data-table th,
+.data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee; /* Solo bordo inferiore */
+}
+
+.data-table thead th {
+    background-color: #e9e9e9; /* Sfondo leggermente più scuro per l'intestazione */
+    color: #333;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.data-table tbody tr:nth-child(even) {
+    background-color: rgba(173, 216, 230, 0.2); /* Azzurro molto chiaro con trasparenza */
+}
+
+.data-table tbody tr:hover {
+    background-color: #e0e0e0; /* Sfondo grigio più chiaro al passaggio del mouse */
+}
+
+/* Rimuovi bordi completi per un look più pulito */
+.trattamenti th, .trattamenti td,
+.acquisti-table th, .acquisti-table td {
+    border: none; /* Rimuovi i bordi precedenti */
+    border-bottom: 1px solid #eee; /* Applica solo il bordo inferiore */
+}
+
+/* Ultima riga delle tabelle */
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Bottone per aggiungere (icona) */
+.btn-icon {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #4CAF50; /* Cambiato a verde per migliore visibilità */
+    transition: color 0.2s ease;
+    padding: 0; /* Rimuovi padding extra */
+}
+
+.btn-icon:hover {
+    color: #45a049; /* Colore al passaggio del mouse */
+    transform: scale(1.1);
+}
+
+/* Bottone Elimina Cliente al di fuori dei pannelli */
+.delete-client-section {
+    margin-top: 3rem;
+    text-align: center;
+}
+
+.btn-danger {
+    background-color: #dc3545;
     color: white;
     border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: 600;
     transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
-/* Stili specifici per i bottoni "Modifica" nelle tabelle */
-.trattamenti .btn.btn-edit,
-.acquisti-table .btn.btn-edit {
-    background-color: #007bff; /* Blu */
+.btn-danger:hover {
+    background-color: #bd2130;
+    transform: translateY(-2px);
 }
 
-.trattamenti .btn.btn-edit:hover,
-.acquisti-table .btn.btn-edit:hover {
-    background-color: #0056b3; /* Blu più scuro al hover */
-    transform: translateY(-1px);
+/* Responsive Table Container (se il contenuto della tabella dovesse eccedere) */
+.table-responsive {
+    overflow-x: auto;
 }
 
-/* Stili specifici per i bottoni "Elimina" nelle tabelle */
-.trattamenti .btn.btn-delete,
-.acquisti-table .btn.btn-delete {
-    background-color: #dc3545; /* Rosso */
-}
+/* Responsive per i pannelli su schermi piccoli */
+@media (max-width: 768px) {
+    .panel-grid {
+        grid-template-columns: 1fr; /* Tutti i pannelli su singola colonna */
+        gap: 1.5rem;
+    }
 
-.trattamenti .btn.btn-delete:hover,
-.acquisti-table .btn.btn-delete:hover {
-    background-color: #bd2130; /* Rosso più scuro al hover */
-    transform: translateY(-1px);
-}
+    .panel {
+        padding: 1rem;
+    }
 
-/* Assicurati che i bottoni all'interno delle celle non siano influenzati dagli stili .dashboard-panel button */
-.trattamenti td button,
-.acquisti-table td button {
-    padding: 5px 10px; /* Ridefinisci il padding per essere sicuro */
-    font-size: 0.85em; /* Ridefinisci la dimensione del font */
-    min-width: unset; /* Assicurati che non abbiano una larghezza minima impostata da altre regole */
-    width: auto; /* Lascia che la larghezza si adatti al contenuto */
-    margin: 0 3px; /* Aggiungi un margine tra i bottoni */
-    border-radius: 5px; /* Rimuovi l'arrotondamento estremo */
-    box-shadow: none; /* Rimuovi le ombre */
-    text-transform: none; /* Rimuovi l'uppercase */
-    letter-spacing: normal; /* Rimuovi lo spazio tra le lettere */
-}
+    .page-title {
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+    }
 
-/* Piccola ottimizzazione per i bottoni nelle celle per evitare che ereditino stili indesiderati da .btn generali */
-.trattamenti td .btn,
-.acquisti-table td .btn {
-    /* Resetta potenziali stili ereditati per evitare sovrapposizioni indesiderate */
-    background: unset; /* Lascia che sia la classe specifica (btn-edit/delete) a definire il background */
-    color: unset; /* Lascia che sia la classe specifica a definire il colore del testo */
-    border: unset; /* Lascia che sia la classe specifica a definire il bordo */
+    .panel-title {
+        font-size: 1.5rem;
+    }
 }
