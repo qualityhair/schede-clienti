@@ -1,129 +1,134 @@
 <!DOCTYPE html>
 <html lang="it">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Scheda Cliente</title>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css?v=<%= new Date().getTime() %>" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheda Cliente - CRM Salone</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/scheda-cliente.css">
+    <link rel="stylesheet" href="css/modals.css">
 </head>
-
 <body>
-    <div id="navbar"></div>
+    <header>
+        <div class="header-content">
+            <div class="logo-container">
+                <img src="images/logo.png" alt="Logo Salone" class="logo">
+                <h1>CRM Salone</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="/dashboard.html">Dashboard</a></li>
+                    <li><a href="/aggiungi-cliente.html">Aggiungi Cliente</a></li>
+                    <li><a href="/cerca-cliente.html">Cerca Cliente</a></li>
+                    <li><a href="/statistiche.html">Statistiche</a></li>
+                    <li><a href="/logout">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
     <main class="container">
-        <h1 class="page-title">Scheda Cliente: <span id="nome-completo"></span></h1>
+        <section class="client-details-section">
+            <h2>Scheda Cliente: <span id="nome-completo">Caricamento...</span></h2>
 
-        <div class="client-navigation-controls">
-            <button id="btnPrecedente" class="btn btn-nav">⬅️ Indietro</button>
-            <p id="info-paginazione" class="pagination-info"></p>
-            <button id="btnSuccessivo" class="btn btn-nav">Avanti ➡️</button>
-        </div>
-        <div class="panel-grid">
-            <div class="panel client-details-panel">
-                <h2 class="panel-title">Dettagli Cliente</h2>
-                <div class="panel-content">
-                    <p><strong>Email:</strong> <span id="email"></span></p>
-                    <p><strong>Telefono:</strong> <span id="telefono"></span></p>
+            <div class="client-info-grid">
+                <div class="info-item">
+                    <strong>Email:</strong> <span id="email">N/A</span>
                 </div>
-                <div class="panel-actions">
-                    <button class="btn btn-primary" id="modificaDettagliBtn">✏️ Modifica Dettagli</button>
+                <div class="info-item">
+                    <strong>Telefono:</strong> <span id="telefono">N/A</span>
                 </div>
             </div>
 
-            <div class="panel notes-panel">
-                <h2 class="panel-title">Note e Preferenze</h2>
-                <div class="panel-content">
-                    <textarea id="cliente-note" placeholder="Inserisci note, preferenze, allergie..."></textarea>
-                    <button class="btn btn-primary" id="salva-note-btn">Salva Note</button>
-                </div>
+            <div class="client-actions">
+                <button id="modificaDettagliBtn" class="btn btn-primary">Modifica Dettagli Cliente</button>
+                <button id="btnEliminaCliente" class="btn btn-delete">Elimina Cliente</button>
             </div>
 
-            <div class="panel treatments-panel full-width-panel">
-                <h2 class="panel-title">Storico Servizi e Trattamenti
-                    <button class="btn btn-icon" id="aggiungiTrattamentoBtn" title="Aggiungi Nuovo Trattamento">➕</button>
-                </h2>
-                <div class="panel-content table-responsive">
-                    <table class="trattamenti data-table">
-                        <thead>
-                            <tr>
-                                <th>Tipo</th>
-                                <th>Descrizione</th>
-                                <th>Data</th>
-                                <th>Note</th>
-                                <th>Azione</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lista-trattamenti">
-                        </tbody>
-                    </table>
-                </div>
+            <div class="pagination-controls">
+                <button id="btnPrecedente" class="btn">Cliente Precedente</button>
+                <span id="info-paginazione"></span>
+                <button id="btnSuccessivo" class="btn">Cliente Successivo</button>
             </div>
+        </section>
 
-            <div class="panel purchases-panel full-width-panel">
-                <h2 class="panel-title">Storico Acquisti
-                    <button class="btn btn-icon" id="aggiungi-acquisto-btn" title="Aggiungi Nuovo Acquisto">➕</button>
-                </h2>
-                <div class="panel-content table-responsive">
-                    <table class="acquisti-table data-table">
-                        <thead>
-                            <tr>
-                                <th>Prodotto</th>
-                                <th>Data</th>
-                                <th>Prezzo</th>
-                                <th>Quantità</th>
-                                <th>Note</th>
-                                <th>Azione</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lista-acquisti">
-                            <tr>
-                                <td colspan="6" style="text-align: center;">Nessun acquisto registrato per questo cliente.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+        <section class="notes-section">
+            <h3>Note e Preferenze</h3>
+            <textarea id="cliente-note" placeholder="Inserisci note o preferenze del cliente qui..."></textarea>
+            <button id="salva-note-btn" class="btn btn-primary">Salva Note</button>
+        </section>
+
+        <section class="trattamenti-section">
+            <h3>Storico Trattamenti
+                <button id="aggiungiTrattamentoBtn" class="btn btn-add-small">Aggiungi Trattamento</button>
+            </h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tipo Trattamento</th>
+                            <th>Descrizione</th>
+                            <th>Data</th>
+                            <th>Note</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-trattamenti">
+                        <tr><td colspan="5" style="text-align: center;">Nessun trattamento registrato.</td></tr>
+                    </tbody>
+                </table>
             </div>
+        </section>
 
-        </div>
-
-        <div class="delete-client-section">
-            <button id="btnEliminaCliente" class="btn btn-danger">
-                Elimina Cliente
-            </button>
-        </div>
-
+        <section class="acquisti-section">
+            <h3>Storico Acquisti
+                <button id="aggiungi-acquisto-btn" class="btn btn-add-small">Aggiungi Acquisto</button>
+            </h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Prodotto</th>
+                            <th>Data</th>
+                            <th>Prezzo</th>
+                            <th>Quantità</th>
+                            <th>Note</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-acquisti">
+                        <tr><td colspan="6" style="text-align: center;">Nessun acquisto registrato.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </main>
 
-    <script src="/js/scheda-cliente.js"></script>
-    <script src="/js/navbar-loader.js"></script>
-    <div id="modalAggiungiAcquisto" class="modal">
+    <div id="modificaClienteModal" class="modal">
         <div class="modal-content">
-            <h3>Aggiungi Nuovo Acquisto</h3>
-            <form id="formAggiungiAcquisto">
+            <span class="close-button" onclick="document.getElementById('modificaClienteModal').classList.remove('open')">&times;</span>
+            <h2>Modifica Dettagli Cliente</h2>
+            <form id="formModificaCliente">
+                <input type="hidden" id="modifica-cliente-id">
                 <div class="form-group">
-                    <label for="prodotto-acquisto">Prodotto:</label>
-                    <input type="text" id="prodotto-acquisto" required class="input-field">
+                    <label for="modifica-nome">Nome:</label>
+                    <input type="text" id="modifica-nome" required>
                 </div>
                 <div class="form-group">
-                    <label for="data-acquisto">Data:</label>
-                    <input type="date" id="data-acquisto" required class="input-field">
+                    <label for="modifica-cognome">Cognome:</label>
+                    <input type="text" id="modifica-cognome" required>
                 </div>
                 <div class="form-group">
-                    <label for="prezzo-acquisto">Prezzo (€):</label>
-                    <input type="number" id="prezzo-acquisto" step="0.01" min="0" required class="input-field">
+                    <label for="modifica-email">Email:</label>
+                    <input type="email" id="modifica-email">
                 </div>
                 <div class="form-group">
-                    <label for="quantita-acquisto">Quantità:</label>
-                    <input type="number" id="quantita-acquisto" min="1" value="1" required class="input-field">
-                </div>
-                <div class="form-group">
-                    <label for="note-acquisto">Note (Opzionale):</label>
-                    <textarea id="note-acquisto" class="textarea-field"></textarea>
+                    <label for="modifica-telefono">Telefono:</label>
+                    <input type="tel" id="modifica-telefono">
                 </div>
                 <div class="modal-buttons">
-                    <button type="submit" class="modal-button ok">Aggiungi</button>
-                    <button type="button" class="modal-button cancel" id="annulla-acquisto-btn">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Salva Modifiche</button>
+                    <button type="button" id="annullaModificaClienteBtn" class="btn btn-secondary">Annulla</button>
                 </div>
             </form>
         </div>
@@ -131,73 +136,66 @@
 
     <div id="addTrattamentoModal" class="modal">
         <div class="modal-content">
+            <span class="close-button" onclick="document.getElementById('addTrattamentoModal').classList.remove('open')">&times;</span>
             <h2>Aggiungi Nuovo Trattamento</h2>
             <form id="formAddTrattamento">
                 <div class="form-group">
-                    <label for="tipoTrattamento" class="form-label">Tipo di Trattamento:</label>
-                    <select id="tipoTrattamento" name="tipoTrattamento" class="select-field" required>
-                        <option value="">Seleziona un tipo di trattamento o servizio</option>
-                        <option value="Colore">Colore</option>
-                        <option value="Colore e schiariture">Colore e schiariture</option>
-                        <option value="Permanente">Permanente</option>
-                        <option value="Meches">Meches</option>
-                        <option value="Taglio">Taglio</option>
-                        <option value="Taglio e barba">Taglio e barba</option>
-                        <option value="Piega">Piega</option>
-                        <option value="Barba">Barba</option>
-                        <option value="Trattamento">Trattamento</option>
-                        <option value="Altro">Altro</option>
-                    </select>
+                    <label for="tipoTrattamento">Tipo Trattamento:</label>
+                    <input type="text" id="tipoTrattamento" required>
                 </div>
                 <div class="form-group">
-                    <label for="dataTrattamento" class="form-label">Data del Trattamento:</label>
-                    <input type="date" id="dataTrattamento" name="dataTrattamento" class="input-field" required>
+                    <label for="dataTrattamento">Data Trattamento:</label>
+                    <input type="date" id="dataTrattamento" required>
                 </div>
                 <div class="form-group">
-                    <label for="descrizioneTrattamento" class="form-label">Descrizione:</label>
-                    <textarea id="descrizioneTrattamento" name="descrizioneTrattamento" class="textarea-field"></textarea>
+                    <label for="descrizioneTrattamento">Descrizione:</label>
+                    <textarea id="descrizioneTrattamento" rows="3"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="noteTrattamento" class="form-label">Note (Opzionale):</label>
-                    <textarea id="noteTrattamento" name="noteTrattamento" class="textarea-field"></textarea>
+                    <label for="noteTrattamento">Note:</label>
+                    <textarea id="noteTrattamento" rows="2"></textarea>
                 </div>
                 <div class="modal-buttons">
-                    <button type="submit" class="modal-button ok">Salva Trattamento</button>
-                    <button type="button" class="modal-button cancel" id="cancelTrattamentoBtn">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Aggiungi Trattamento</button>
+                    <button type="button" id="cancelTrattamentoBtn" class="btn btn-secondary">Annulla</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div id="modificaClienteModal" class="modal">
+    <div id="modalAggiungiAcquisto" class="modal">
         <div class="modal-content">
-            <h3>Modifica Dettagli Cliente</h3>
-            <form id="formModificaCliente">
-                <input type="hidden" id="modifica-cliente-id">
+            <span class="close-button" onclick="document.getElementById('modalAggiungiAcquisto').classList.remove('open')">&times;</span>
+            <h2>Aggiungi Nuovo Acquisto</h2>
+            <form id="formAggiungiAcquisto">
                 <div class="form-group">
-                    <label for="modifica-nome">Nome:</label>
-                    <input type="text" id="modifica-nome" required class="input-field">
+                    <label for="prodotto-acquisto">Prodotto:</label>
+                    <input type="text" id="prodotto-acquisto" required>
                 </div>
                 <div class="form-group">
-                    <label for="modifica-cognome">Cognome:</label>
-                    <input type="text" id="modifica-cognome" required class="input-field">
+                    <label for="data-acquisto">Data:</label>
+                    <input type="date" id="data-acquisto" required>
                 </div>
                 <div class="form-group">
-                    <label for="modifica-email">Email:</label>
-                    <input type="email" id="modifica-email" class="input-field">
+                    <label for="prezzo-acquisto">Prezzo (€):</label>
+                    <input type="number" id="prezzo-acquisto" step="0.01" min="0" required>
                 </div>
                 <div class="form-group">
-                    <label for="modifica-telefono">Telefono:</label>
-                    <input type="tel" id="modifica-telefono" class="input-field">
+                    <label for="quantita-acquisto">Quantità:</label>
+                    <input type="number" id="quantita-acquisto" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="note-acquisto">Note (Opzionale):</label>
+                    <textarea id="note-acquisto" rows="2"></textarea>
                 </div>
                 <div class="modal-buttons">
-                    <button type="submit" class="modal-button ok">Salva Modifiche</button>
-                    <button type="button" class="modal-button cancel" id="annullaModificaClienteBtn">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Aggiungi Acquisto</button>
+                    <button type="button" id="annulla-acquisto-btn" class="btn btn-secondary">Annulla</button>
                 </div>
             </form>
         </div>
     </div>
 
-</body>
-
+    <script src="js/scheda-cliente.js"></script>
+    <script src="js/modals.js"></script> <script src="js/custom-modal.js"></script> </body>
 </html>
