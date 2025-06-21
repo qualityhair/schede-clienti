@@ -1,12 +1,11 @@
 const express = require("express");
-const { Pool } = require("pg");
+const { Pool } = require("pg"); // Importa Pool, che è già usato correttamente
 const path = require("path");
 const bodyParser = require("body-parser");
-const session = require('express-session'); // NUOVO: Modulo per le sessioni
-const bcrypt = require('bcrypt');           // NUOVO: Modulo per hashing delle password
+const session = require('express-session'); // Modulo per le sessioni
+const bcrypt = require('bcrypt'); // Modulo per hashing delle password
 
 const app = express();
-// RIMOZIONE: La riga 'const port = process.env.PORT || 3000;' è stata rimossa da qui.
 
 
 // --- Configurazione del Database ---
@@ -16,7 +15,10 @@ let dbConfig;
 if (connectionString) {
     dbConfig = {
         connectionString: connectionString,
-        ssl: { rejectUnauthorized: false }
+        ssl: { rejectUnauthorized: false },
+        max: 20, // Numero massimo di client nel pool
+        idleTimeoutMillis: 30000, // Chiudi i client inattivi dopo 30 secondi (30000 ms)
+        connectionTimeoutMillis: 2000, // Tempo massimo per stabilire una connessione
     };
     console.log("Connessione DB: Usando DATABASE_URL da variabili d'ambiente.");
 } else {
@@ -26,13 +28,34 @@ if (connectionString) {
         password: "YourStrongPassword123!", // <-- ASSICURATI DI USARE LA TUA VERA PASSWORD QUI SE NON HAI SETTATO DATABASE_URL
         database: "postgres",
         port: 5432,
-        ssl: { rejectUnauthorized: false }
+        ssl: { rejectUnauthorized: false },
+        max: 20, // Numero massimo di client nel pool
+        idleTimeoutMillis: 30000, // Chiudi i client inattivi dopo 30 secondi (30000 ms)
+        connectionTimeoutMillis: 2000, // Tempo massimo per stabilire una connessione
     };
     console.log("Connessione DB: Usando configurazione hardcoded (NON PER PRODUZIONE!).");
 }
 
-const db = new Pool(dbConfig);
+const db = new Pool(dbConfig); // 'db' è già un'istanza di Pool
 
+// *** AGGIUNTO: Gestore di errori per il pool di connessioni ***
+db.on('error', (err, client) => {
+    console.error('Errore inatteso sul client idle del pool (verrà ricreato):', err.message, 'Stack:', err.stack);
+    // Questo errore indica che un client nel pool si è disconnesso inaspettatamente.
+    // Il pool gestirà automaticamente la rimozione di questo client e ne creerà uno nuovo quando serve.
+    // L'applicazione NON dovrebbe crashare per questo errore.
+});
+
+// *** AGGIUNTO: Ping periodico al database per mantenere le connessioni vive ***
+setInterval(() => {
+    db.query('SELECT 1') // Esegue una query leggera per mantenere viva la connessione
+        .then(() => console.log('DB ping successful'))
+        .catch(err => console.error('DB ping failed (connessione persa o server non risponde, verrà gestito dal pool):', err.message));
+}, 5 * 60 * 1000); // Esegui la query ogni 5 minuti (300.000 ms)
+
+
+// Il blocco db.connect() iniziale può rimanere come check di avvio,
+// ma l'errore non sarà più unhandled grazie a db.on('error').
 db.connect()
     .then(() => console.log("✅ Connesso al database PostgreSQL!"))
     .catch(err => console.error("Errore connessione DB all'avvio:", err));
