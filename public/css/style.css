@@ -849,3 +849,77 @@ body::before {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* --- NUOVE REGOLE PER I BOTTONI NELLE TABELLE (AGGIUNTE QUI) --- */
+.data-table td .btn,
+.data-table td .btn-danger {
+    width: auto !important;
+    min-width: unset !important;
+    padding: 0.3rem 0.6rem !important;
+    font-size: 0.75rem !important;
+    margin: 2px;
+    text-align: center;
+    text-transform: none !important; /* Per testo "Modifica" ed "Elimina" */
+    letter-spacing: normal !important;
+    font-family: 'Inter', sans-serif !important; /* Usa font standard per coerenza */
+    display: inline-block; /* Assicura che i bottoni stiano sulla stessa riga */
+    vertical-align: middle; /* Allinea verticalmente */
+}
+
+/* Regola specifica per i bottoni "Modifica" (stilo primario ridotto) */
+.data-table td .btn-primary { /* Assicurati che questi bottoni abbiano anche la classe btn-primary */
+    background: linear-gradient(135deg, #ffd700, #ffb300) !important; /* Forza il colore oro */
+    color: #000000 !important; /* Forza il testo nero */
+    border: 1px solid rgba(255, 215, 0, 0.3) !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Effetti hover per i bottoni nelle tabelle */
+.data-table td .btn:hover {
+    transform: translateY(-1px) scale(1.02) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Opzionale: Allineare i bottoni a destra nella cella "Azione" */
+.data-table td:last-child {
+    text-align: right;
+    white-space: nowrap; /* Evita che i bottoni vadano a capo */
+}
+
+/* Se decidi di usare le icone al posto del testo "Modifica" / "Elimina" */
+/* Dovrai aggiungere le classi 'btn-edit-icon' e 'btn-delete-icon' ai tuoi bottoni HTML */
+/* E, in quel caso, potresti commentare o rimuovere le regole per '.data-table td .btn' e '.data-table td .btn-danger' sopra */
+/* per dare precedenza agli stili delle icone se non vuoi lo sfondo colorato. */
+.data-table td .btn-edit-icon,
+.data-table td .btn-delete-icon {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important; /* Niente padding per le icone pure */
+    width: auto !important;
+    min-width: unset !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.2s ease, transform 0.2s ease;
+    font-size: 1.1rem !important; /* Dimensione dell'icona */
+    margin: 0 5px; /* Spazio tra le icone */
+}
+
+.data-table td .btn-edit-icon {
+    color: #ffd700 !important; /* Colore oro per l'icona modifica */
+}
+
+.data-table td .btn-edit-icon:hover {
+    color: #ffeb3b !important;
+    transform: scale(1.2) !important;
+}
+
+.data-table td .btn-delete-icon {
+    color: #dc3545 !important; /* Colore rosso per l'icona elimina */
+}
+
+.data-table td .btn-delete-icon:hover {
+    color: #bd2130 !important;
+    transform: scale(1.2) !important;
+}
