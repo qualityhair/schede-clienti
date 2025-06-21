@@ -212,7 +212,7 @@ body::before {
 
 /* --- Bottoni Generali (applicabili a dashboard, schede, modali) --- */
 .btn {
-    padding: 0.75rem 1.5rem;
+    padding: 0.6rem 1.2rem; /* Ridotto il padding */
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
@@ -221,6 +221,7 @@ body::before {
     width: 100%; /* Default a larghezza piena per i bottoni dei form */
     border: none; /* Rimuovi bordi default */
     font-family: 'Inter', sans-serif; /* Coerenza font */
+    font-size: 0.9rem; /* Ridotto la dimensione del font */
 }
 
 /* Bottoni principali (Gold/Black) */
@@ -241,8 +242,8 @@ body::before {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive; /* Specifico per questi bottoni iconici */
-    font-size: 1rem;
-    min-width: 160px; /* Larghezza minima per coerenza */
+    font-size: 0.9rem; /* Ridotto la dimensione del font */
+    min-width: 140px; /* Ridotto la larghezza minima */
     margin-top: 0.8rem; /* Margine superiore per coerenza con gli input */
 }
 
@@ -310,6 +311,8 @@ body::before {
     color: white;
     border: none;
     margin-top: 1rem;
+    padding: 0.6rem 1.2rem; /* Ridotto il padding */
+    font-size: 0.9rem; /* Ridotto la dimensione del font */
 }
 .btn-secondary:hover,
 .modal-button.cancel:hover {
@@ -322,11 +325,12 @@ body::before {
     background-color: #dc3545;
     color: white;
     border: none;
-    padding: 12px 25px;
+    padding: 0.7rem 1.4rem; /* Ridotto il padding */
     border-radius: 8px;
     font-weight: 600;
     transition: background-color 0.2s ease, transform 0.1s ease;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-size: 0.95rem; /* leggermente più grande degli altri */
 }
 
 .btn-danger:hover {
@@ -338,7 +342,7 @@ body::before {
 .btn-icon {
     background: none;
     border: none;
-    font-size: 1.8rem; /* Leggermente più grande per visibilità */
+    font-size: 1.5rem; /* Un po' più piccolo dell'1.8rem precedente */
     cursor: pointer;
     color: #ffd700; /* Accento oro */
     transition: color 0.2s ease, transform 0.2s ease;
@@ -437,6 +441,32 @@ body::before {
 .data-table tbody tr:last-child td {
     border-bottom: none;
 }
+
+/* RIMOSSA RIGHE TABELLA STORICO ACQUISTI */
+.acquisti-table th,
+.acquisti-table td {
+    border: none !important; /* Rimuove tutti i bordi */
+    padding: 8px 15px; /* Adatta il padding per un look più pulito senza bordi */
+}
+
+.acquisti-table thead th {
+    background-color: transparent; /* Rimuove lo sfondo dalle intestazioni */
+    color: #ffd700; /* Mantiene il testo oro per l'intestazione */
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1) !important; /* Mantiene solo un bordo inferiore sottile */
+}
+
+.acquisti-table tbody tr {
+    background-color: transparent; /* Rimuove lo sfondo delle righe */
+}
+
+.acquisti-table tbody tr:nth-child(even) {
+    background-color: rgba(255, 215, 0, 0.05); /* Un leggero sfondo alternato per leggibilità */
+}
+
+.acquisti-table tbody tr:hover {
+    background-color: rgba(255, 215, 0, 0.15); /* Sfondo leggero all'hover */
+}
+
 
 /* Stili specifici per la lista clienti nella Dashboard */
 .client-list-item {
@@ -672,9 +702,9 @@ body::before {
 .client-navigation-controls .btn-nav {
     /* Questo stile è specifico per i bottoni Indietro/Avanti. */
     /* Vengono applicati gli stili di .btn-primary per l'aspetto oro/nero. */
-    min-width: 120px; /* Rendi i bottoni un po' meno larghi rispetto agli altri */
-    padding: 0.8rem 1.5rem;
-    font-size: 0.95rem;
+    min-width: 100px; /* Ridotto ulteriormente */
+    padding: 0.7rem 1.2rem; /* Ridotto il padding */
+    font-size: 0.85rem; /* Ridotto la dimensione del font */
     margin-top: 0; /* Rimuovi il margin-top per allinearli */
 }
 
