@@ -7,7 +7,8 @@
     <title>Scheda Cliente</title>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css?v=<%= new Date().getTime() %>" />
-    </head>
+</head>
+
 <body>
     <div id="navbar"></div>
     <main class="container">
@@ -26,7 +27,7 @@
                     <p><strong>Telefono:</strong> <span id="telefono"></span></p>
                 </div>
                 <div class="panel-actions">
-                    <button class="btn btn-primary" onclick="vaiModificaCliente()">✏️ Modifica Dettagli</button>
+                    <button class="btn btn-primary" id="modificaDettagliBtn">✏️ Modifica Dettagli</button>
                 </div>
             </div>
 
@@ -54,7 +55,7 @@
                             </tr>
                         </thead>
                         <tbody id="lista-trattamenti">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -84,7 +85,7 @@
                 </div>
             </div>
 
-            </div>
+        </div>
 
         <div class="delete-client-section">
             <button id="btnEliminaCliente" class="btn btn-danger">
@@ -96,18 +97,6 @@
 
     <script src="/js/scheda-cliente.js"></script>
     <script src="/js/navbar-loader.js"></script>
-    <script>
-        function getIdCliente() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get("id");
-        }
-
-        function vaiModificaCliente() {
-            const id = getIdCliente();
-            window.location.href = `/modifica-cliente.html?id=${id}`;
-        }
-    </script>
-
     <div id="modalAggiungiAcquisto" class="modal">
         <div class="modal-content">
             <h3>Aggiungi Nuovo Acquisto</h3>
@@ -175,6 +164,35 @@
                 <div class="modal-buttons">
                     <button type="submit" class="modal-button ok">Salva Trattamento</button>
                     <button type="button" class="modal-button cancel" id="cancelTrattamentoBtn">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modificaClienteModal" class="modal">
+        <div class="modal-content">
+            <h3>Modifica Dettagli Cliente</h3>
+            <form id="formModificaCliente">
+                <input type="hidden" id="modifica-cliente-id">
+                <div class="form-group">
+                    <label for="modifica-nome">Nome:</label>
+                    <input type="text" id="modifica-nome" required class="input-field">
+                </div>
+                <div class="form-group">
+                    <label for="modifica-cognome">Cognome:</label>
+                    <input type="text" id="modifica-cognome" required class="input-field">
+                </div>
+                <div class="form-group">
+                    <label for="modifica-email">Email:</label>
+                    <input type="email" id="modifica-email" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label for="modifica-telefono">Telefono:</label>
+                    <input type="tel" id="modifica-telefono" class="input-field">
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="modal-button ok">Salva Modifiche</button>
+                    <button type="button" class="modal-button cancel" id="annullaModificaClienteBtn">Annulla</button>
                 </div>
             </form>
         </div>
