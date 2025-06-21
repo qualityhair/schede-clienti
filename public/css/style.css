@@ -212,7 +212,7 @@ body::before {
 
 /* --- Bottoni Generali (applicabili a dashboard, schede, modali) --- */
 .btn {
-    padding: 0.5rem 1rem; /* Ridotto il padding ulteriormente */
+    padding: 0.5rem 1rem !important; /* Ridotto il padding ulteriormente con !important */
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
@@ -221,7 +221,7 @@ body::before {
     width: 100%; /* Default a larghezza piena per i bottoni dei form */
     border: none; /* Rimuovi bordi default */
     font-family: 'Inter', sans-serif; /* Coerenza font */
-    font-size: 0.85rem; /* Ridotto la dimensione del font ulteriormente */
+    font-size: 0.85rem !important; /* Ridotto la dimensione del font ulteriormente con !important */
 }
 
 /* Bottoni principali (Gold/Black) */
@@ -241,16 +241,16 @@ body::before {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive; /* Specifico per questi bottoni iconici */
-    font-size: 0.85rem; /* Ridotto la dimensione del font */
-    min-width: 120px; /* Ridotto la larghezza minima */
+    font-size: 0.85rem !important; /* Ridotto la dimensione del font con !important */
+    min-width: 120px !important; /* Ridotto la larghezza minima con !important */
     margin-top: 0.8rem; /* Margine superiore per coerenza con gli input */
 }
 
 /* Specificità maggiore per i bottoni all'interno dei pannelli della dashboard */
 .dashboard-panel button {
-    padding: 0.5rem 1rem; /* Padding ridotto */
-    font-size: 0.85rem; /* Font size ridotto */
-    min-width: 120px; /* Larghezza minima ridotta */
+    padding: 0.5rem 1rem !important; /* Padding ridotto con !important */
+    font-size: 0.85rem !important; /* Font size ridotto con !important */
+    min-width: 120px !important; /* Larghezza minima ridotta con !important */
     margin-top: 0.8rem;
     background: linear-gradient(135deg, #ffd700, #ffb300);
     color: #000000;
@@ -328,8 +328,8 @@ body::before {
     color: white;
     border: none;
     margin-top: 1rem;
-    padding: 0.5rem 1rem; /* Ridotto il padding ulteriormente */
-    font-size: 0.85rem; /* Ridotto la dimensione del font ulteriormente */
+    padding: 0.5rem 1rem !important; /* Ridotto il padding ulteriormente con !important */
+    font-size: 0.85rem !important; /* Ridotto la dimensione del font ulteriormente con !important */
 }
 .btn-secondary:hover,
 .modal-button.cancel:hover {
@@ -342,12 +342,12 @@ body::before {
     background-color: #dc3545;
     color: white;
     border: none;
-    padding: 0.6rem 1.1rem; /* Ridotto il padding */
+    padding: 0.6rem 1.1rem !important; /* Ridotto il padding con !important */
     border-radius: 8px;
     font-weight: 600;
     transition: background-color 0.2s ease, transform 0.1s ease;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    font-size: 0.9rem; /* leggermente più grande degli altri, ma ridotto */
+    font-size: 0.9rem !important; /* leggermente più grande degli altri, ma ridotto con !important */
 }
 
 .btn-danger:hover {
@@ -359,11 +359,11 @@ body::before {
 .btn-icon {
     background: none;
     border: none;
-    font-size: 1.3rem; /* Un po' più piccolo */
+    font-size: 1.3rem !important; /* Un po' più piccolo con !important */
     cursor: pointer;
     color: #ffd700; /* Accento oro */
     transition: color 0.2s ease, transform 0.2s ease;
-    padding: 0;
+    padding: 0 !important;
 }
 
 .btn-icon:hover {
@@ -512,9 +512,9 @@ body::before {
 
 .client-list-item .client-actions button {
     margin-left: 0.5rem;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-    min-width: unset;
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.8rem !important;
+    min-width: unset !important;
 }
 
 /* --- Modali --- */
@@ -567,10 +567,10 @@ body::before {
 /* I bottoni delle modali useranno gli stili .btn-primary, .btn-secondary, .btn-danger */
 /* Aggiunta specificità per i bottoni OK/Cancel nelle modali */
 .modal-button.ok, .modal-button.cancel {
-    padding: 0.5rem 1rem; /* Ridotto il padding */
-    font-size: 0.85rem; /* Ridotto la dimensione del font */
-    min-width: 100px; /* Larghezza minima per coerenza */
-    margin-top: 0; /* Rimuovi margin-top per allineamento nei modal-buttons */
+    padding: 0.5rem 1rem !important; /* Ridotto il padding con !important */
+    font-size: 0.85rem !important; /* Ridotto la dimensione del font con !important */
+    min-width: 100px !important; /* Larghezza minima per coerenza con !important */
+    margin-top: 0 !important; /* Rimuovi margin-top per allineamento nei modal-buttons con !important */
 }
 
 
@@ -727,10 +727,10 @@ body::before {
 .client-navigation-controls .btn-nav {
     /* Questo stile è specifico per i bottoni Indietro/Avanti. */
     /* Vengono applicati gli stili di .btn-primary per l'aspetto oro/nero. */
-    min-width: 90px; /* Ridotto ulteriormente */
-    padding: 0.6rem 1rem; /* Ridotto il padding ulteriormente */
-    font-size: 0.8rem; /* Ridotto la dimensione del font ulteriormente */
-    margin-top: 0; /* Rimuovi il margin-top per allinearli */
+    min-width: 90px !important; /* Ridotto ulteriormente con !important */
+    padding: 0.6rem 1rem !important; /* Ridotto il padding ulteriormente con !important */
+    font-size: 0.8rem !important; /* Ridotto la dimensione del font ulteriormente con !important */
+    margin-top: 0 !important; /* Rimuovi il margin-top per allinearli con !important */
 }
 
 .client-navigation-controls .pagination-info {
@@ -779,9 +779,9 @@ body::before {
     #btnMusic,
     #btnListaClienti,
     .client-navigation-controls .btn-nav {
-        min-width: unset; /* Rimuovi min-width per i bottoni su mobile */
-        padding: 0.6rem 1rem; /* Assicurati che il padding sia ridotto anche qui */
-        font-size: 0.85rem; /* Assicurati che il font sia ridotto anche qui */
+        min-width: unset !important; /* Rimuovi min-width per i bottoni su mobile con !important */
+        padding: 0.6rem 1rem !important; /* Assicurati che il padding sia ridotto anche qui con !important */
+        font-size: 0.85rem !important; /* Assicurati che il font sia ridotto anche qui con !important */
     }
     .container {
         padding: 1.5rem;
@@ -796,7 +796,7 @@ body::before {
         padding: 0 10px;
     }
     .client-navigation-controls .btn-nav {
-        width: 100%; /* I bottoni di navigazione occupano tutta la larghezza su mobile */
+        width: 100% !important; /* I bottoni di navigazione occupano tutta la larghezza su mobile con !important */
     }
     .client-navigation-controls .pagination-info {
         margin-top: 0.5rem;
