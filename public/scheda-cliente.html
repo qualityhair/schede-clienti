@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="/css/style.css?v=<%= new Date().getTime() %>" />
 
     <style>
-        /* Stili per il responsive design della navbar */
+        /* Stili per il responsive design della navbar (ideale: sposta in style.css) */
         @media (max-width: 768px) {
             .navbar {
                 flex-direction: column;
@@ -149,7 +149,7 @@
             }
         }
 
-        /* Stili aggiuntivi per le nuove sezioni */
+        /* Stili aggiuntivi per le nuove sezioni (vecchi, andrebbero spostati in style.css) */
         .detail-section {
             margin-top: 2rem;
             padding: 1rem;
@@ -169,14 +169,12 @@
             border: 1px solid #ccc;
             border-radius: 5px;
             min-height: 100px;
-            /* Altezza minima per le note */
             resize: vertical;
-            /* Permette all'utente di ridimensionare verticalmente */
             font-size: 1rem;
             margin-top: 0.5rem;
         }
 
-        /* Stili per la tabella dello storico acquisti, se diversi da trattamenti */
+        /* Stili per la tabella dello storico acquisti, se diversi da trattamenti (vecchi, sposta in style.css) */
         .acquisti-table {
             width: 100%;
             border-collapse: collapse;
@@ -207,93 +205,89 @@
 
 <body>
     <div id="navbar"></div>
-   <main class="container">
-    <h1 class="page-title">Scheda Cliente: <span id="nome-completo"></span></h1>
+    <main class="container">
+        <h1 class="page-title">Scheda Cliente: <span id="nome-completo"></span></h1>
 
-    <div class="panel-grid">
-        <div class="panel client-details-panel">
-            <h2 class="panel-title">Dettagli Cliente</h2>
-            <div class="panel-content">
-                <p><strong>Email:</strong> <span id="email"></span></p>
-                <p><strong>Telefono:</strong> <span id="telefono"></span></p>
-            </div>
-            <div class="panel-actions">
-                <button class="btn btn-primary" onclick="vaiModificaCliente()">✏️ Modifica Dettagli</button>
-            </div>
+        <div class="client-navigation-controls">
+            <button id="btnPrecedente" class="btn btn-nav">⬅️ Indietro</button>
+            <p id="info-paginazione" class="pagination-info"></p>
+            <button id="btnSuccessivo" class="btn btn-nav">Avanti ➡️</button>
         </div>
-
-        <div class="panel notes-panel">
-            <h2 class="panel-title">Note e Preferenze</h2>
-            <div class="panel-content">
-                <textarea id="cliente-note" placeholder="Inserisci note, preferenze, allergie..."></textarea>
-                <button class="btn btn-primary" id="salva-note-btn">Salva Note</button>
-            </div>
-        </div>
-
-        <div class="panel treatments-panel full-width-panel">
-            <h2 class="panel-title">Storico Servizi e Trattamenti
-                <button class="btn btn-icon" id="aggiungiTrattamentoBtn" title="Aggiungi Nuovo Trattamento">➕</button>
-            </h2>
-            <div class="panel-content table-responsive">
-                <table class="trattamenti data-table">
-                    <thead>
-                        <tr>
-                            <th>Tipo</th>
-                            <th>Descrizione</th>
-                            <th>Data</th>
-                            <th>Note</th>
-                            <th>Azione</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lista-trattamenti">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="panel purchases-panel full-width-panel">
-            <h2 class="panel-title">Storico Acquisti
-                <button class="btn btn-icon" id="aggiungi-acquisto-btn" title="Aggiungi Nuovo Acquisto">➕</button>
-            </h2>
-            <div class="panel-content table-responsive">
-                <table class="acquisti-table data-table">
-                    <thead>
-                        <tr>
-                            <th>Prodotto</th>
-                            <th>Data</th>
-                            <th>Prezzo</th>
-                            <th>Quantità</th>
-                            <th>Note</th>
-                            <th>Azione</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lista-acquisti">
-                        <tr>
-                            <td colspan="6" style="text-align: center;">Nessun acquisto registrato per questo cliente.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="panel navigation-panel full-width-panel">
-            <center>
-                <p id="info-paginazione"></p>
-                <div id="navigazione-clienti" class="navigation-buttons">
-                    <button id="btnPrecedente">⬅️ Indietro</button>
-                    <button id="btnSuccessivo">Avanti ➡️</button>
+        <div class="panel-grid">
+            <div class="panel client-details-panel">
+                <h2 class="panel-title">Dettagli Cliente</h2>
+                <div class="panel-content">
+                    <p><strong>Email:</strong> <span id="email"></span></p>
+                    <p><strong>Telefono:</strong> <span id="telefono"></span></p>
                 </div>
-            </center>
+                <div class="panel-actions">
+                    <button class="btn btn-primary" onclick="vaiModificaCliente()">✏️ Modifica Dettagli</button>
+                </div>
+            </div>
+
+            <div class="panel notes-panel">
+                <h2 class="panel-title">Note e Preferenze</h2>
+                <div class="panel-content">
+                    <textarea id="cliente-note" placeholder="Inserisci note, preferenze, allergie..."></textarea>
+                    <button class="btn btn-primary" id="salva-note-btn">Salva Note</button>
+                </div>
+            </div>
+
+            <div class="panel treatments-panel full-width-panel">
+                <h2 class="panel-title">Storico Servizi e Trattamenti
+                    <button class="btn btn-icon" id="aggiungiTrattamentoBtn" title="Aggiungi Nuovo Trattamento">➕</button>
+                </h2>
+                <div class="panel-content table-responsive">
+                    <table class="trattamenti data-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Descrizione</th>
+                                <th>Data</th>
+                                <th>Note</th>
+                                <th>Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-trattamenti">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel purchases-panel full-width-panel">
+                <h2 class="panel-title">Storico Acquisti
+                    <button class="btn btn-icon" id="aggiungi-acquisto-btn" title="Aggiungi Nuovo Acquisto">➕</button>
+                </h2>
+                <div class="panel-content table-responsive">
+                    <table class="acquisti-table data-table">
+                        <thead>
+                            <tr>
+                                <th>Prodotto</th>
+                                <th>Data</th>
+                                <th>Prezzo</th>
+                                <th>Quantità</th>
+                                <th>Note</th>
+                                <th>Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-acquisti">
+                            <tr>
+                                <td colspan="6" style="text-align: center;">Nessun acquisto registrato per questo cliente.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            </div>
+
+        <div class="delete-client-section">
+            <button id="btnEliminaCliente" class="btn btn-danger">
+                Elimina Cliente
+            </button>
         </div>
-    </div>
 
-    <div class="delete-client-section">
-        <button id="btnEliminaCliente" class="btn btn-danger">
-            Elimina Cliente
-        </button>
-    </div>
-
-</main>
+    </main>
 
     <script src="/js/scheda-cliente.js"></script>
     <script src="/js/navbar-loader.js"></script>
@@ -341,7 +335,7 @@
         </div>
     </div>
 
-<div id="addTrattamentoModal" class="modal">
+    <div id="addTrattamentoModal" class="modal">
         <div class="modal-content">
             <h2>Aggiungi Nuovo Trattamento</h2>
             <form id="formAddTrattamento">
