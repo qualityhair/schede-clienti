@@ -1065,7 +1065,7 @@ h1 {
 
 /* Colore di sfondo generale della pagina (grigio chiaro) */
 body {
-    background-color: #f5f5f5; /* Grigio molto chiaro */
+    background-color: #000000; /* Grigio molto chiaro */
 }
 
 .container {
