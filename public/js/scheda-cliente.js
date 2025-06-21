@@ -38,10 +38,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const noteTrattamentoInput = document.getElementById('noteTrattamento');
     // ********************
 
+    // --- NUOVI Riferimenti per Modale Modifica Cliente ---
+    const modificaDettagliBtn = document.getElementById("modificaDettagliBtn"); // Il bottone nella scheda cliente
+    const modificaClienteModal = document.getElementById('modificaClienteModal');
+    const formModificaCliente = document.getElementById('formModificaCliente');
+    const modificaClienteIdInput = document.getElementById('modifica-cliente-id');
+    const modificaNomeInput = document.getElementById('modifica-nome');
+    const modificaCognomeInput = document.getElementById('modifica-cognome');
+    const modificaEmailInput = document.getElementById('modifica-email');
+    const modificaTelefonoInput = document.getElementById('modifica-telefono');
+    const annullaModificaClienteBtn = document.getElementById('annullaModificaClienteBtn');
+    // ********************
+
 
     let currentClientId = null;
     let searchResultsIds = []; // Per la paginazione dei risultati di ricerca
     let currentIndex = 0; // Indice corrente nei risultati di ricerca
+    let currentClienteData = null; // Variabile per memorizzare i dati del cliente corrente
 
     // Funzione per mostrare un messaggio temporaneo (modificata per callback)
     function showMessage(message, type = 'info', onCloseCallback = null) {
@@ -139,9 +152,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 throw new Error(data.error || "Errore nel caricamento dei dati del cliente.");
             }
 
-            // Popola i campi del cliente
+            // Popola i campi del cliente e salva i dati nella variabile globale
             const client = data.client;
             if (client) {
+                currentClienteData = client; // Salva i dati completi del cliente
                 nomeCompletoSpan.textContent = `${client.nome} ${client.cognome}`;
                 emailSpan.textContent = client.email || "N/A";
                 telefonoSpan.textContent = client.telefono || "N/A";
@@ -566,6 +580,46 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // --- NUOVA FUNZIONE: Gestione del salvataggio delle modifiche al cliente (tramite modale) ---
+    async function handleModificaCliente(event) {
+        event.preventDefault();
+
+        const clienteId = modificaClienteIdInput.value;
+        const updatedCliente = {
+            nome: modificaNomeInput.value.trim(),
+            cognome: modificaCognomeInput.value.trim(),
+            email: modificaEmailInput.value.trim(),
+            telefono: modificaTelefonoInput.value.trim()
+            // Se ci sono altri campi da modificare nel form, aggiungili qui
+        };
+
+        try {
+            const response = await fetch(`/api/clienti/${clienteId}`, {
+                method: 'PUT', // O 'PATCH' a seconda della tua API backend
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedCliente)
+            });
+
+            const data = await handleApiResponse(response);
+
+            if (data === null) return; // handleApiResponse ha già gestito errori di sessione
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Errore durante il salvataggio delle modifiche al cliente.');
+            }
+
+            showMessage('Dettagli cliente aggiornati con successo!', 'success');
+            closeModal(modificaClienteModal, formModificaCliente);
+            loadClientData(currentClientId); // Ricarica i dati per aggiornare la scheda
+        } catch (error) {
+            console.error('Errore durante l\'aggiornamento del cliente:', error);
+            showMessage('Errore durante il salvataggio delle modifiche: ' + error.message, 'error');
+        }
+    }
+
+
     // --- Gestione della paginazione (esistente) ---
     function updatePaginationButtons() {
         if (searchResultsIds.length > 1) {
@@ -662,6 +716,40 @@ document.addEventListener("DOMContentLoaded", () => {
     if (formAddTrattamento) {
         formAddTrattamento.addEventListener("submit", handleAddTrattamento);
     }
+
+    // --- NUOVI Event Listeners per la modale "Modifica Cliente" ---
+    if (modificaDettagliBtn) {
+        modificaDettagliBtn.addEventListener('click', () => {
+            if (currentClienteData) {
+                modificaClienteIdInput.value = currentClienteData.id;
+                modificaNomeInput.value = currentClienteData.nome || '';
+                modificaCognomeInput.value = currentClienteData.cognome || '';
+                modificaEmailInput.value = currentClienteData.email || '';
+                modificaTelefonoInput.value = currentClienteData.telefono || '';
+                openModal(modificaClienteModal);
+            } else {
+                console.error("Errore: Dati cliente non disponibili per la modifica.");
+                showMessage("Impossibile caricare i dati del cliente per la modifica.", 'error');
+            }
+        });
+    }
+    if (annullaModificaClienteBtn) {
+        annullaModificaClienteBtn.addEventListener('click', () => {
+            closeModal(modificaClienteModal, formModificaCliente);
+        });
+    }
+    // Chiusura della modale cliccando fuori
+    if (modificaClienteModal) {
+        modificaClienteModal.addEventListener('click', (event) => {
+            if (event.target === modificaClienteModal) {
+                closeModal(modificaClienteModal, formModificaCliente);
+            }
+        });
+    }
+    if (formModificaCliente) {
+        formModificaCliente.addEventListener('submit', handleModificaCliente);
+    }
+    // ********************
 
 
     // Event listeners per la paginazione
