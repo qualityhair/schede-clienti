@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const clienteNoteTextarea = document.getElementById("cliente-note");
     const salvaNoteBtn = document.getElementById("salva-note-btn");
 
+    // *** AGGIUNTO/RIPRISTINATO ***
     // Riferimenti ai NUOVI elementi DOM per Storico Acquisti
     const aggiungiAcquistoBtn = document.getElementById("aggiungi-acquisto-btn");
     const listaAcquistiBody = document.getElementById("lista-acquisti");
@@ -24,7 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const prezzoAcquistoInput = document.getElementById("prezzo-acquisto");
     const quantitaAcquistoInput = document.getElementById("quantita-acquisto");
     const noteAcquistoTextarea = document.getElementById("note-acquisto");
+    // ********************
 
+    // *** AGGIUNTO/RIPRISTINATO ***
     // --- NUOVI Riferimenti per Modale Aggiungi Trattamento (CORRETTI CON GLI ID DEL TUO HTML) ---
     const aggiungiTrattamentoBtn = document.getElementById("aggiungiTrattamentoBtn");
     const modalAggiungiTrattamento = document.getElementById("addTrattamentoModal");
@@ -189,9 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         trattamenti.forEach(trattamento => {
             const row = listaTrattamentiBody.insertRow();
-            // *** MODIFICATO QUI: Ora usa 'tipo_trattamento' ***
             row.insertCell().textContent = trattamento.tipo_trattamento;
-            // ********************
             row.insertCell().textContent = trattamento.descrizione;
             row.insertCell().textContent = new Date(trattamento.data_trattamento).toLocaleDateString('it-IT');
             row.insertCell().textContent = trattamento.note || "N/A";
@@ -378,6 +379,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    // *** AGGIUNTO/RIPRISTINATO ***
     async function handleAddAcquisto(event) {
         event.preventDefault();
         const prodotto = prodottoAcquistoInput.value.trim();
@@ -431,6 +433,7 @@ document.addEventListener("DOMContentLoaded", () => {
             showMessage(`Errore nell'aggiunta dell'acquisto: ${error.message}`, 'error');
         }
     }
+    // ********************
 
     // --- NUOVA FUNZIONE: Gestione dell'aggiunta Trattamento tramite Modale ---
     async function handleAddTrattamento(event) {
@@ -441,14 +444,12 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // *** MODIFICATO QUI: Usiamo le variabili con gli ID corretti e il nome coerente ***
-        const tipo_trattamento = tipoTrattamentoInput.value.trim(); // <-- MODIFICATO
+        const tipo_trattamento = tipoTrattamentoInput.value.trim();
         const data_trattamento = dataTrattamentoInput.value;
         const descrizione = descrizioneTrattamentoInput.value.trim();
         const note = noteTrattamentoInput.value.trim();
-        // ********************
 
-        if (!tipo_trattamento || !data_trattamento) { // <-- MODIFICATO
+        if (!tipo_trattamento || !data_trattamento) {
             showMessage("Per favore, compila tutti i campi obbligatori (Tipo, Data).", 'error');
             return;
         }
@@ -459,7 +460,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     cliente_id: currentClientId,
-                    tipo_trattamento, // <-- MODIFICATO: ora è tipo_trattamento
+                    tipo_trattamento,
                     data_trattamento,
                     descrizione,
                     note
@@ -679,11 +680,15 @@ document.addEventListener("DOMContentLoaded", () => {
     btnEliminaCliente.addEventListener("click", confirmDeleteClient);
     salvaNoteBtn.addEventListener("click", handleSalvaNote);
 
+    // *** AGGIUNTO/RIPRISTINATO ***
     // Event listener per la modale "Aggiungi Acquisto"
     if (aggiungiAcquistoBtn) {
         aggiungiAcquistoBtn.addEventListener("click", () => {
             openModal(modalAggiungiAcquisto);
-            dataAcquistoInput.valueAsDate = new Date();
+            // Imposta la data corrente come predefinita
+            if (dataAcquistoInput) {
+                dataAcquistoInput.valueAsDate = new Date();
+            }
         });
     }
     if (annullaAcquistoBtn) {
@@ -694,18 +699,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (formAggiungiAcquisto) {
         formAggiungiAcquisto.addEventListener("submit", handleAddAcquisto);
     }
+    // ********************
 
+    // *** AGGIUNTO/RIPRISTINATO ***
     // --- NUOVI Event Listeners per la modale "Aggiungi Trattamento" ---
     if (aggiungiTrattamentoBtn) {
         aggiungiTrattamentoBtn.addEventListener("click", () => {
             openModal(modalAggiungiTrattamento);
-            // *** MODIFICATO QUI: Ora dataTrattamentoInput è correttamente definito ***
             if (dataTrattamentoInput) {
                 dataTrattamentoInput.valueAsDate = new Date();
             } else {
                 console.warn("Elemento 'dataTrattamentoInput' non trovato per impostare la data predefinita.");
             }
-            // ********************
         });
     }
     if (cancelTrattamentoBtn) {
@@ -716,6 +721,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (formAddTrattamento) {
         formAddTrattamento.addEventListener("submit", handleAddTrattamento);
     }
+    // ********************
 
     // --- NUOVI Event Listeners per la modale "Modifica Cliente" ---
     if (modificaDettagliBtn) {
