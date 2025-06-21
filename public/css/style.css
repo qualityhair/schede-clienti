@@ -22,6 +22,193 @@ body {
 body::before {
   content: '';
   position: fixed;
+
+
+
+  /* --- STILI PER LAYOUT A PANNELLI (SCHEDA CLIENTE) --- */
+
+.page-title {
+    font-family: 'Great Vibes', cursive;
+    font-size: 3.5rem; /* O la dimensione che preferisci per il titolo principale */
+    color: #ffcc00;
+    text-align: center;
+    margin-bottom: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.panel-grid {
+    display: grid;
+    gap: 2rem; /* Spazio tra i pannelli */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Responsive grid */
+    margin-bottom: 2rem;
+}
+
+.panel {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 200px; /* Altezza minima per tutti i pannelli */
+}
+
+.panel-title {
+    font-size: 1.8rem;
+    color: #333;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-content {
+    flex-grow: 1; /* Permette al contenuto di espandersi */
+    padding-top: 0.5rem;
+}
+
+.panel-actions {
+    margin-top: 1.5rem;
+    text-align: right;
+}
+
+.full-width-panel {
+    grid-column: 1 / -1; /* Occupa tutta la larghezza in griglia */
+}
+
+/* Stili specifici per i pannelli */
+.client-details-panel p {
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+    color: #555;
+}
+
+.notes-panel textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    min-height: 120px;
+    resize: vertical;
+    font-size: 1rem;
+    margin-bottom: 1rem; /* Spazio tra textarea e bottone */
+}
+
+.notes-panel .btn {
+    width: auto; /* Il bottone non occupa tutta la larghezza */
+    align-self: flex-end; /* Allinea a destra all'interno del pannello flex */
+}
+
+/* Tabelle all'interno dei pannelli */
+.data-table {
+    width: 100%;
+    border-collapse: separate; /* Per i bordi arrotondati o stili più moderni */
+    border-spacing: 0;
+    margin-top: 1rem;
+}
+
+.data-table th,
+.data-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0; /* Solo bordo inferiore */
+}
+
+.data-table thead th {
+    background-color: #f8f8f8;
+    color: #333;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.data-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.data-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Rimuovi bordi completi per un look più pulito */
+.trattamenti th, .trattamenti td,
+.acquisti-table th, .acquisti-table td {
+    border: none; /* Rimuovi i bordi precedenti */
+    border-bottom: 1px solid #f0f0f0; /* Applica solo il bordo inferiore */
+}
+
+/* Ultima riga delle tabelle */
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Bottone per aggiungere (icona) */
+.btn-icon {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #ffcc00; /* Colore dell'icona */
+    transition: color 0.2s ease;
+    padding: 0; /* Rimuovi padding extra */
+}
+
+.btn-icon:hover {
+    color: #e6b800; /* Colore al passaggio del mouse */
+    transform: scale(1.1);
+}
+
+/* Bottone Elimina Cliente al di fuori dei pannelli */
+.delete-client-section {
+    margin-top: 3rem;
+    text-align: center;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-danger:hover {
+    background-color: #bd2130;
+    transform: translateY(-2px);
+}
+
+/* Responsive Table Container (se il contenuto della tabella dovesse eccedere) */
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Responsive per i pannelli su schermi piccoli */
+@media (max-width: 768px) {
+    .panel-grid {
+        grid-template-columns: 1fr; /* Tutti i pannelli su singola colonna */
+        gap: 1.5rem;
+    }
+
+    .panel {
+        padding: 1rem;
+    }
+
+    .page-title {
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .panel-title {
+        font-size: 1.5rem;
+    }
+}
   top: 0;
   left: 0;
   width: 100%;
