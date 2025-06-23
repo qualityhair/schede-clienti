@@ -91,7 +91,7 @@ body::before {
 
 /* --- Container Principale per tutte le pagine (Scheda Cliente, Aggiungi Trattamento, Modifica Cliente) --- */
 .container {
-    background-color: rgba(0, 0, 0, 0.8); /* Sfondo scuro semitrasparente */
+    background-color: rgba(0, 0, 0, 0.7); /* Modificato: Sfondo leggermente più chiaro */
     backdrop-filter: blur(10px); /* Effetto vetro smerigliato */
     -webkit-backdrop-filter: blur(10px);
     border-radius: 12px;
@@ -135,7 +135,7 @@ body::before {
 
 /* Stile per i singoli pannelli (Dashboard) */
 .dashboard-panel {
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.7); /* Modificato: Sfondo leggermente più chiaro */
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: 30px;
@@ -385,7 +385,7 @@ body::before {
     margin-bottom: 1rem;
     border: 1px solid rgba(255, 215, 0, 0.3); /* Bordo sottile oro */
     border-radius: 8px;
-    background-color: rgba(26, 26, 26, 0.7); /* Sfondo scuro semitrasparente */
+    background-color: rgba(26, 26, 26, 0.8); /* Modificato: Sfondo input leggermente più chiaro */
     color: #fefefe; /* Testo chiaro */
     font-size: 1rem;
     outline: none;
@@ -444,11 +444,11 @@ body::before {
 }
 
 .data-table tbody tr {
-    background-color: rgba(0, 0, 0, 0.6); /* Sfondo più scuro per le righe normali */
+    background-color: rgba(0, 0, 0, 0.65); /* Modificato: Sfondo più chiaro per le righe normali */
 }
 
 .data-table tbody tr:nth-child(even) {
-    background-color: rgba(0, 0, 0, 0.7); /* Sfondo alternato leggermente più scuro */
+    background-color: rgba(0, 0, 0, 0.75); /* Modificato: Sfondo alternato leggermente più chiaro */
 }
 
 .data-table tbody tr:hover {
@@ -477,22 +477,22 @@ body::before {
 }
 
 .acquisti-table tbody tr:nth-child(even) {
-    background-color: rgba(255, 215, 0, 0.05); /* Un leggero sfondo alternato per leggibilità */
+    background-color: rgba(255, 215, 0, 0.08); /* Modificato: Un leggero sfondo alternato per leggibilità, leggermente più scuro */
 }
 
 .acquisti-table tbody tr:hover {
-    background-color: rgba(255, 215, 0, 0.15); /* Sfondo leggero all'hover */
+    background-color: rgba(255, 215, 0, 0.18); /* Modificato: Sfondo leggero all'hover, leggermente più scuro */
 }
 
 
 /* Stili specifici per la lista clienti nella Dashboard */
 .client-list-item {
+    background-color: rgba(255, 255, 255, 0.15); /* Modificato: Sfondo leggermente più chiaro */
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0.7rem 1rem;
     margin-bottom: 0.5rem;
-    background-color: rgba(255, 255, 255, 0.1); /* Sfondo leggermente trasparente */
     border-radius: 5px;
     color: #fefefe;
     font-size: 0.95rem;
@@ -502,7 +502,7 @@ body::before {
 }
 
 .client-list-item:hover {
-    background-color: rgba(255, 215, 0, 0.25); /* Sfondo più acceso all'hover */
+    background-color: rgba(255, 215, 0, 0.28); /* Modificato: Sfondo più acceso all'hover */
 }
 
 .client-list-item .client-name {
@@ -525,7 +525,7 @@ body::before {
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* Sfondo più scuro per la modale */
+    background-color: rgba(0, 0, 0, 0.75); /* Modificato: Sfondo modale leggermente più chiaro */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -540,7 +540,7 @@ body::before {
 }
 
 .modal-content {
-    background-color: #1a1a1a; /* Sfondo scuro per il contenuto della modale */
+    background-color: #2a2a2a; /* Modificato: Sfondo modale più chiaro */
     padding: 2rem;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3); /* Ombra dorata */
@@ -583,7 +583,7 @@ body::before {
 }
 
 .panel {
-    background-color: rgba(0, 0, 0, 0.8); /* Sfondo scuro semitrasparente per i pannelli */
+    background-color: rgba(0, 0, 0, 0.7); /* Modificato: Sfondo pannelli Scheda Cliente leggermente più chiaro */
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(255, 215, 0, 0.1);
     padding: 1.5rem;
@@ -629,7 +629,7 @@ body::before {
 }
 
 .notes-panel textarea {
-    background-color: rgba(26, 26, 26, 0.7); /* Sfondo scuro per textarea */
+    background-color: rgba(26, 26, 26, 0.8); /* Modificato: Sfondo textarea leggermente più chiaro */
     color: #fefefe;
     border: 1px solid rgba(255, 215, 0, 0.3);
 }
