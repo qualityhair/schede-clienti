@@ -593,13 +593,20 @@ body::before {
     border: 1px solid rgba(255, 215, 0, 0.2); /* Bordo sottile oro */
 }
 
-.panel-title {
-    font-size: 1.8rem;
-    color: #ffd700; /* Titolo pannello in oro */
-    margin-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.1); /* Bordo inferiore leggero oro */
+/* MODIFICA APPLICATA QUI: Stili per i titoli dei pannelli sulla Scheda Cliente */
+.panel-grid .panel-title {
+    font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
+    font-size: 1.8rem; /* Dimensione leggermente più piccola rispetto ai titoli della dashboard */
+    font-weight: 900;
+    background: linear-gradient(135deg, #ffd700, #ffeb3b); /* Gradiente oro */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); /* Ombra luminosa */
+    animation: glow 2s ease-in-out infinite alternate; /* Animazione glow */
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1); /* Mantiene il bordo inferiore */
     padding-bottom: 0.8rem;
-    display: flex;
+    display: flex; /* Assicurati che rimanga flex per l'icona '+' */
     justify-content: space-between;
     align-items: center;
 }
