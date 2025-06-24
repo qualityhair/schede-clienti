@@ -144,8 +144,10 @@ function renderWeek() {
         // Genera i placeholder per gli orari per allungare la colonna
         const startAgendaHour = 9; // Ora di inizio della visualizzazione dell'agenda (corrisponde al CSS)
         const endAgendaHour = 20;  // Ora di fine della visualizzazione dell'agenda (corrisponde al CSS)
-        const intervalMinutes = 60; // Intervallo orario dei placeholder (es. ogni ora)
+        // const intervalMinutes = 60; // Intervallo orario dei placeholder (es. ogni ora) - Non strettamente necessario per l'altezza, ma utile se si volessero indicatori orari specifici
 
+        // I placeholder servono a dare un'altezza di base alla colonna, in modo che gli appuntamenti possano posizionarsi correttamente.
+        // Assumiamo che ogni ora abbia una sua "slot" di base, anche se vuota.
         for (let h = startAgendaHour; h <= endAgendaHour; h++) {
             const placeholder = document.createElement('div');
             placeholder.classList.add('time-slot-placeholder');
@@ -173,7 +175,6 @@ function renderWeek() {
             const endTimeHour = Math.floor(appEndMinutesOverall / 60);
             const endTimeMinute = appEndMinutesOverall % 60;
             const endTime = `${String(endTimeHour).padStart(2, '0')}:${String(endTimeMinute).padStart(2, '0')}`;
-
 
             appointmentElement.innerHTML = `
                 <span class="appointment-time">${app.time} - ${endTime}</span>
@@ -208,19 +209,21 @@ function openAppointmentModal(appointmentIdToEdit = null) {
     appointmentNewClientSurname.disabled = true;
 
     // Listener per la ricerca cliente (mostra campi nuovo cliente se non trova)
-    appointmentClientSearch.addEventListener('input', () => {
-        const value = appointmentClientSearch.value;
-        const clientExists = clients.some(client => client.name === value);
-        if (clientExists) {
-            appointmentNewClientName.disabled = true;
-            appointmentNewClientSurname.disabled = true;
-            appointmentNewClientName.value = '';
-            appointmentNewClientSurname.value = '';
-        } else {
-            appointmentNewClientName.disabled = false;
-            appointmentNewClientSurname.disabled = false;
-        }
-    });
+    // Questo listener deve essere aggiunto solo una volta, non ogni volta che apri il modal.
+    // Lo spostiamo all'inizializzazione del DOM se vogliamo evitare di aggiungerne più copie.
+    // Per ora, lo lasciamo qui, ma è un punto di potenziale ottimizzazione.
+    // Idealmente, un listener per 'input' su appointmentClientSearch dovrebbe essere aggiunto fuori da questa funzione.
+
+    // Comportamento immediato basato sul valore corrente del campo ricerca
+    const value = appointmentClientSearch.value;
+    const clientExists = clients.some(client => client.name === value);
+    if (!clientExists && value.trim() !== '') { // Se c'è del testo ma il cliente non esiste
+        appointmentNewClientName.disabled = false;
+        appointmentNewClientSurname.disabled = false;
+    } else {
+        appointmentNewClientName.disabled = true;
+        appointmentNewClientSurname.disabled = true;
+    }
 
 
     if (appointmentIdToEdit) {
@@ -233,30 +236,42 @@ function openAppointmentModal(appointmentIdToEdit = null) {
             appointmentTimeStart.value = app.time;
             appointmentDuration.value = app.duration;
             appointmentClientSearch.value = app.client;
-            // Se si modifica un appuntamento di un cliente non esistente, i campi nuovo cliente non devono apparire
-            // ma l'utente dovrebbe poter modificare il nome del cliente direttamente in appointmentClientSearch.
-            // Qui assumiamo che sia sempre un cliente esistente per semplicità, se no serve logica più complessa.
             
-            appointmentService.value = app.service;
-            appointmentOperator.value = app.operator;
-            appointmentNotes.value = app.notes;
-            appointmentStatus.value = app.status;
-
             // In modifica, disabilita sempre i campi nuovo cliente perché stiamo modificando un appuntamento esistente
             appointmentNewClientName.disabled = true;
             appointmentNewClientSurname.disabled = true;
             appointmentNewClientName.value = '';
             appointmentNewClientSurname.value = '';
+            
+            appointmentService.value = app.service;
+            appointmentOperator.value = app.operator;
+            appointmentNotes.value = app.notes;
+            appointmentStatus.value = app.status;
         }
     } else {
         // Modalità aggiungi
         modalTitle.textContent = 'Aggiungi Appuntamento';
         // Pre-compila con data e ora correnti
         const now = new Date();
+        // Arrotonda ai prossimi 15 minuti
+        const minutes = now.getMinutes();
+        const roundedMinutes = Math.ceil(minutes / 15) * 15;
+        now.setMinutes(roundedMinutes);
+        if (roundedMinutes >= 60) {
+            now.setHours(now.getHours() + 1);
+            now.setMinutes(0);
+        }
+
         appointmentDateModal.value = formatDate(now);
         appointmentTimeStart.value = formatTime(now);
         appointmentDuration.value = 60; // Default 1 ora
         appointmentStatus.value = 'confirmed';
+
+        // Per i nuovi appuntamenti, assicurati che i campi "nuovo cliente" siano disabilitati di default,
+        // e si abilitino solo se si digita un nome non presente nella datalist.
+        appointmentClientSearch.value = ''; // Pulisci la ricerca cliente all'apertura per un nuovo appuntamento
+        appointmentNewClientName.disabled = true;
+        appointmentNewClientSurname.disabled = true;
     }
 
     appointmentModal.classList.add('open');
@@ -273,32 +288,43 @@ appointmentForm.addEventListener('submit', (e) => {
     const date = appointmentDateModal.value;
     const time = appointmentTimeStart.value;
     const duration = parseInt(appointmentDuration.value);
-    const client = appointmentClientSearch.value;
-    const newClientName = appointmentNewClientName.value; // Potrebbe essere vuoto
-    const newClientSurname = appointmentNewClientSurname.value; // Potrebbe essere vuoto
+    const clientSearchValue = appointmentClientSearch.value.trim(); // Valore dal campo di ricerca
+    const newClientName = appointmentNewClientName.value.trim(); // Potrebbe essere vuoto
+    const newClientSurname = appointmentNewClientSurname.value.trim(); // Potrebbe essere vuoto
     const service = appointmentService.value;
     const operator = appointmentOperator.value;
     const notes = appointmentNotes.value;
     const status = appointmentStatus.value;
 
-    // Logica per aggiungere un nuovo cliente se non trovato e i campi sono compilati
-    let finalClientName = client;
-    if (!clients.some(c => c.name === client) && newClientName && newClientSurname) {
-        const newClientId = `c${Date.now()}`;
-        finalClientName = `${newClientName} ${newClientSurname}`;
-        clients.push({ id: newClientId, name: finalClientName, email: '', phone: '' });
-        populateClientDatalist(); // Aggiorna la datalist
-    } else if (!client && newClientName && newClientSurname) { // Caso in cui non si usa la ricerca ma solo i campi nuovo cliente
-        const newClientId = `c${Date.now()}`;
-        finalClientName = `${newClientName} ${newClientSurname}`;
-        clients.push({ id: newClientId, name: finalClientName, email: '', phone: '' });
-        populateClientDatalist();
-    } else if (!client && (!newClientName || !newClientSurname)) {
-        alert('Per favore inserisci il nome del cliente o seleziona uno esistente.');
-        return; // Non procedere con il salvataggio
+    let finalClientName = clientSearchValue;
+
+    // Logica per aggiungere un nuovo cliente o usare uno esistente
+    const clientExistsInDatalist = clients.some(c => c.name === clientSearchValue);
+
+    if (clientExistsInDatalist) {
+        // Cliente esistente selezionato dalla datalist o digitato correttamente
+        finalClientName = clientSearchValue;
+    } else {
+        // Il testo nella ricerca non corrisponde a un cliente esistente
+        if (newClientName && newClientSurname) {
+            // Se i campi nuovo cliente sono compilati, crea un nuovo cliente
+            const newClientId = `c${Date.now()}`;
+            finalClientName = `${newClientName} ${newClientSurname}`;
+            clients.push({ id: newClientId, name: finalClientName, email: '', phone: '' });
+            populateClientDatalist(); // Aggiorna la datalist
+        } else if (clientSearchValue === '') {
+            // Se la ricerca è vuota e i campi nuovo cliente non sono compilati
+            alert('Per favore, seleziona un cliente esistente o inserisci i dati per un nuovo cliente.');
+            return; // Non procedere con il salvataggio
+        } else {
+            // Se c'è testo nella ricerca ma non corrisponde a un cliente esistente
+            // e i campi nuovo cliente NON sono compilati, usa il testo come nome del cliente
+            finalClientName = clientSearchValue; // Usa il valore digitato come nome del cliente senza aggiungerlo all'elenco
+            // Puoi aggiungere un alert qui se vuoi forzare l'aggiunta formale
+            // alert('Il nome cliente inserito non esiste nella lista. Se è un nuovo cliente, compila i campi "Nome Nuovo Cliente" e "Cognome Nuovo Cliente". Altrimenti, verrà salvato come cliente non registrato.');
+        }
     }
     
-    // Aggiorna il nome del cliente nell'appuntamento se è stato creato un nuovo cliente
     const newAppointment = {
         id, date, time, duration, client: finalClientName, service, operator, notes, status
     };
@@ -323,6 +349,27 @@ modalCancelBtn.addEventListener('click', closeAppointmentModal);
 appointmentModal.addEventListener('click', (e) => {
     if (e.target === appointmentModal) { // Chiudi solo se clicchi sull'overlay
         closeAppointmentModal();
+    }
+});
+
+// Listener globale per la ricerca cliente che abilita/disabilita i campi nuovo cliente
+appointmentClientSearch.addEventListener('input', () => {
+    const value = appointmentClientSearch.value.trim();
+    const clientExists = clients.some(client => client.name === value);
+
+    if (value === '') { // Se il campo di ricerca è vuoto
+        appointmentNewClientName.disabled = true;
+        appointmentNewClientSurname.disabled = true;
+        appointmentNewClientName.value = '';
+        appointmentNewClientSurname.value = '';
+    } else if (clientExists) { // Se il cliente esiste
+        appointmentNewClientName.disabled = true;
+        appointmentNewClientSurname.disabled = true;
+        appointmentNewClientName.value = '';
+        appointmentNewClientSurname.value = '';
+    } else { // Se il cliente non esiste
+        appointmentNewClientName.disabled = false;
+        appointmentNewClientSurname.disabled = false;
     }
 });
 
