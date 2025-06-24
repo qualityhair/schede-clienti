@@ -49,9 +49,9 @@
                 <div class="time-slot">18:00</div>
                 <div class="time-slot">19:00</div>
                 <div class="time-slot">20:00</div>
-                </div>
+            </div>
             <div id="calendar-days-grid" class="calendar-days-grid">
-                </div>
+            </div>
         </div>
     </main>
 
@@ -68,12 +68,12 @@
                 <input type="time" id="appointment-time-start" class="input-field" required>
                 
                 <label for="appointment-duration">Durata (minuti):</label>
-                <input type="number" id="appointment-duration" class="input-field" value="60" min="15" step="15" required>
+                <input type="number" id="appointment-duration" class="input-field" value="30" min="15" step="15" required>
 
                 <label for="appointment-client-search">Cliente:</label>
                 <input type="text" id="appointment-client-search" class="input-field" placeholder="Cerca Cliente (es. Mario Rossi)" list="client-suggestions">
                 <datalist id="client-suggestions">
-                    </datalist>
+                </datalist>
                 
                 <label for="appointment-new-client-name">Nuovo Cliente (se non trovato):</label>
                 <input type="text" id="appointment-new-client-name" class="input-field" placeholder="Nome Nuovo Cliente">
@@ -85,9 +85,9 @@
                 <label for="appointment-operator">Operatore:</label>
                 <select id="appointment-operator" class="select-field" required>
                     <option value="">Seleziona Operatore</option>
-                    <option value="operator1">Operatore Verde</option>
-                    <option value="operator2">Operatore Azzurro</option>
-                    </select>
+                    <option value="tino">Tino</option>
+                    <option value="sandro">Sandro</option>
+                </select>
 
                 <label for="appointment-notes">Note:</label>
                 <textarea id="appointment-notes" class="textarea-field" placeholder="Note aggiuntive (es. preferenze, allergie)"></textarea>
