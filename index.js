@@ -4,6 +4,7 @@ const path = require("path");
 const bodyParser = require("body-parser");
 const session = require('express-session'); // Modulo per le sessioni
 const bcrypt = require('bcrypt'); // Modulo per hashing delle password
+const pgSession = require('connect-pg-simple')(session); // *** RIGA FONDAMENTALE AGGIUNTA/CORRETTA: Questa era mancante! ***
 
 const app = express();
 
@@ -68,8 +69,12 @@ app.use(bodyParser.urlencoded({ extended: true })); // Per parsare i dati dei fo
 app.use(bodyParser.json()); // Per parsare i body delle richieste JSON
 
 
-// --- NUOVO: Configurazione di Express-Session ---
+// --- CONFIGURAZIONE DI EXPRESS-SESSION (CORRETTA CON STORE PERSISTENTE) ---
 app.use(session({
+    store: new pgSession({ // *** MODIFICA FONDAMENTALE: Ora usiamo pgSession come store! ***
+        pool: db, // Passa il tuo pool di connessioni PG
+        tableName: 'sessioni' // Nome della tabella che abbiamo creato nel DB per le sessioni
+    }),
     secret: process.env.SESSION_SECRET || 'una_chiave_segreta_molto_lunga_e_complessa_da_cambiare_in_produzione_se_non_variabile_ambiente', // **CAMBIA QUESTA!**
     resave: false, // Non salvare la sessione se non è stata modificata
     saveUninitialized: false, // Non salvare sessioni nuove non inizializzate
@@ -81,37 +86,30 @@ app.use(session({
 }));
 
 
-// --- NUOVO: Middleware per controllare l'autenticazione ---
+// --- Middleware per controllare l'autenticazione ---
 function isAuthenticated(req, res, next) {
     if (req.session.isLoggedIn) {
-        // Se l'utente è loggato, prosegui alla prossima funzione middleware/rotta
         next();
     } else {
-        // Se non è loggato, reindirizza alla pagina di login (index.html)
-        // Puoi anche passare un messaggio di errore se vuoi
         res.redirect('/?error=auth_required');
     }
 }
 
 
-// --- NUOVO: Rotta per la gestione del Login (POST dal form HTML) ---
+// --- Rotta per la gestione del Login (POST dal form HTML) ---
 app.post('/login', async (req, res) => {
-    const { username, password } = req.body; // Prende username e password dal body della richiesta
+    const { username, password } = req.body;
 
     try {
-        // Cerca l'utente nel database
         const result = await db.query('SELECT id, username, password FROM users WHERE username = $1', [username]);
-        const user = result.rows[0]; // Prende il primo utente trovato
+        const user = result.rows[0];
 
         if (user && await bcrypt.compare(password, user.password)) {
-            // Credenziali valide: imposta la sessione per l'utente
             req.session.userId = user.id;
             req.session.isLoggedIn = true;
             console.log(`Utente ${username} loggato con successo.`);
-            // Reindirizza l'utente alla dashboard protetta
             res.redirect('/dashboard.html');
         } else {
-            // Credenziali non valide: reindirizza alla pagina di login con un messaggio di errore
             console.warn(`Tentativo di login fallito per username: ${username}`);
             res.redirect('/?error=invalid_credentials');
         }
@@ -122,35 +120,30 @@ app.post('/login', async (req, res) => {
 });
 
 
-// --- NUOVO: Rotta per il Logout ---
+// --- Rotta per il Logout ---
 app.get('/logout', (req, res) => {
-    req.session.destroy(err => { // Distrugge la sessione sul server
+    req.session.destroy(err => {
         if (err) {
             console.error('Errore durante il logout:', err);
             return res.status(500).send('Errore durante il logout.');
         }
-        res.clearCookie('connect.sid'); // Cancella il cookie di sessione dal browser
+        res.clearCookie('connect.sid');
         console.log('Utente disconnesso.');
-        res.redirect('/'); // Reindirizza l'utente alla pagina di login (index.html)
+        res.redirect('/');
     });
 });
 
 
 // --- ROTTE PUBBLICHE (accessibili senza login) ---
-// La rotta root / ora serve la pagina di login
 app.get("/", (req, res) => {
-    // Se l'utente è già loggato, reindirizzalo direttamente alla dashboard
     if (req.session.isLoggedIn) {
         return res.redirect('/dashboard.html');
     }
-    // Altrimenti, servi la pagina di login (public/index.html)
     res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 
 // --- ROTTE PROTETTE (richiedono autenticazione) ---
-// Applica il middleware `isAuthenticated` a tutte le rotte che devono essere protette.
-
 app.get("/dashboard.html", isAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, "public", "dashboard.html"));
 });
@@ -159,7 +152,6 @@ app.get("/lista-clienti.html", isAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, "public", "lista-clienti.html"));
 });
 
-// Tutte le tue API per clienti e trattamenti devono essere protette
 app.get("/api/clienti", isAuthenticated, async (req, res) => {
     try {
         const result = await db.query("SELECT * FROM clienti");
@@ -170,20 +162,16 @@ app.get("/api/clienti", isAuthenticated, async (req, res) => {
     }
 });
 
-// --- MODIFICA QUI: POST /api/clienti per restituire l'ID del nuovo cliente ---
 app.post("/api/clienti", isAuthenticated, async (req, res) => {
     const { nome, cognome, email, telefono } = req.body;
     try {
-        const sql = "INSERT INTO clienti (nome, cognome, email, telefono) VALUES ($1, $2, $3, $4) RETURNING id"; // Aggiunto RETURNING id
+        const sql = "INSERT INTO clienti (nome, cognome, email, telefono) VALUES ($1, $2, $3, $4) RETURNING id";
         const result = await db.query(sql, [nome, cognome, email, telefono]);
-        const nuovoClienteId = result.rows[0].id; // Cattura l'ID restituito
-
-        // Risposta con lo status 201 (Created) e l'ID del nuovo cliente
-        res.status(201).json({ message: "Cliente aggiunto con successo", id: nuovoClienteId }); // Invia l'ID
+        const nuovoClienteId = result.rows[0].id;
+        res.status(201).json({ message: "Cliente aggiunto con successo", id: nuovoClienteId });
     } catch (err) {
         console.error("ERRORE DATABASE IN POST /api/clienti:", err);
-        // Migliore gestione degli errori specifici del database
-        if (err.code === '23505') { // Codice errore PostgreSQL per violazione di unique constraint (es. email duplicata)
+        if (err.code === '23505') {
             return res.status(409).json({ error: 'Un cliente con questa email (o altro campo unico) esiste già.' });
         }
         res.status(500).json({ error: "Errore interno del server durante l'inserimento del cliente", details: err.message, stack: err.stack });
@@ -219,11 +207,9 @@ app.get("/api/clienti/cerca", isAuthenticated, async (req, res) => {
     }
 });
 
-// --- MODIFICATO: GET /api/clienti/:id - includi preferenze_note e storico_acquisti ---
 app.get("/api/clienti/:id", isAuthenticated, async (req, res) => {
     const id = req.params.id;
     try {
-        // Query per i dati del cliente, inclusi i nuovi campi
         const clientResult = await db.query("SELECT id, nome, cognome, email, telefono, preferenze_note, storico_acquisti FROM clienti WHERE id = $1", [id]);
         const client = clientResult.rows[0];
 
@@ -231,11 +217,9 @@ app.get("/api/clienti/:id", isAuthenticated, async (req, res) => {
             return res.status(404).json({ message: "Cliente non trovato" });
         }
 
-        // Query per i trattamenti del cliente
         const treatmentsResult = await db.query("SELECT * FROM trattamenti WHERE cliente_id = $1 ORDER BY data_trattamento DESC", [id]);
         const trattamenti = treatmentsResult.rows;
 
-        // Restituisci entrambi i set di dati in un singolo oggetto
         res.json({ client, trattamenti });
     } catch (err) {
         console.error("ERRORE DATABASE IN GET /api/clienti/:id:", err);
@@ -243,7 +227,6 @@ app.get("/api/clienti/:id", isAuthenticated, async (req, res) => {
     }
 });
 
-// --- NUOVO ENDPOINT: PUT /api/clienti/:id/note per aggiornare preferenze_note ---
 app.put('/api/clienti/:id/note', isAuthenticated, async (req, res) => {
     const { id } = req.params;
     const { preferenze_note } = req.body;
@@ -264,19 +247,15 @@ app.put('/api/clienti/:id/note', isAuthenticated, async (req, res) => {
     }
 });
 
-// --- NUOVO ENDPOINT: PUT /api/clienti/:id/acquisti per aggiornare storico_acquisti ---
 app.put('/api/clienti/:id/acquisti', isAuthenticated, async (req, res) => {
     const { id } = req.params;
-    const { storico_acquisti } = req.body; // Ci aspettiamo una stringa JSON qui
+    const { storico_acquisti } = req.body;
 
     if (storico_acquisti === undefined) {
         return res.status(400).json({ error: 'Campo storico_acquisti mancante nel corpo della richiesta.' });
     }
 
     try {
-        // Valida se la stringa è un JSON valido se strettamente necessario,
-        // ma dato che proviene dal frontend, presumiamo sia valida.
-        // Se vuoi aggiungere validazione: JSON.parse(storico_acquisti);
         const result = await db.query('UPDATE clienti SET storico_acquisti = $1 WHERE id = $2 RETURNING id', [storico_acquisti, id]);
         if (result.rowCount === 0) {
             return res.status(404).json({ error: 'Cliente non trovato o nessun cambiamento apportato allo storico acquisti.' });
