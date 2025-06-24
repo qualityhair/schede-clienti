@@ -4,7 +4,7 @@ const path = require("path");
 const bodyParser = require("body-parser");
 const session = require('express-session'); // Modulo per le sessioni
 const bcrypt = require('bcrypt'); // Modulo per hashing delle password
-const pgSession = require('connect-pg-simple')(session); // *** RIGA FONDAMENTALE AGGIUNTA/CORRETTA: Questa era mancante! ***
+const pgSession = require('connect-pg-simple')(session); // RIGA FONDAMENTALE AGGIUNTA/CORRETTA: Questa era mancante nelle versioni precedenti!
 
 const app = express();
 
@@ -39,7 +39,7 @@ if (connectionString) {
 
 const db = new Pool(dbConfig); // 'db' è già un'istanza di Pool
 
-// *** AGGIUNTO: Gestore di errori per il pool di connessioni ***
+// Gestore di errori per il pool di connessioni
 db.on('error', (err, client) => {
     console.error('Errore inatteso sul client idle del pool (verrà ricreato):', err.message, 'Stack:', err.stack);
     // Questo errore indica che un client nel pool si è disconnesso inaspettatamente.
@@ -47,7 +47,7 @@ db.on('error', (err, client) => {
     // L'applicazione NON dovrebbe crashare per questo errore.
 });
 
-// *** AGGIUNTO: Ping periodico al database per mantenere le connessioni vive ***
+// Ping periodico al database per mantenere le connessioni vive
 setInterval(() => {
     db.query('SELECT 1') // Esegue una query leggera per mantenere viva la connessione
         .then(() => console.log('DB ping successful'))
@@ -71,9 +71,9 @@ app.use(bodyParser.json()); // Per parsare i body delle richieste JSON
 
 // --- CONFIGURAZIONE DI EXPRESS-SESSION (CORRETTA CON STORE PERSISTENTE) ---
 app.use(session({
-    store: new pgSession({ // *** MODIFICA FONDAMENTALE: Ora usiamo pgSession come store! ***
+    store: new pgSession({ // Ora usiamo pgSession come store!
         pool: db, // Passa il tuo pool di connessioni PG
-        tableName: 'sessioni' // Nome della tabella che abbiamo creato nel DB per le sessioni
+        // tableName: 'sessioni' // <-- QUESTA RIGA È STATA RIMOSSA! Ora connect-pg-simple userà il nome predefinito 'session'
     }),
     secret: process.env.SESSION_SECRET || 'una_chiave_segreta_molto_lunga_e_complessa_da_cambiare_in_produzione_se_non_variabile_ambiente', // **CAMBIA QUESTA!**
     resave: false, // Non salvare la sessione se non è stata modificata
