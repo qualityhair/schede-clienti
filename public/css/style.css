@@ -930,3 +930,246 @@ body::before {
     color: #bd2130 !important;
     transform: scale(1.2) !important;
 }
+
+
+/* --- Agenda Specific Styles (Aggiungi questi al tuo style.css) --- */
+
+.agenda-container {
+    max-width: 1200px; /* Larghezza maggiore per l'agenda */
+}
+
+.agenda-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 0 1rem;
+    flex-wrap: wrap; /* Permetti ai controlli di andare a capo su schermi piccoli */
+    gap: 1rem; /* Spazio tra gli elementi */
+}
+
+.agenda-controls h2 {
+    color: #ffd700;
+    font-size: 1.8rem;
+    margin: 0;
+    flex-grow: 1; /* Permetti al titolo di occupare lo spazio disponibile */
+    text-align: center;
+}
+
+.agenda-controls .btn-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem !important; /* Aumenta leggermente per i pulsanti di navigazione */
+    padding: 0.8rem 1.2rem !important;
+}
+
+.agenda-controls .add-appointment-btn {
+    font-size: 1rem !important;
+    padding: 0.8rem 1.2rem !important;
+    margin-left: auto; /* Sposta il pulsante "Aggiungi" a destra */
+}
+
+/* Griglia della vista settimanale */
+.calendar-weekly-view {
+    display: grid;
+    grid-template-columns: 80px repeat(7, 1fr); /* Colonna per orari + 7 giorni */
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 12px;
+    overflow: hidden; /* Per bordi arrotondati */
+    background-color: rgba(0, 0, 0, 0.6); /* Sfondo del calendario */
+    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.15);
+}
+
+.calendar-time-col {
+    background-color: rgba(0, 0, 0, 0.7); /* Sfondo colonna orari */
+    border-right: 1px solid rgba(255, 215, 0, 0.1);
+    padding-top: 50px; /* Spazio per l'header del giorno */
+    position: relative;
+}
+
+.time-header {
+    height: 50px; /* Stessa altezza dell'header del giorno */
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+.time-slot {
+    height: 60px; /* Altezza di un blocco orario (es. 1 ora) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #bbb;
+    font-size: 0.9em;
+    border-bottom: 1px dashed rgba(255, 215, 0, 0.05); /* Linea guida per gli orari */
+}
+.time-slot:last-child {
+    border-bottom: none;
+}
+
+.calendar-days-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-day-col {
+    border-right: 1px solid rgba(255, 215, 0, 0.1);
+    position: relative; /* Per posizionare gli appuntamenti */
+    min-height: 800px; /* Altezza minima per contenere gli orari */
+}
+.calendar-day-col:last-child {
+    border-right: none;
+}
+
+.day-header {
+    height: 50px; /* Stessa altezza dell'header del tempo */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 215, 0, 0.1); /* Sfondo header giorno */
+    color: #ffd700;
+    font-weight: bold;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+    position: sticky;
+    top: 0;
+    z-index: 10; /* Per farlo rimanere in cima allo scroll */
+}
+
+.day-header .day-name {
+    font-size: 0.9em;
+}
+
+.day-header .day-date {
+    font-size: 1.3em;
+}
+
+.day-slots {
+    position: relative;
+    height: 100%;
+}
+
+.time-slot-placeholder {
+    height: 60px; /* Corrisponde all'altezza del time-slot */
+    border-bottom: 1px dashed rgba(255, 215, 0, 0.05);
+}
+.time-slot-placeholder:last-child {
+    border-bottom: none;
+}
+
+/* Stile per il blocco appuntamento */
+.appointment {
+    position: absolute;
+    width: calc(100% - 10px); /* Larghezza leggermente ridotta per un piccolo margine */
+    margin-left: 5px; /* Margine laterale */
+    background-color: rgba(255, 255, 255, 0.1); /* Sfondo base appuntamento */
+    border-radius: 4px;
+    padding: 5px 8px;
+    color: #fefefe;
+    font-size: 0.85em;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    border-left: 4px solid transparent; /* Per il colore dell'operatore */
+    z-index: 5; /* Assicura che gli appuntamenti siano sopra le linee guida */
+}
+
+.appointment:hover {
+    background-color: rgba(255, 215, 0, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.appointment .appointment-time {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 3px;
+    color: #ffd700;
+}
+
+.appointment .appointment-client {
+    display: block;
+    font-size: 0.9em;
+    margin-bottom: 2px;
+}
+
+.appointment .appointment-service {
+    display: block;
+    font-size: 0.8em;
+    color: #ccc;
+}
+
+/* Colori operatori */
+.appointment.operator-green {
+    border-left-color: #28a745; /* Verde */
+    background-color: rgba(40, 167, 69, 0.15); /* Sfondo leggermente verde */
+}
+.appointment.operator-blue {
+    border-left-color: #007bff; /* Azzurro */
+    background-color: rgba(0, 123, 255, 0.15); /* Sfondo leggermente azzurro */
+}
+/* Aggiungi altri colori operatori se ne hai */
+
+/* --- Stili modale appuntamento (aggiornati per i nuovi campi) --- */
+#appointment-modal .modal-content {
+    max-width: 600px; /* Aumenta larghezza per più campi */
+    text-align: left; /* Allinea il testo a sinistra per i campi form */
+}
+#appointment-modal label {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.4rem;
+    color: #ffd700;
+    font-weight: 600;
+}
+#appointment-modal input[type="date"],
+#appointment-modal input[type="time"],
+#appointment-modal input[type="number"] {
+    appearance: none; /* Rimuovi stili predefiniti del browser per data/tempo/numero */
+}
+/* Pulsanti della modale - già coperti dai tuoi stili .modal-button .ok/.cancel */
+
+/* Media Queries per responsività */
+@media (max-width: 992px) {
+    .calendar-weekly-view {
+        grid-template-columns: 80px repeat(4, 1fr); /* 4 giorni su schermi medi */
+        overflow-x: auto; /* Abilita lo scroll orizzontale */
+    }
+    .calendar-days-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    .agenda-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .agenda-controls h2 {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+    .agenda-controls .btn-nav,
+    .agenda-controls .add-appointment-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar-weekly-view {
+        grid-template-columns: 80px repeat(2, 1fr); /* 2 giorni su mobile */
+    }
+    .calendar-days-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .calendar-weekly-view {
+        grid-template-columns: 80px 1fr; /* 1 giorno su schermi molto piccoli */
+    }
+    .calendar-days-grid {
+        grid-template-columns: 1fr;
+    }
+}
