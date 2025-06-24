@@ -518,20 +518,21 @@ body::before {
 }
 
 /* --- Modali --- */
-.modal {
+.modal { /* Corrisponde a #appointment-modal nel tuo HTML */
     position: fixed;
     z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.75); /* Modificato: Sfondo modale leggermente più chiaro */
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    background-color: rgba(0, 0, 0, 0.75); /* Sfondo semi-trasparente scuro */
+    display: flex; /* Utilizza flexbox per centrare il contenuto */
+    justify-content: center; /* Centra orizzontalmente */
+    align-items: center; /* Centra verticalmente */
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
+    overflow: auto; /* Permetti lo scroll sull'overlay se il modal-content è grande */
 }
 
 .modal.open {
@@ -539,18 +540,22 @@ body::before {
     visibility: visible;
 }
 
-/* MODIFICA: Dimensioni della modale */
+/* MODIFICHE CHIAVE PER LA DIMENSIONE E LO SCROLL DELLA MODALE */
 .modal-content {
     background-color: #2b2b2b; /* Assicurati che sia uno sfondo scuro coerente */
     padding: 2.5rem; /* Aumenta leggermente il padding interno per più spazio */
     border-radius: 12px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); /* Ombra scura per profondità */
-    width: 90%;
-    max-width: 450px; /* RIDOTTO: Era 400px, aumentato leggermente per i campi */
+    width: 90%; /* Occupa il 90% della larghezza del genitore (modal) */
+    max-width: 500px; /* Imposta una larghezza massima per evitare che sia troppo grande */
+    max-height: 90vh; /* Imposta un'altezza massima, il 90% dell'altezza del viewport */
+    overflow-y: auto; /* Aggiunge una scrollbar verticale se il contenuto supera max-height */
     text-align: left; /* Allinea il testo a sinistra per i campi form */
     color: #fefefe; /* Testo chiaro */
     animation: slideIn 0.3s ease-out;
     border: 1px solid rgba(255, 215, 0, 0.2); /* Bordo sottile oro */
+    position: relative; /* Per posizionamenti interni, se necessari */
+    margin: auto; /* Centra il blocco se il display non è flex */
 }
 
 @keyframes slideIn {
@@ -560,7 +565,7 @@ body::before {
 
 .modal-buttons {
     display: flex;
-    justify-content: space-between; /* Spazio tra i pulsanti Salva e Annulla */
+    justify-content: flex-end; /* Allinea i bottoni a destra */
     gap: 1rem;
     margin-top: 2rem; /* Aumentato il margine superiore per più spazio */
 }
@@ -571,7 +576,7 @@ body::before {
     padding: 0.7rem 1.2rem !important; /* Aumentato il padding per clickabilità */
     font-size: 0.9rem !important; /* Aumentato leggermente la dimensione del font */
     min-width: unset !important; /* Rimuovi min-width */
-    flex-grow: 1; /* Fai in modo che i pulsanti occupino lo spazio disponibile */
+    /* flex-grow: 1; */ /* Rimosso flex-grow per non forzare la larghezza piena se non desiderato */
     margin-top: 0 !important; /* Rimuovi margin-top per allineamento nei modal-buttons con !important */
 }
 
@@ -840,7 +845,21 @@ body::before {
         text-align: center;
         margin: 0 auto;
     }
+
+    /* Modal responsiveness for smaller screens */
+    .modal-content {
+        width: 95%; /* Make it take up more width on small screens */
+        padding: 1.5rem; /* Reduce padding for smaller screens */
+        max-width: none; /* Remove max-width on smaller screens */
+    }
+    .modal-buttons {
+        flex-direction: column; /* Stack buttons vertically on small screens */
+    }
+    .modal-button.ok, .modal-button.cancel {
+        width: 100%; /* Make buttons full width */
+    }
 }
+
 
 /* Responsive per la griglia su tablet o schermi intermedi */
 @media (min-width: 769px) and (max-width: 1024px) {
@@ -995,6 +1014,9 @@ body::before {
     border-right: 1px solid rgba(255, 215, 0, 0.1);
     position: relative;
     z-index: 20; /* Assicurati che sia sopra gli appuntamenti se si sovrappongono */
+    /* Assicurati che la colonna degli orari abbia un'altezza che si estende per tutti gli slot */
+    display: flex;
+    flex-direction: column;
 }
 
 .time-header {
@@ -1010,6 +1032,7 @@ body::before {
 
 .time-slot {
     height: 60px; /* Altezza di un blocco orario (es. 1 ora) */
+    min-height: 60px; /* Assicurati un'altezza minima per lo slot orario */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1022,167 +1045,184 @@ body::before {
 }
 
 
-/* Griglia dei giorni - QUI ERA IL PROBLEMA PRINCIPALE */
-/* Non deve essere display:grid in questo contesto se la weekly-view è già una griglia.
-   Ogni calendar-day-col è già una cella della griglia principale. */
+/* Griglia dei giorni - CORREZIONE DEL PROBLEMA DI LAYOUT */
+/* Qui era il punto in cui la griglia si rompeva.
+   `display: contents` è la soluzione corretta per permettere ai figli
+   di .calendar-days-grid di diventare direttamente figli di .calendar-weekly-view
+   senza creare un nuovo contesto di griglia annidato che rompe il layout. */
 .calendar-days-grid {
-    display: contents; /* Questo fa sì che i suoi figli (.calendar-day-col) diventino direttamente figli della .calendar-weekly-view */
+    display: contents;
+    /* I figli di calendar-days-grid saranno le colonne dei giorni, gestite da calendar-weekly-view */
 }
 
 .calendar-day-col {
     border-right: 1px solid rgba(255, 215, 0, 0.1);
-    position: relative; /* Per posizionare gli appuntamenti */
-    /* min-height: 800px; - Questa non è più strettamente necessaria se gli appuntamenti lo definiscono */
+    background-color: rgba(0, 0, 0, 0.5); /* Sfondo per ogni giorno */
+    display: flex;
+    flex-direction: column;
+    position: relative; /* Importante per posizionare gli appuntamenti */
 }
+
 .calendar-day-col:last-child {
     border-right: none;
 }
 
 .day-header {
-    height: 60px; /* Stessa altezza dell'header del tempo */
+    height: 60px; /* Altezza uguale all'header degli orari */
     display: flex;
-    flex-direction: column; /* Gli elementi vanno in colonna */
-    justify-content: center; /* Centra verticalmente */
-    align-items: center; /* Centra orizzontalmente */
-    background-color: rgba(255, 215, 0, 0.1); /* Sfondo header giorno */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 215, 0, 0.15); /* Sfondo per l'header del giorno */
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
     color: #ffd700;
     font-weight: bold;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-    position: sticky;
+    position: sticky; /* Rende l'header del giorno fisso quando scorri */
     top: 0;
     z-index: 10;
-    white-space: nowrap; /* Impedisce al testo di andare a capo*/
-    overflow: hidden; /* Nasconde l'overflow se il testo è troppo lungo*/
 }
 
-/* Stili per il nome del giorno e la data all'interno dell'header */
 .day-header .day-name {
     font-size: 0.9em;
-    margin-bottom: 2px; /* Un piccolo spazio tra nome e data */
+    text-transform: uppercase;
+    color: rgba(255, 215, 0, 0.8);
 }
 
 .day-header .day-date {
-    font-size: 1.3em;
+    font-size: 1.4em;
+    margin-top: 2px;
 }
 
-/* Stili per gli appuntamenti */
+.day-header.current-day {
+    background-color: rgba(255, 215, 0, 0.3); /* Colore più acceso per il giorno corrente */
+    color: #fff;
+}
+
+
+.day-slots {
+    position: relative; /* Contenitore per gli appuntamenti posizionati assolutamente */
+    flex-grow: 1; /* Fa espandere gli slot per riempire l'altezza */
+    min-height: calc(11 * 60px); /* 11 ore * 60px/ora = 660px altezza minima, da 9:00 a 20:00, più una per l'ultima ora */
+    padding-top: 0; /* Assicurati che non ci sia padding sopra, gli appuntamenti usano `top` */
+    padding-bottom: 0;
+}
+
+.time-slot-placeholder {
+    height: 60px; /* Altezza di ogni placeholder, 1px per ogni minuto */
+    border-bottom: 1px dashed rgba(255, 215, 0, 0.05); /* Linee orizzontali sottili */
+}
+
+.time-slot-placeholder:last-child {
+    border-bottom: none;
+}
+
+/* Stili per i blocchi appuntamento */
 .appointment {
     position: absolute;
-    left: 2px; /* Un piccolo margine dal bordo sinistro della colonna */
-    right: 2px; /* Un piccolo margine dal bordo destro */
-    background-color: rgba(255, 255, 255, 0.1); /* Sfondo appuntamento di base */
-    border-left: 5px solid #ffd700; /* Bordo sinistro di base (oro) */
-    border-radius: 6px;
+    left: 2px; /* Piccolo margine dal bordo sinistro */
+    right: 2px; /* Piccolo margine dal bordo destro */
+    background-color: rgba(255, 215, 0, 0.6); /* Colore di default per gli appuntamenti */
+    border-radius: 4px;
     padding: 5px 8px;
     font-size: 0.85em;
+    color: #000; /* Testo nero sull'oro */
     overflow: hidden;
-    color: #fefefe;
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    z-index: 5; /* Assicurati che siano sopra le linee della griglia ma sotto gli header */
+    z-index: 5; /* Assicurati che siano sopra i placeholder */
 }
 
 .appointment:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
 
-.appointment-client {
+.appointment .appointment-time {
+    display: block;
     font-weight: bold;
-    color: #ffeb3b; /* Testo del cliente in giallo brillante */
+    margin-bottom: 2px;
 }
 
-.appointment-service {
+.appointment .appointment-client {
+    display: block;
     font-size: 0.9em;
-    color: #ccc;
+    white-space: nowrap; /* Evita che il nome del cliente vada a capo */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Aggiunge "..." se il testo è troppo lungo */
 }
 
-/* Colori operatori (Aggiornato per Tino e Sandro) */
-.appointment.operator-tino { /* Tino (Azzurro)*/
-    border-left-color: #007bff; /* Azzurro*/
-    background-color: rgba(0, 123, 255, 0.15); /* Sfondo leggermente azzurro*/
-}
-.appointment.operator-sandro { /* Sandro (Verde)*/
-    border-left-color: #28a745; /* Verde*/
-    background-color: rgba(40, 167, 69, 0.15); /* Sfondo leggermente verde*/
-}
-
-/* Stili per gli slot vuoti cliccabili */
-.time-slot-clickable {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* border: 1px dashed rgba(255, 255, 255, 0.1); /* Utile per debug, ma di solito nascosto */ */
-    cursor: pointer;
-    transition: background-color 0.1s ease;
+.appointment .appointment-service {
+    display: block;
+    font-size: 0.8em;
+    color: rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.time-slot-clickable:hover {
-    background-color: rgba(255, 215, 0, 0.05); /* Sfondo leggero all'hover */
+/* Stili per operatore specifico (es. operatore1, operatore2) */
+.appointment.operator-operator1 {
+    background-color: #ffd700; /* Oro pieno per Operatore 1 */
+    color: #000;
 }
 
-/* Media query per il layout del calendario su schermi più piccoli (tablet/mobile) */
-@media (max-width: 992px) {
+.appointment.operator-operator2 {
+    background-color: #b8860b; /* Oro scuro per Operatore 2 */
+    color: #fff;
+}
+
+/* Media Query per la vista Agenda su schermi più piccoli */
+@media (max-width: 1024px) {
     .calendar-weekly-view {
-        /* Permette lo scroll orizzontale se non c'è abbastanza spazio */
-        overflow-x: auto;
-        display: block; /* Non usare più grid per il contenitore principale */
-        min-height: auto; /* Rimuovi altezza minima fissa */
+        grid-template-columns: 60px repeat(7, 1fr); /* Riduci la larghezza della colonna orari */
     }
 
-    .calendar-time-col,
-    .calendar-days-grid {
-        display: flex; /* Metti in riga gli elementi */
-        flex-direction: column;
-        width: auto; /* Rimuovi larghezza fissa se c'era */
+    .time-slot, .day-header {
+        height: 50px; /* Riduci l'altezza degli slot per schermi più piccoli */
+        min-height: 50px;
     }
 
-    .calendar-time-col {
-        border-right: none;
-        border-bottom: 1px solid rgba(255, 215, 0, 0.1); /* Aggiungi un bordo sotto */
-    }
-
-    .time-header,
-    .time-slot {
-        height: 50px; /* Altezza più piccola per gli orari su mobile */
-    }
-
-    .calendar-days-grid {
-        /* I giorni si impilano verticalmente su schermi piccoli */
-        width: 100%;
-        display: block; /* Ogni giorno sarà un blocco */
-    }
-
-    .calendar-day-col {
-        width: 100%; /* Ogni colonna giorno occupa la larghezza intera */
-        border-right: none; /* Rimuovi i bordi verticali */
-        border-bottom: 1px solid rgba(255, 215, 0, 0.15); /* Aggiungi un bordo tra i giorni */
-        padding-bottom: 15px; /* Spazio dopo ogni giorno */
-        min-height: 500px; /* Altezza minima per la colonna del giorno per visualizzare gli appuntamenti */
-    }
-    .calendar-day-col:last-child {
-        border-bottom: none;
-    }
-
-    .day-header {
-        height: 50px; /* Coerente con gli orari */
-        border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-        position: static; /* Non sticky su mobile per evitare problemi di scroll */
-        margin-bottom: 10px; /* Spazio sotto l'header del giorno */
+    .day-slots {
+        min-height: calc(11 * 50px); /* Regola l'altezza minima del contenitore in base al nuovo slot height */
     }
 
     .appointment {
-        position: relative; /* Posizionamento relativo all'interno del giorno */
-        margin-bottom: 8px; /* Margine tra appuntamenti */
-        left: 0;
-        right: 0;
-        width: calc(100% - 4px); /* Larghezza completa con margini */
-        height: auto !important; /* L'altezza sarà determinata dal contenuto, non dalla posizione */
-        top: auto !important; /* Non usare top/bottom fissi */
+        font-size: 0.75em; /* Riduci la dimensione del font negli appuntamenti */
+        padding: 3px 5px;
+    }
+
+    .agenda-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .agenda-controls h2 {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .agenda-controls .btn-nav,
+    .agenda-controls .add-appointment-btn {
+        width: 100%;
+        margin-left: 0;
     }
 }
 
-/* Fine Stili Agenda */
+@media (max-width: 768px) {
+    .calendar-weekly-view {
+        /* Su schermi molto piccoli, potresti voler mostrare solo pochi giorni o passare a una vista giornaliera.
+           Per ora, lo lasciamo scrollabile orizzontalmente. */
+        overflow-x: auto; /* Abilita lo scroll orizzontale se i giorni non ci stanno */
+        grid-template-columns: 60px repeat(7, minmax(100px, 1fr)); /* Min-width per i giorni */
+    }
+
+    .calendar-day-col {
+        min-width: 100px; /* Assicurati che ogni colonna giorno abbia una larghezza minima */
+    }
+
+    .agenda-container {
+        padding: 0 0.5rem; /* Riduci padding laterale */
+    }
+}
