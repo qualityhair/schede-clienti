@@ -6,13 +6,19 @@ WORKDIR /app
 COPY package.json ./
 COPY package-lock.json ./
 
+# --- INIZIO: RIGHE AGGIUNTE PER INVALIDARE LA CACHE DI NPM INSTALL ---
+# Questa riga genera un timestamp unico a ogni build, invalidando la cache.
+ARG CACHE_BUSTER=$(date +%s)
+RUN echo "Cache Buster: $CACHE_BUSTER"
+# --- FINE: RIGHE AGGIUNTE ---
+
 # Installa le dipendenze
 RUN npm install --production
 
 # Copia il resto del codice
 COPY . .
 
-# Esegui il build script se presente (non dovrebbe esserci nel tuo caso)
+# Esegui il build script se presente (utile per frontend o TypeScript, lascialo pure)
 RUN npm run build --if-present
 
 # Imposta la porta su cui l'app ascolterà
