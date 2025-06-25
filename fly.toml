@@ -1,23 +1,17 @@
-# fly.toml app configuration file generated for schede-clienti on 2025-06-11T16:24:59+02:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
-app = 'schede-clienti'
-primary_region = 'fra'
+app = "schede-clienti"
+primary_region = "fra"
 
 [build]
-  builtin = "node"
+builtin = "node"
 
 [http_service]
-  internal_port = 8080 # MODIFICATO: Era 3000, ora è 8080 per allinearsi all'app
-  force_https = true
-  # auto_stop_machines = 'stop' # Questa riga è stata commentata/rimossa per evitare lo spegnimento automatico
-  auto_start_machines = true
-  min_machines_running = 1    # <-- MODIFICATO: Mantieni almeno 1 istanza sempre attiva
-  processes = ['app']
+auto_start_machines = true
+force_https = true
+internal_port = 8080
+min_machines_running = 1
+processes = [ "app" ]
 
 [[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
-  cpus = 1
+cpu_kind = "shared"
+cpus = 1
+memory = "1gb"
