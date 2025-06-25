@@ -101,9 +101,12 @@ app.get("/auth/google/callback",
     res.redirect("/dashboard.html");
   });
 
-app.get("/logout", (req, res) => {
-  req.logout(() => {
-    res.redirect("/login.html");
+app.get("/logout", (req, res, next) => {
+  req.logout(function(err) {
+    if (err) { return next(err); }
+    req.session.destroy(() => {
+      res.redirect("/login.html");
+    });
   });
 });
 
