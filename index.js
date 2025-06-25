@@ -62,11 +62,13 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// *** Modifica qui: serializeUser e deserializeUser ***
 passport.serializeUser((user, done) => {
-  done(null, user);
+  done(null, user.id || (user.emails && user.emails[0].value));
 });
-passport.deserializeUser((user, done) => {
-  done(null, user);
+
+passport.deserializeUser((id, done) => {
+  done(null, { id });
 });
 
 // --- Google OAuth Strategy ---
@@ -101,8 +103,10 @@ app.get("/auth/google/callback",
     res.redirect("/dashboard.html");
   });
 
-app.get("/logout", (req, res) => {
-  req.logout(() => {
+// *** Modifica qui: logout con callback per evitare problemi ***
+app.get("/logout", (req, res, next) => {
+  req.logout(function(err) {
+    if (err) { return next(err); }
     res.redirect("/login.html");
   });
 });
