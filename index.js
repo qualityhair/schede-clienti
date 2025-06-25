@@ -52,11 +52,16 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // --- Session & Passport Setup ---
+app.set('trust proxy', 1); // ✅ necessario per Fly.io e HTTPS
+
 app.use(session({
   secret: process.env.SESSION_SECRET || 'default_session_secret',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: false } // usa true se hai HTTPS
+  cookie: {
+    secure: true,       // ✅ obbligatorio per HTTPS
+    sameSite: 'lax'     // ✅ compatibile con OAuth
+  }
 }));
 
 app.use(passport.initialize());
@@ -101,23 +106,18 @@ app.get("/auth/google/callback",
     res.redirect("/dashboard.html");
   });
 
-app.get("/logout", (req, res, next) => {
-  req.logout(function(err) {
-    if (err) return next(err);
-    req.session.destroy(() => {
-      res.clearCookie("connect.sid"); // Cancella il cookie della sessione
-      res.redirect("/login.html");
-    });
+app.get("/logout", (req, res) => {
+  req.logout(() => {
+    res.redirect("/login.html");
   });
 });
 
-
-// --- Modifica qui: Root (/) serve login.html se non autenticato ---
+// --- Redirect dalla home ---
 app.get("/", (req, res) => {
   if (req.isAuthenticated()) {
     res.redirect("/dashboard.html");
   } else {
-    res.sendFile(path.join(__dirname, "public", "login.html")); // mostra la pagina login senza redirect
+    res.redirect("/login.html");
   }
 });
 
