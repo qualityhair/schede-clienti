@@ -24,6 +24,7 @@ RUN npm run build --if-present
 # Imposta la porta su cui l'app ascolterà
 ENV PORT=8080
 
+
 # Espone la porta
 EXPOSE 8080
 
