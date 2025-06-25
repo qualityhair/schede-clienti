@@ -1,7 +1,6 @@
 // Prima cosa, subito all’inizio del file index.js
 require('dotenv').config();
 
-
 const express = require("express");
 const { Pool } = require("pg");
 const path = require("path");
