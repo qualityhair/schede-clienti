@@ -62,13 +62,11 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// *** Modifica qui: serializeUser e deserializeUser ***
 passport.serializeUser((user, done) => {
-  done(null, user.id || (user.emails && user.emails[0].value));
+  done(null, user);
 });
-
-passport.deserializeUser((id, done) => {
-  done(null, { id });
+passport.deserializeUser((user, done) => {
+  done(null, user);
 });
 
 // --- Google OAuth Strategy ---
@@ -103,20 +101,18 @@ app.get("/auth/google/callback",
     res.redirect("/dashboard.html");
   });
 
-// *** Modifica qui: logout con callback per evitare problemi ***
-app.get("/logout", (req, res, next) => {
-  req.logout(function(err) {
-    if (err) { return next(err); }
+app.get("/logout", (req, res) => {
+  req.logout(() => {
     res.redirect("/login.html");
   });
 });
 
-// --- Redirect dalla home ---
+// --- Modifica qui: Root (/) serve login.html se non autenticato ---
 app.get("/", (req, res) => {
   if (req.isAuthenticated()) {
     res.redirect("/dashboard.html");
   } else {
-    res.redirect("/login.html");
+    res.sendFile(path.join(__dirname, "public", "login.html")); // mostra la pagina login senza redirect
   }
 });
 
