@@ -1,53 +1,85 @@
-<!-- public/login.html -->
 <!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login - Quality Hair</title>
+  <title>Accedi - Quality Hair</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet"/>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f7f7f7;
+      margin: 0;
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(145deg, #f0f0f0, #ffffff);
       display: flex;
-      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-container {
+      background-color: #fff;
+      border-radius: 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      padding: 40px 50px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .login-container h1 {
+      font-weight: 700;
+      font-size: 2rem;
+      margin-bottom: 10px;
+      color: #222;
+    }
+
+    .login-container p {
+      font-weight: 300;
+      color: #777;
+      margin-bottom: 30px;
+    }
+
+    .google-btn {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #444;
+      cursor: pointer;
+      display: flex;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
+      transition: all 0.2s ease;
     }
-    .container {
-      background: white;
-      padding: 2rem 3rem;
-      border-radius: 12px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      text-align: center;
-    }
-    h1 {
-      margin-bottom: 1rem;
-      color: #333;
-    }
-    .google-btn {
-      background-color: #4285F4;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
+
     .google-btn:hover {
-      background-color: #357ae8;
+      background-color: #f7f7f7;
+    }
+
+    .google-btn img {
+      width: 20px;
+      margin-right: 10px;
+    }
+
+    .footer {
+      margin-top: 30px;
+      font-size: 0.85rem;
+      color: #aaa;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Accedi a Quality Hair</h1>
-    <p>Per favore, effettua l'accesso con Google per continuare</p>
-    <a class="google-btn" href="/auth/google">Accedi con Google</a>
+  <div class="login-container">
+    <h1>Quality Hair</h1>
+    <p>Accedi con il tuo account autorizzato</p>
+    <a class="google-btn" href="/auth/google">
+      <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo">
+      Accedi con Google
+    </a>
+    <div class="footer">Solo per uso interno Quality Hair</div>
   </div>
 </body>
 </html>
