@@ -98,7 +98,7 @@ app.get("/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] }));
 
 app.get("/auth/google/callback",
-  passport.authenticate("google", { failureRedirect: "/index.html" }),
+  passport.authenticate("google", { failureRedirect: "/login.html" }),
   (req, res) => {
     // Login OK, vai alla dashboard
     res.redirect("/dashboard.html");
@@ -107,7 +107,7 @@ app.get("/auth/google/callback",
 // --- Logout ---
 app.get("/logout", (req, res) => {
   req.logout(() => {
-    res.redirect("/index.html");
+    res.redirect("/login.html");
   });
 });
 
