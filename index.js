@@ -1,7 +1,15 @@
+// Prima cosa, subito all’inizio del file index.js
+require('dotenv').config();
+
+
 const express = require("express");
 const { Pool } = require("pg");
 const path = require("path");
 const bodyParser = require("body-parser");
+
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const session = require("express-session");
 
 const app = express();
 
@@ -45,23 +53,86 @@ app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// ————— RIMOZIONE LOGIN —————
+// --- Session & Passport Setup ---
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'default_session_secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // se metti https cambia a true
+}));
 
-// —————————————————──── ROTTE ——————————————————
+app.use(passport.initialize());
+app.use(passport.session());
 
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+passport.deserializeUser((user, done) => {
+  done(null, user);
+});
+
+// --- Google OAuth Strategy ---
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL
+  },
+  (accessToken, refreshToken, profile, done) => {
+    const email = profile.emails && profile.emails[0].value;
+    if (email === "qualityhairbolzano@google.com") {
+      return done(null, profile);
+    } else {
+      return done(null, false, { message: "Email non autorizzata" });
+    }
+  }
+));
+
+
+// --- Middleware per proteggere le rotte ---
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  res.redirect("/login.html");
+}
+
+// --- Rotte per autenticazione Google ---
+app.get("/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] }));
+
+app.get("/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/index.html" }),
+  (req, res) => {
+    // Login OK, vai alla dashboard
+    res.redirect("/dashboard.html");
+  });
+
+// --- Logout ---
+app.get("/logout", (req, res) => {
+  req.logout(() => {
+    res.redirect("/index.html");
+  });
+});
+
+// --- Rotte pubbliche ---
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Dashboard e pagine ora accessibili senza login
-app.get("/dashboard.html", (req, res) => {
+// --- Proteggi tutte le altre pagine tranne login ---
+app.get("/dashboard.html", ensureAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "dashboard.html"));
 });
-app.get("/lista-clienti.html", (req, res) => {
+app.get("/lista-clienti.html", ensureAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "lista-clienti.html"));
 });
 
-// API clienti
+// Le API mantengono la protezione
+app.use("/api", ensureAuthenticated);
+
+// --- Le API restano come le hai già ---
+// ... (qui inserisci tutte le tue API come già scritte, senza modifiche)
+
+// Qui copia/incolla il resto del tuo codice API esattamente come ce l’hai ora:
+
 app.get("/api/clienti", async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM clienti");
