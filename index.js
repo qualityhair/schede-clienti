@@ -103,12 +103,14 @@ app.get("/auth/google/callback",
 
 app.get("/logout", (req, res, next) => {
   req.logout(function(err) {
-    if (err) { return next(err); }
+    if (err) return next(err);
     req.session.destroy(() => {
+      res.clearCookie("connect.sid"); // Cancella il cookie della sessione
       res.redirect("/login.html");
     });
   });
 });
+
 
 // --- Modifica qui: Root (/) serve login.html se non autenticato ---
 app.get("/", (req, res) => {
