@@ -261,6 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
         } else {
+            // Questo blocco non verrà mai eseguito finché showCustomModal non è definita
             showCustomModal("Sei sicuro di voler eliminare questo trattamento?", 'confirm', async (confirmed) => {
                 if (!confirmed) return;
 
@@ -282,9 +283,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     showMessage(`Errore: ${error.message}`, 'error');
                 }
             });
-            return;
+            return; // Esci per non eseguire il blocco try/catch seguente
         }
 
+        // Questo blocco viene eseguito se showCustomModal non è definita e l'utente conferma
         try {
             const response = await fetch(`/api/trattamenti/${trattamentoId}`, {
                 method: 'DELETE',
@@ -312,6 +314,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
         } else {
+            // Questo blocco non verrà mai eseguito finché showCustomModal non è definita
             showCustomModal(`Sei sicuro di voler eliminare il cliente ${nomeCompletoSpan.textContent}? Questa azione è irreversibile e cancellerà anche tutti i trattamenti associati.`, 'confirm', async (confirmed) => {
                 if (!confirmed) return;
 
@@ -334,9 +337,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     showMessage(`Errore: ${error.message}`, 'error');
                 }
             });
-            return;
+            return; // Esci per non eseguire il blocco try/catch seguente
         }
 
+        // Questo blocco viene eseguito se showCustomModal non è definita e l'utente conferma
         try {
             const response = await fetch(`/api/clienti/${currentClientId}`, {
                 method: 'DELETE',
@@ -490,6 +494,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
         } else {
+            // Questo blocco non verrà mai eseguito finché showCustomModal non è definita
             showCustomModal("Sei sicuro di voler eliminare questo acquisto?", 'confirm', async (confirmed) => {
                 if (!confirmed) return;
 
@@ -535,9 +540,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     showMessage(`Errore nell'eliminazione dell'acquisto: ${error.message}`, 'error');
                 }
             });
-            return;
+            return; // Esci per non eseguire il blocco try/catch seguente
         }
 
+        // Questo blocco viene eseguito se showCustomModal non è definita e l'utente conferma
         try {
             const clientResponse = await fetch(`/api/clienti/${currentClientId}`);
             const clientData = await handleApiResponse(clientResponse);
@@ -707,9 +713,7 @@ document.addEventListener("DOMContentLoaded", () => {
         aggiungiTrattamentoBtn.addEventListener("click", () => {
             openModal(modalAggiungiTrattamento);
             if (dataTrattamentoInput) {
-                dataTrattamentoInput.valueAsDate = new Date();
-            } else {
-                console.warn("Elemento 'dataTrattamentoInput' non trovato per impostare la data predefinita.");
+                dataTrattamentoInput.valueAsDate = new Date(); // Completato: imposta la data corrente
             }
         });
     }
@@ -723,42 +727,33 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     // ********************
 
-    // --- NUOVI Event Listeners per la modale "Modifica Cliente" ---
+    // --- NUOVI Event Listeners per la modale "Modifica Dettagli Cliente" ---
     if (modificaDettagliBtn) {
         modificaDettagliBtn.addEventListener('click', () => {
-            if (currentClienteData) {
-                modificaClienteIdInput.value = currentClienteData.id;
+            // Popola il form con i dati attuali del cliente prima di aprire la modale
+            if (currentClienteData) { // Assicurati che i dati del cliente siano stati caricati
+                modificaClienteIdInput.value = currentClientId;
                 modificaNomeInput.value = currentClienteData.nome || '';
                 modificaCognomeInput.value = currentClienteData.cognome || '';
                 modificaEmailInput.value = currentClienteData.email || '';
                 modificaTelefonoInput.value = currentClienteData.telefono || '';
-                openModal(modificaClienteModal);
-            } else {
-                console.error("Errore: Dati cliente non disponibili per la modifica.");
-                showMessage("Impossibile caricare i dati del cliente per la modifica.", 'error');
             }
+            openModal(modificaClienteModal);
         });
     }
+
     if (annullaModificaClienteBtn) {
         annullaModificaClienteBtn.addEventListener('click', () => {
             closeModal(modificaClienteModal, formModificaCliente);
         });
     }
-    // Chiusura della modale cliccando fuori
-    if (modificaClienteModal) {
-        modificaClienteModal.addEventListener('click', (event) => {
-            if (event.target === modificaClienteModal) {
-                closeModal(modificaClienteModal, formModificaCliente);
-            }
-        });
-    }
+
     if (formModificaCliente) {
         formModificaCliente.addEventListener('submit', handleModificaCliente);
     }
     // ********************
 
 
-    // Event listeners per la paginazione
     btnPrecedente.addEventListener("click", () => navigateClient('prev'));
     btnSuccessivo.addEventListener("click", () => navigateClient('next'));
 
