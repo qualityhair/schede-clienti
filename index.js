@@ -3,7 +3,7 @@ const { Pool } = require('pg');
 const dotenv = require('dotenv');
 // const session = require('express-session'); // Questa è a posto
 // const MemoryStore = require('memorystore')(session); // Questa è a posto
-const bcrypt = require('bcryptjs');
+// const bcrypt = require('bcryptjs');
 const path = require('path');
 
 dotenv.config();
