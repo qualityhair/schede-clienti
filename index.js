@@ -143,17 +143,36 @@ app.post('/clienti/:id/elimina', async (req, res) => {
     }
 });
 
+// Rotta per la ricerca dei clienti
 app.get('/cerca-clienti', async (req, res) => {
-    const { query } = req.query;
     try {
-        const result = await pool.query(
-            'SELECT * FROM clienti WHERE LOWER(nome) LIKE $1 OR LOWER(cognome) LIKE $1 ORDER BY nome ASC',
-            [`%${query.toLowerCase()}%`]
-        );
-        res.render('clienti', { clienti: result.rows, searchQuery: query });
-    } catch (err) {
-        console.error('Errore nella ricerca clienti:', err);
-        res.status(500).send('Errore nella ricerca clienti');
+        const query = req.query.query;
+        let clienti;
+
+        if (query) {
+            const searchQuery = `%${query}%`;
+            const result = await pool.query(
+                `SELECT * FROM clienti
+                 WHERE nome ILIKE $1 OR
+                       cognome ILIKE $1 OR
+                       telefono ILIKE $1 OR
+                       email ILIKE $1 OR
+                       note ILIKE $1`,
+                [searchQuery]
+            );
+            clienti = result.rows;
+        } else {
+            // Se la query è vuota, mostra tutti i clienti (o restituisce un array vuoto se non vuoi mostrare tutti)
+            const result = await pool.query('SELECT * FROM clienti ORDER BY id DESC'); // Questo è un fallback che potresti voler mantenere
+            clienti = result.rows;
+        }
+
+        // *** QUESTA È LA RIGA FONDAMENTALE CHE DEVE ESSERE res.json ***
+        res.json(clienti); // <--- DEVE ESSERE res.json(clienti); NON res.render()
+
+    } catch (error) {
+        console.error('Errore durante la ricerca dei clienti:', error);
+        res.status(500).send('Errore nella ricerca clienti: ' + error.message);
     }
 });
 
