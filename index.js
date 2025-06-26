@@ -1,8 +1,8 @@
 const express = require('express');
 const { Pool } = require('pg');
 const dotenv = require('dotenv');
-// const session = require('express-session');
-// const MemoryStore = require('memorystore')(session);
+// const session = require('express-session'); // Questa è a posto
+// const MemoryStore = require('memorystore')(session); // Questa è a posto
 const bcrypt = require('bcryptjs');
 const path = require('path');
 
@@ -21,9 +21,6 @@ const pool = new Pool({
 // ********** AGGIUNTA IMPORTANTE: GESTIONE ERRORI DEL POOL **********
 pool.on('error', (err, client) => {
     console.error('Errore inatteso sul client idle del pool di database', err);
-    // Questo errore non dovrebbe causare il crash dell'applicazione
-    // ma indica che una connessione nel pool ha avuto un problema.
-    // Il pool dovrebbe gestire il recupero automaticamente, ma è bene loggarlo.
 });
 // ********************************************************************
 
@@ -31,8 +28,6 @@ pool.connect()
     .then(() => console.log('✅ Connesso al DB PostgreSQL!'))
     .catch(err => {
         console.error('Errore connessione DB INIZIALE:', err);
-        // È utile che l'app esca se non può connettersi al DB all'avvio
-        // process.exit(1); // Potresti voler decommentare questa riga in produzione reale
     });
 
 app.set('view engine', 'ejs');
@@ -42,33 +37,47 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Blocco di sessione rimosso/commentato come da precedente modifica
+// RIMUOVI O COMMENTA TUTTO IL BLOCCO DI CONFIGURAZIONE DELLA SESSIONE
 /*
-app.use(session({
-    cookie: { maxAge: 86400000 },
-    store: new MemoryStore({
-        checkPeriod: 86400000
-    }),
-    secret: process.env.SESSION_SECRET || 'keyboard cat',
-    resave: false,
-    saveUninitialized: false
-}));
+// Sezione sessione rimossa:
+// app.use(session({
+//     cookie: { maxAge: 86400000 },
+//     store: new MemoryStore({
+//         checkPeriod: 86400000
+//     }),
+//     secret: process.env.SESSION_SECRET || 'keyboard cat',
+//     resave: false,
+//     saveUninitialized: false
+// }));
 */
 
-// Middleware e rotte di autenticazione rimosse/commentate
+// Middleware per controllare se l'utente è autenticato - NON È PIÙ NECESSARIO
 /*
+// const isAuthenticated = (req, res, next) => { ... };
+*/
 
-app.get('/login', (req, res) => { /* ... */ });
-app.post('/login', async (req, res) => { /* ... */ });
-app.get('/logout', (req, res) => { /* ... */ });
+// Rotta per la pagina di login - NON È PIÙ NECESSARIA
+/*
+// app.get('/login', (req, res) => { ... });
+*/
+
+// Rotta per il processo di login - NON È PIÙ NECESSARIA
+/*
+// app.post('/login', async (req, res) => { ... });
+*/
+
+// Rotta per il logout - NON È PIÙ NECESSARIA
+/*
+// app.get('/logout', (req, res) => { ... });
 */
 
 // Rotta principale, ora accessibile senza login
 app.get('/', (req, res) => {
+    // res.redirect('/login');
     res.redirect('/clienti');
 });
 
-// Tutte le rotte dei clienti (senza isAuthenticated)
+// Tutte le rotte che prima usavano isAuthenticated, ora non ne hanno più bisogno
 app.get('/clienti', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM clienti ORDER BY nome ASC');
@@ -155,15 +164,10 @@ app.listen(port, () => {
 // ********** AGGIUNTA IMPORTANTE: GESTIONE ECCEZIONI GLOBALI **********
 process.on('uncaughtException', (err) => {
     console.error('ERRORE CRITICO: Eccezione non catturata:', err);
-    // In un ambiente di produzione, potresti voler inviare un segnale di arresto pulito
-    // o un alert, ma per ora il log è sufficiente per diagnosticare.
-    // Considera di chiamare process.exit(1) dopo un breve ritardo in produzione
-    // per permettere al sistema di monitoraggio di riavviare l'app.
 });
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('ERRORE CRITICO: Promessa non gestita:', reason);
-    // Logga anche la promessa che ha causato la reiezione
     console.error(promise);
 });
 // ********************************************************************
