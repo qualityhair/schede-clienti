@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="it">
-    
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Scheda Cliente</title>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/style.css?v=<%= new Date().getTime() %>" />
+    <link rel="stylesheet" href="./css/style.css" />
 </head>
 
 <body>
@@ -39,53 +38,50 @@
                 </div>
             </div>
 
-            <div class="panel treatments-panel full-width-panel">
-                <h2 class="panel-title">Storico Servizi e Trattamenti
-                    <button class="btn btn-icon" id="aggiungiTrattamentoBtn" title="Aggiungi Nuovo Trattamento">➕</button>
-                </h2>
-                <div class="panel-content table-responsive">
-                    <table class="trattamenti data-table">
-                        <thead>
-                            <tr>
-                                <th>Tipo</th>
-                                <th>Descrizione</th>
-                                <th>Data</th>
-                                <th>Note</th>
-                                <th>Azione</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lista-trattamenti">
-                        </tbody>
-                    </table>
+            <div class="two-column-stack"> <div class="panel treatments-panel">
+                    <h2 class="panel-title">Storico Servizi e Trattamenti
+                        <button class="btn btn-icon" id="aggiungiTrattamentoBtn" title="Aggiungi Nuovo Trattamento">➕</button>
+                    </h2>
+                    <div class="panel-content table-responsive">
+                        <table class="trattamenti data-table">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Descrizione</th>
+                                    <th>Data</th>
+                                    <th>Note</th>
+                                    <th>Azione</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-trattamenti">
+                                </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
 
-            <div class="panel purchases-panel full-width-panel">
-                <h2 class="panel-title">Storico Acquisti
-                    <button class="btn btn-icon" id="aggiungi-acquisto-btn" title="Aggiungi Nuovo Acquisto">➕</button>
-                </h2>
-                <div class="panel-content table-responsive">
-                    <table class="acquisti-table data-table">
-                        <thead>
-                            <tr>
-                                <th>Prodotto</th>
-                                <th>Data</th>
-                                <th>Prezzo</th>
-                                <th>Quantità</th>
-                                <th>Note</th>
-                                <th>Azione</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lista-acquisti">
-                            <tr>
-                                <td colspan="6" style="text-align: center;">Nessun acquisto registrato per questo cliente.</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="panel purchases-panel">
+                    <h2 class="panel-title">Storico Acquisti
+                        <button class="btn btn-icon" id="aggiungi-acquisto-btn" title="Aggiungi Nuovo Acquisto">➕</button>
+                    </h2>
+                    <div class="panel-content table-responsive">
+                        <table class="acquisti-table data-table">
+                            <thead>
+                                <tr>
+                                    <th>Prodotto</th>
+                                    <th>Data</th>
+                                    <th>Prezzo</th>
+                                    <th>Quantità</th>
+                                    <th>Note</th>
+                                    <th>Azione</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-acquisti">
+                                </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
 
-        </div>
+            </div> </div>
 
         <div class="delete-client-section">
             <button id="btnEliminaCliente" class="btn btn-danger">
@@ -97,6 +93,7 @@
 
     <script src="/js/scheda-cliente.js"></script>
     <script src="/js/navbar-loader.js"></script>
+
     <div id="modalAggiungiAcquisto" class="modal">
         <div class="modal-content">
             <h3>Aggiungi Nuovo Acquisto</h3>
