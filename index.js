@@ -156,8 +156,7 @@ app.get('/cerca-clienti', async (req, res) => {
                  WHERE nome ILIKE $1 OR
                        cognome ILIKE $1 OR
                        telefono ILIKE $1 OR
-                       email ILIKE $1 OR
-                       note ILIKE $1`,
+                       email ILIKE $1,
                 [searchQuery]
             );
             clienti = result.rows;
