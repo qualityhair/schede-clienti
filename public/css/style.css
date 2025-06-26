@@ -154,9 +154,18 @@ body {
 /* GRIGLIA DEI PANNELLI (per entrambe le pagine) */
 .panel-grid { /* Usato per scheda-cliente */
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Due colonne uguali */
+    /* La griglia principale avrà 2 colonne, ma il terzo elemento (two-column-stack) occuperà 1 colonna */
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); /* Adatta per avere 2 colonne su schermi larghi */
     gap: 25px;
     margin-bottom: 30px;
+}
+
+.two-column-stack { /* Nuovo stile per il contenitore di Storico Servizi e Acquisti */
+    display: flex; /* Utilizza flexbox per impilare gli elementi */
+    flex-direction: column; /* Forzali a stare uno sotto l'altro */
+    gap: 25px; /* Spazio tra i due pannelli impilati */
+    /* Questo assicura che two-column-stack si posizioni correttamente nella griglia principale */
+    /* grid-column: auto / span 1;  -- Rimosso da qui e messo nella media query per il breakpoint specifico */
 }
 
 .dashboard-grid-container { /* Nuovo per dashboard */
@@ -400,14 +409,28 @@ p strong { /* Usato per scheda-cliente */
 /* RESPONSIVITÀ */
 @media (min-width: 769px) { /* Applica queste regole solo su schermi più grandi di 768px */
     .dashboard-grid-container {
-        /* Assicurati che ci sia spazio per 3 colonne o 2, a seconda della larghezza */
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     }
 
     .panel-group {
-        /* Questo farà sì che il panel-group occupi l'ultima colonna e affianchi gli altri se c'è spazio */
-        grid-template-columns: repeat(2, 1fr); /* I due pannelli Musica e Agenda si affiancheranno */
-        grid-column: span 1; /* Il panel-group stesso occupa 1 colonna della griglia principale */
+        grid-template-columns: repeat(2, 1fr);
+        grid-column: span 1;
+    }
+
+    .panel-grid { /* Regola specifica per scheda-cliente su schermi grandi */
+        grid-template-columns: repeat(2, 1fr); /* Due colonne per i pannelli */
+    }
+    
+    .client-details-panel {
+        grid-column: 1 / 2; /* Dettagli occupa la prima colonna */
+    }
+
+    .notes-panel {
+        grid-column: 2 / 3; /* Note occupa la seconda colonna */
+    }
+
+    .two-column-stack {
+        grid-column: 1 / -1; /* Questo farà sì che il contenitore occupi tutte le colonne disponibili (span di 2), andando sotto gli altri */
     }
 }
 
@@ -422,7 +445,8 @@ p strong { /* Usato per scheda-cliente */
 
     .panel-grid,
     .dashboard-grid-container,
-    .panel-group { /* Tutto su una colonna su schermi piccoli */
+    .panel-group,
+    .two-column-stack { /* Tutto su una colonna su schermi piccoli */
         grid-template-columns: 1fr;
         gap: 20px;
     }
