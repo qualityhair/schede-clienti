@@ -1,58 +1,55 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard - Schede Clienti</title> <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-  <link rel="stylesheet" href="/css/style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Schede Clienti</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
-  <div class="floating-decoration"></div>
-  <div class="floating-decoration"></div>
-  <div class="floating-decoration"></div>
+    <main class="container dashboard-main">
+        <p class="page-title brand-title">Quality Hair</p>
+        <p class="brand-subtitle">gestione clienti</p>
 
-  <main class="dashboard">
-    <p class="brand-title">Quality Hair</p>
-    <p class="brand-subtitle">gestione clienti</p>
+        <div class="dashboard-grid-container">
 
-<div class="dashboard-grid-container">
+            <div class="panel dashboard-panel">
+                <h2 class="panel-title">Cerca Cliente</h2>
+                <p class="panel-subtitle">Trova rapidamente i dettagli di un cliente.</p>
+                <input type="text" id="search-input" placeholder="Nome o Cognome Cliente" class="input-field" />
+                <button id="search-button" class="btn btn-primary">Cerca</button>
+            </div>
 
-      <div class="dashboard-panel">
-        <h2 class="panel-title">Cerca Cliente</h2>
-        <p class="panel-subtitle">Trova rapidamente i dettagli di un cliente.</p>
-        <input type="text" id="search-input" placeholder="Nome o Cognome Cliente" />
-        <button id="search-button">Cerca</button>
-      </div>
+            <div class="panel dashboard-panel">
+                <h2 class="panel-title">Nuovo Cliente</h2>
+                <p class="panel-subtitle">Aggiungi un nuovo cliente al database.</p>
+                <input type="text" id="new-client-name" placeholder="Nome" required class="input-field" />
+                <input type="text" id="new-client-surname" placeholder="Cognome" required class="input-field" />
+                <input type="email" id="new-client-email" placeholder="Email (opzionale)" class="input-field" />
+                <input type="tel" id="new-client-phone" placeholder="Telefono (opzionale)" class="input-field" />
+                <button id="add-new-client-button" class="btn btn-primary">Aggiungi Cliente</button>
+            </div>
 
-      <div class="dashboard-panel">
-        <h2 class="panel-title">Nuovo Cliente</h2>
-        <p class="panel-subtitle">Aggiungi un nuovo cliente al database.</p>
-        <input type="text" id="new-client-name" placeholder="Nome" required />
-        <input type="text" id="new-client-surname" placeholder="Cognome" required />
-        <input type="email" id="new-client-email" placeholder="Email (opzionale)" />
-        <input type="tel" id="new-client-phone" placeholder="Telefono (opzionale)" />
-        <button id="add-new-client-button">Aggiungi Cliente</button>
-      </div>
+            <div class="panel-group dashboard-panel"> <div class="panel compact-panel" id="music-panel">
+                    <h2 class="panel-title">Musica</h2>
+                    <p class="panel-subtitle">Gestisci la musica d'ambiente.</p>
+                    <button onclick="window.open('https://open.spotify.com/', '_blank')" class="btn btn-nav">Apri Spotify</button>
+                    <button onclick="window.open('http://79.6.136.236:32400/web/index.html#!/server/6ebfb71d58fed1206d2c273ca1b96e2e9c3ead61/playlist?key=%2Fplaylists%2F19976&context=source%3Acontent.playlists~0~5', '_blank')" class="btn btn-nav">Apri Player Musica</button>
+                </div>
 
-      <div class="column-stack-container">
-        <div class="dashboard-panel compact-panel" id="music-panel">
-          <h2 class="panel-title">Musica</h2>
-          <p class="panel-subtitle">Gestisci la musica d'ambiente.</p>
-          <button onclick="window.open('https://open.spotify.com/', '_blank')">Apri Spotify</button>
-          <button onclick="window.open('http://79.6.136.236:32400/web/index.html#!/server/6ebfb71d58fed1206d2c273ca1b96e2e9c3ead61/playlist?key=%2Fplaylists%2F19976&context=source%3Acontent.playlists~0~5', '_blank')">Apri Player Musica</button>
+                <div class="panel compact-panel">
+                    <h2 class="panel-title">Agenda</h2>
+                    <p class="panel-subtitle">Gestisci e visualizza il calendario.</p>
+                    <button onclick="window.open('https://calendar.google.com/calendar/u/0/r/week', '_blank')" class="btn btn-nav">Apri Calendario</button>
+                </div>
+            </div>
         </div>
+    </main>
 
-        <div class="dashboard-panel compact-panel">
-          <h2 class="panel-title">Agenda</h2>
-          <p class="panel-subtitle">Gestisci e visualizza il calendario.</p>
-          <button onclick="window.open('https://calendar.google.com/calendar/u/0/r/week', '_blank')">Apri Calendario</button>
-        </div>
-      </div>
-      </div>
-  </main>
-
-  <script src="/js/dashboard-app.js"></script>
+    <script src="/js/dashboard-app.js"></script>
 
 </body>
 </html>
