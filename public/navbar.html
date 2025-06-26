@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Navbar QualityHair</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
-    <link rel="stylesheet" href="/css/style.css"> </head>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
 <body>
 
     <nav class="main-navbar">
@@ -15,12 +16,21 @@
         <ul class="navbar-links">
             <li><a href="/dashboard.html">Home Dashboard</a></li>
             <li><a href="/lista-clienti.html">Gestione Clienti</a></li>
-            <li><button id="btnCerca" class="navbar-btn">Cerca</button></li>
+            <!-- Aggiunta del campo di ricerca nella navbar -->
+            <li class="navbar-search-item">
+                <input type="text" id="navbar-search-input" placeholder="Cerca Cliente..." class="input-field" />
+                <button id="navbar-search-button" class="btn btn-primary">Cerca</button>
+            </li>
         </ul>
+        <!-- Il bottone hamburger per mobile, se necessario (da aggiungere nel CSS e JS) -->
+        <div class="navbar-toggle" id="navbar-toggle">
+            &#9776;
+        </div>
     </nav>
 
-    <script src="/js/navbar-loader.js" defer></script>
-    <script src="/js/dashboard.js" defer></script>
+    <!-- Questi script non dovrebbero essere qui. Saranno caricati dalla pagina principale. -->
+    <!-- <script src="/js/navbar-loader.js" defer></script> -->
+    <!-- <script src="/js/dashboard.js" defer></script> -->
 
 </body>
 </html>
