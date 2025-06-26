@@ -629,3 +629,163 @@ p strong { /* Usato per scheda-cliente */
         font-size: 1em;
     }
 }
+
+/* NAVBAR STYLES (existing, but double check) */
+.main-navbar {
+    background-color: #1a1a1a; /* Nero molto scuro, quasi nero puro */
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+    margin-bottom: 20px; /* Spazio tra navbar e container principale */
+    border-radius: 8px; /* Bordi leggermente arrotondati */
+}
+
+.main-navbar .navbar-brand h1 { /* Assicurati che l'h1 abbia questo stile */
+    font-family: 'Great Vibes', cursive;
+    color: #FFD700; /* Giallo acceso per il brand */
+    font-size: 2.2em;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    margin: 0; /* Rimuovi margini predefiniti dell'h1 */
+    padding: 0; /* Rimuovi padding predefiniti dell'h1 */
+}
+
+.main-navbar .navbar-links {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    align-items: center; /* Allinea verticalmente gli elementi della lista */
+}
+
+.main-navbar .navbar-links li {
+    margin-left: 30px;
+}
+
+.main-navbar .navbar-links a { /* Link generici della navbar */
+    color: #e0e0e0;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.1em;
+    padding: 5px 0;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.main-navbar .navbar-links a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0;
+    height: 2px;
+    background-color: #FFD700;
+    transition: width 0.3s ease;
+}
+
+.main-navbar .navbar-links a:hover::after {
+    width: 100%;
+}
+
+.main-navbar .navbar-links a:hover {
+    color: #ffffff;
+}
+
+/* Stili specifici per il campo di ricerca e bottone nella navbar */
+.navbar-search-item {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Spazio tra input e bottone */
+    margin-left: 30px; /* Spazio a sinistra per separarlo dagli altri link */
+}
+
+#navbar-search-input {
+    padding: 8px 12px;
+    border: 1px solid #444444; /* Bordo scuro */
+    border-radius: 5px;
+    background-color: #2a2a2a; /* Sfondo scuro */
+    color: #e0e0e0; /* Testo chiaro */
+    font-size: 0.9em;
+    width: 180px; /* Larghezza predefinita */
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#navbar-search-input::placeholder {
+    color: #888888;
+}
+
+#navbar-search-input:focus {
+    border-color: #FFD700;
+    box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+    outline: none;
+}
+
+#navbar-search-button {
+    /* Reusa gli stili esistenti di .btn e .btn-primary */
+    padding: 8px 15px; /* Riduci leggermente il padding per la navbar */
+    font-size: 0.9em;
+}
+
+/* Messaggio temporaneo della navbar */
+#navbar-message {
+    /* Stili definiti in JS, ma puoi aggiungere override qui se vuoi */
+    /* top: 80px; è impostato per essere sotto la navbar. */
+}
+
+
+/* MEDIA QUERIES for Navbar (RESPONSIVITÀ) */
+@media (max-width: 768px) {
+    .main-navbar {
+        flex-wrap: wrap;
+        justify-content: center; /* Centra il brand su mobile */
+        padding: 15px 10px;
+    }
+
+    .main-navbar .navbar-brand {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 15px; /* Spazio sotto il brand su mobile */
+    }
+
+    .main-navbar .navbar-links {
+        flex-direction: column;
+        width: 100%;
+        display: none; /* Nascosto per default su mobile, mostrato con JS */
+        text-align: center;
+        margin-top: 10px;
+        align-items: stretch; /* Stira gli elementi per riempire la larghezza */
+    }
+
+    .main-navbar .navbar-links.active {
+        display: flex; /* Mostra i link quando il toggle è attivo */
+    }
+
+    .main-navbar .navbar-links li {
+        margin: 10px 0; /* Margine verticale per i link su mobile */
+        width: 100%; /* I link occupano tutta la larghezza */
+    }
+
+    .navbar-search-item {
+        flex-direction: column; /* Stack input and button vertically */
+        width: 100%; /* Occupano tutta la larghezza */
+        margin: 10px 0; /* Spazio verticale */
+        gap: 10px;
+    }
+
+    #navbar-search-input {
+        width: 90%; /* Occupa quasi tutta la larghezza disponibile */
+    }
+
+    #navbar-search-button {
+        width: 90%; /* Occupa quasi tutta la larghezza disponibile */
+    }
+
+    .navbar-toggle {
+        display: block; /* Mostra l'icona hamburger su mobile */
+        position: absolute; /* Posiziona in alto a destra */
+        right: 20px;
+        top: 20px;
+    }
+}
