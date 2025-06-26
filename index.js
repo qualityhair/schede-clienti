@@ -1,8 +1,8 @@
 const express = require('express');
 const { Pool } = require('pg');
 const dotenv = require('dotenv');
-// const session = require('express-session'); // RIMUOVI QUESTA RIGA
-// const MemoryStore = require('memorystore')(session); // RIMUOVI QUESTA RIGA
+// const session = require('express-session');
+// const MemoryStore = require('memorystore')(session);
 const bcrypt = require('bcryptjs');
 const path = require('path');
 
@@ -18,9 +18,22 @@ const pool = new Pool({
     }
 });
 
+// ********** AGGIUNTA IMPORTANTE: GESTIONE ERRORI DEL POOL **********
+pool.on('error', (err, client) => {
+    console.error('Errore inatteso sul client idle del pool di database', err);
+    // Questo errore non dovrebbe causare il crash dell'applicazione
+    // ma indica che una connessione nel pool ha avuto un problema.
+    // Il pool dovrebbe gestire il recupero automaticamente, ma è bene loggarlo.
+});
+// ********************************************************************
+
 pool.connect()
     .then(() => console.log('✅ Connesso al DB PostgreSQL!'))
-    .catch(err => console.error('Errore connessione DB:', err));
+    .catch(err => {
+        console.error('Errore connessione DB INIZIALE:', err);
+        // È utile che l'app esca se non può connettersi al DB all'avvio
+        // process.exit(1); // Potresti voler decommentare questa riga in produzione reale
+    });
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -29,79 +42,34 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// RIMUOVI O COMMENTA TUTTO IL BLOCCO DI CONFIGURAZIONE DELLA SESSIONE
+// Blocco di sessione rimosso/commentato come da precedente modifica
 /*
 app.use(session({
     cookie: { maxAge: 86400000 },
     store: new MemoryStore({
-        checkPeriod: 86400000 // prune expired entries every 24h
+        checkPeriod: 86400000
     }),
-    secret: process.env.SESSION_SECRET || 'keyboard cat', // Usa la variabile d'ambiente o un fallback
+    secret: process.env.SESSION_SECRET || 'keyboard cat',
     resave: false,
     saveUninitialized: false
 }));
 */
 
-// Middleware per controllare se l'utente è autenticato - NON È PIÙ NECESSARIO
+// Middleware e rotte di autenticazione rimosse/commentate
 /*
-const isAuthenticated = (req, res, next) => {
-    if (req.session.user) {
-        return next();
-    }
-    res.redirect('/login');
-};
-*/
-
-// Rotta per la pagina di login - NON È PIÙ NECESSARIA
-/*
-app.get('/login', (req, res) => {
-    res.render('login', { error: null });
-});
-*/
-
-// Rotta per il processo di login - NON È PIÙ NECESSARIA
-/*
-app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-        const user = result.rows[0];
-
-        if (user && await bcrypt.compare(password, user.password_hash)) {
-            req.session.user = { id: user.id, username: user.username };
-            res.redirect('/clienti');
-        } else {
-            res.render('login', { error: 'Username o password errati' });
-        }
-    } catch (err) {
-        console.error('Errore durante il login:', err);
-        res.render('login', { error: 'Si è verificato un errore durante il login.' });
-    }
-});
-*/
-
-// Rotta per il logout - NON È PIÙ NECESSARIA
-/*
-app.get('/logout', (req, res) => {
-    req.session.destroy(err => {
-        if (err) {
-            console.error('Errore durante il logout:', err);
-            return res.redirect('/');
-        }
-        res.clearCookie('connect.sid'); // Assicurati che questo sia il nome del tuo cookie di sessione
-        res.redirect('/login');
-    });
-});
+const isAuthenticated = (req, res, next) => { /* ... */ };
+app.get('/login', (req, res) => { /* ... */ });
+app.post('/login', async (req, res) => { /* ... */ });
+app.get('/logout', (req, res) => { /* ... */ });
 */
 
 // Rotta principale, ora accessibile senza login
 app.get('/', (req, res) => {
-    // res.redirect('/login'); // RIMUOVI O COMMENTA QUESTA RIGA
-    res.redirect('/clienti'); // Punta direttamente ai clienti
+    res.redirect('/clienti');
 });
 
-// Tutte le rotte che prima usavano isAuthenticated, ora non ne hanno più bisogno
-app.get('/clienti', async (req, res) => { // Rimuovi isAuthenticated se presente
+// Tutte le rotte dei clienti (senza isAuthenticated)
+app.get('/clienti', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM clienti ORDER BY nome ASC');
         res.render('clienti', { clienti: result.rows });
@@ -123,11 +91,11 @@ app.post('/clienti', async (req, res) => {
     }
 });
 
-app.get('/clienti/aggiungi', (req, res) => { // Rimuovi isAuthenticated se presente
+app.get('/clienti/aggiungi', (req, res) => {
     res.render('aggiungi-cliente');
 });
 
-app.get('/clienti/:id/modifica', async (req, res) => { // Rimuovi isAuthenticated se presente
+app.get('/clienti/:id/modifica', async (req, res) => {
     const { id } = req.params;
     try {
         const result = await pool.query('SELECT * FROM clienti WHERE id = $1', [id]);
@@ -166,7 +134,7 @@ app.post('/clienti/:id/elimina', async (req, res) => {
     }
 });
 
-app.get('/cerca-clienti', async (req, res) => { // Rimuovi isAuthenticated se presente
+app.get('/cerca-clienti', async (req, res) => {
     const { query } = req.query;
     try {
         const result = await pool.query(
@@ -183,3 +151,19 @@ app.get('/cerca-clienti', async (req, res) => { // Rimuovi isAuthenticated se pr
 app.listen(port, () => {
     console.log(`🚀 Server avviato su http://0.0.0.0:${port}`);
 });
+
+// ********** AGGIUNTA IMPORTANTE: GESTIONE ECCEZIONI GLOBALI **********
+process.on('uncaughtException', (err) => {
+    console.error('ERRORE CRITICO: Eccezione non catturata:', err);
+    // In un ambiente di produzione, potresti voler inviare un segnale di arresto pulito
+    // o un alert, ma per ora il log è sufficiente per diagnosticare.
+    // Considera di chiamare process.exit(1) dopo un breve ritardo in produzione
+    // per permettere al sistema di monitoraggio di riavviare l'app.
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('ERRORE CRITICO: Promessa non gestita:', reason);
+    // Logga anche la promessa che ha causato la reiezione
+    console.error(promise);
+});
+// ********************************************************************
