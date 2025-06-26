@@ -36,11 +36,14 @@ body {
     font-size: 2.8em;
     padding-bottom: 10px;
     border-bottom: 2px solid #FFD700; /* Sottolineatura gialla accesa */
+    /* Rimosso display: flex e align-items: center da qui per separare il nome */
 }
 
 .page-title #nome-completo { /* Specifico per scheda-cliente */
     color: #FFD700; /* Giallo per il nome del cliente */
     font-size: 1.1em;
+    display: block; /* Assicura che il nome vada a capo */
+    margin-top: 5px; /* Spazio tra il titolo principale e il nome */
 }
 
 .brand-title { /* Specifico per dashboard, ma riusa page-title */
@@ -248,10 +251,10 @@ body {
 
 .two-column-stack { /* Nuovo stile per il contenitore di Storico Servizi e Acquisti */
     display: flex; /* Utilizza flexbox per impilare gli elementi */
-    flex-direction: column; /* Forzali a stare uno sotto l'altro */
+    flex-direction: column; /* Forzali a stare uno sotto l'altro SEMPRE */
     gap: 25px; /* Spazio tra i due pannelli impilati */
-    /* Questo assicura che two-column-stack si posizioni correttamente nella griglia principale */
-    /* grid-column: auto / span 1;  -- Rimosso da qui e messo nella media query per il breakpoint specifico */
+    /* Assicurati che occupi l'intera larghezza della griglia principale */
+    grid-column: 1 / -1;
 }
 
 .dashboard-grid-container { /* Nuovo per dashboard */
@@ -409,7 +412,6 @@ p strong { /* Usato per scheda-cliente */
     background-color: rgba(0, 0, 0, 0.8);
     justify-content: center;
     align-items: center;
-    /* Assicurati che sia sempre visibile sopra gli altri elementi */
     pointer-events: auto; /* Permette l'interazione con la modale */
 }
 
@@ -569,11 +571,8 @@ p strong { /* Usato per scheda-cliente */
         grid-column: 2 / 3; /* Note occupa la seconda colonna */
     }
 
-    .two-column-stack {
-        grid-column: 1 / -1; /* Questo farà sì che il contenitore occupi tutte le colonne disponibili (span di 2), andando sotto gli altri */
-        display: grid; /* Cambia a grid per i due pannelli interni */
-        grid-template-columns: repeat(2, 1fr); /* Due colonne al suo interno */
-    }
+    /* Rimosso il display grid per two-column-stack su schermi grandi, rimane flex column */
+    /* La regola grid-column: 1 / -1; garantisce che occupi l'intera riga */
 }
 
 @media (max-width: 768px) {
@@ -587,12 +586,9 @@ p strong { /* Usato per scheda-cliente */
 
     .panel-grid,
     .dashboard-grid-container,
-    .panel-group,
-    .two-column-stack { /* Tutto su una colonna su schermi piccoli */
+    .panel-group { /* two-column-stack non ha più bisogno di essere listato qui per flex-direction */
         grid-template-columns: 1fr;
         gap: 20px;
-        display: flex; /* Usa flex per assicurare l'impilamento corretto */
-        flex-direction: column;
     }
 
     .btn {
