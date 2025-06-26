@@ -1,1228 +1,467 @@
-/* Stili Generali */
+/* RESET E STILI BASE */
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    background-color: #1a1a1a; /* NERO PROFONDO per lo sfondo */
+    color: #e0e0e0; /* Grigio chiaro per il testo generale */
+    line-height: 1.6;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
-    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
-    position: relative;
-    overflow-x: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 2rem;
-    color: #fefefe; /* Colore testo generale per il tema scuro */
 }
 
-/* Sfondo animato con particelle */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image:
-        radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 193, 7, 0.08) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(255, 235, 59, 0.06) 0%, transparent 50%);
-    animation: floating 20s ease-in-out infinite;
-    z-index: -1;
-}
-
-@keyframes floating {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    33% { transform: translateY(-30px) rotate(2deg); }
-    66% { transform: translateY(15px) rotate(-1deg); }
-}
-
-/* Decorazioni fluttuanti */
-.floating-decoration {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255, 215, 0, 0.1);
-    animation: float 6s ease-in-out infinite;
-    pointer-events: none;
-    border: 1px solid rgba(255, 215, 0, 0.2);
-}
-
-.floating-decoration:nth-child(1) { width: 60px; height: 60px; top: 10%; left: 10%; animation-delay: 0s; }
-.floating-decoration:nth-child(2) { width: 40px; height: 40px; top: 70%; right: 15%; animation-delay: 2s; }
-.floating-decoration:nth-child(3) { width: 80px; height: 80px; bottom: 20%; left: 5%; animation-delay: 4s; }
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(180deg); }
-}
-
-/* Stili per i titoli principali della pagina (Dashboard) */
-.brand-title {
-    font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
-    font-size: 5rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, #ffd700, #ffeb3b);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-top: 2rem;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
-    animation: glow 2s ease-in-out infinite alternate;
-    text-align: center;
-}
-
-.brand-subtitle {
-    font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
-    font-size: 2.2rem;
-    color: rgba(255, 215, 0, 0.8);
-    margin-bottom: 3rem;
-    text-align: center;
-}
-
-@keyframes glow {
-    from { text-shadow: 0 0 10px rgba(255, 215, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.2); }
-    to { text-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.4); }
-}
-
-/* --- Container Principale per tutte le pagine (Scheda Cliente, Aggiungi Trattamento, Modifica Cliente) --- */
+/* CONTAINER PRINCIPALE (per entrambe le pagine) */
 .container {
-    background-color: rgba(0, 0, 0, 0.7); /* Modificato: Sfondo leggermente più chiaro */
-    backdrop-filter: blur(10px); /* Effetto vetro smerigliato */
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.15); /* Ombra con accento dorato */
-    padding: 2.5rem;
-    width: 100%;
-    max-width: 900px;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    color: #fefefe; /* Colore testo all'interno del container */
-    border: 1px solid rgba(255, 215, 0, 0.2); /* Bordo sottile dorato */
-}
-
-.page-title {
-    font-family: 'Great Vibes', cursive; /* Mantenuto per Scheda Cliente */
-    font-size: 3.5rem;
-    color: #ffcc00; /* Colore oro per il titolo della pagina */
-    text-align: center;
-    margin-bottom: 2.5rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
-}
-
-/* --- Layout a Griglia per la Dashboard --- */
-.dashboard-grid-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 colonne fisse */
-    gap: 2rem;
-    width: 100%;
     max-width: 1200px;
-    padding: 1rem;
-    align-items: start;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #2a2a2a; /* Grigio molto scuro per il contenuto principale */
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Ombra più pronunciata per il tema scuro */
+    flex-grow: 1; /* Permette al container di espandersi */
 }
 
-.column-stack-container {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    height: 100%;
-    justify-content: flex-start; /* Allinea in alto per i pannelli impilati */
-}
-
-/* Stile per i singoli pannelli (Dashboard) */
-.dashboard-panel {
-    background: rgba(0, 0, 0, 0.7); /* Modificato: Sfondo leggermente più chiaro */
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 30px;
-    padding: 1.8rem;
-    border: 2px solid rgba(255, 215, 0, 0.3);
-    box-shadow:
-        0 15px 30px rgba(0, 0, 0, 0.5),
-        inset 0 1px 0 rgba(255, 215, 0, 0.2),
-        0 0 40px rgba(255, 215, 0, 0.1);
+/* TITOLI (per entrambe le pagine) */
+.page-title {
+    font-family: 'Great Vibes', cursive;
     text-align: center;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    animation: slideUp 1s ease-out;
+    color: #ffffff; /* Bianco per il titolo principale */
+    margin-bottom: 30px;
+    font-size: 2.8em;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #FFD700; /* Sottolineatura gialla accesa */
+}
+
+.page-title #nome-completo { /* Specifico per scheda-cliente */
+    color: #FFD700; /* Giallo per il nome del cliente */
+    font-size: 1.1em;
+}
+
+.brand-title { /* Specifico per dashboard, ma riusa page-title */
+    margin-bottom: 10px; /* Meno spazio sotto il titolo principale della dashboard */
+}
+
+.brand-subtitle { /* Nuovo stile per il sottotitolo della dashboard */
+    text-align: center;
+    color: #cccccc;
+    font-size: 1.1em;
+    margin-bottom: 40px;
+    font-style: italic;
+}
+
+
+.panel-title { /* Per entrambe le pagine */
+    color: #ffffff; /* Bianco per i titoli dei pannelli */
+    font-size: 1.6em;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #444444; /* Grigio più scuro per la sottolineatura dei pannelli */
     display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
+    justify-content: space-between;
+    align-items: center;
 }
 
-/* Stile per i pannelli che occupano tutta la larghezza (es. Lista Clienti) */
-.full-width-panel {
-    grid-column: 1 / -1;
-    max-width: unset;
-}
-
-/* Animazione di entrata per i pannelli */
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(50px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Effetto hover per i pannelli */
-.dashboard-panel:hover {
-    transform: translateY(-10px);
-    box-shadow:
-        0 25px 50px rgba(0, 0, 0, 0.6),
-        inset 0 1px 0 rgba(255, 215, 0, 0.3),
-        0 0 60px rgba(255, 215, 0, 0.2);
-}
-
-/* Stile per i titoli dei pannelli (Dashboard) */
-.panel-title {
-    font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
-    font-size: 2.5rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, #ffd700, #ffeb3b);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 1.5rem;
-    text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
-    animation: glow 2s ease-in-out infinite alternate;
-}
-
-/* Stile per sottotitoli o descrizioni all'interno dei pannelli */
-.panel-subtitle {
-    font-size: 1.1rem;
-    color: rgba(255, 215, 0, 0.8);
-    margin-bottom: 1rem;
-}
-
-/* Stili specifici per i pannelli compatti (Controllo Musica e Appuntamenti) */
-.compact-panel {
-    padding: 1rem;
-}
-
-.compact-panel .panel-title {
-    margin-bottom: 0.8rem;
-}
-
-.compact-panel .panel-subtitle {
-    margin-bottom: 0.5rem;
-}
-
-/* --- Bottoni Generali (applicabili a dashboard, schede, modali) --- */
+/* BOTTONI GENERALI (per entrambe le pagine) */
 .btn {
-    padding: 0.5rem 1rem !important; /* Ridotto il padding ulteriormente con !important */
-    border-radius: 8px;
-    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    width: 100%; /* Default a larghezza piena per i bottoni dei form */
-    border: none; /* Rimuovi bordi default */
-    font-family: 'Inter', sans-serif; /* Coerenza font */
-    font-size: 0.85rem !important; /* Ridotto la dimensione del font ulteriormente con !important */
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
-/* Bottoni principali (Gold/Black) */
-.btn-primary,
-#btnCerca,
-#btnNuovoCliente,
-#btnMusic,
-#btnListaClienti,
-.modal-button.ok,
-.navbar-btn {
-    background: linear-gradient(135deg, #ffd700, #ffb300);
-    color: #000000;
-    border: 2px solid rgba(255, 215, 0, 0.3);
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-    position: relative;
-    overflow: hidden;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive; /* Specifico per questi bottoni iconici */
-    font-size: 0.85rem !important; /* Ridotto la dimensione del font con !important */
-    min-width: 120px !important; /* Ridotto la larghezza minima con !important */
-    margin-top: 0.8rem; /* Margine superiore per coerenza con gli input */
+.btn-primary {
+    background-color: #FFD700; /* Giallo acceso */
+    color: #1a1a1a; /* Testo nero scuro */
+    border: 1px solid #E6C200;
 }
 
-/* Specificità maggiore per i bottoni all'interno dei pannelli della dashboard */
-.dashboard-panel button {
-    padding: 0.5rem 1rem !important; /* Padding ridotto con !important */
-    font-size: 0.85rem !important; /* Font size ridotto con !important */
-    min-width: 120px !important; /* Larghezza minima ridotta con !important */
-    margin-top: 0.8rem;
-    background: linear-gradient(135deg, #ffd700, #ffb300);
-    color: #000000;
-    border: 2px solid rgba(255, 215, 0, 0.3);
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-    position: relative;
-    overflow: hidden;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
+.btn-primary:hover {
+    background-color: #E6C200;
+    border-color: #CCAA00;
+    box-shadow: 0 2px 10px rgba(255, 215, 0, 0.3);
 }
 
-
-.btn-primary:hover,
-.dashboard-panel button:hover,
-#btnCerca:hover,
-#btnNuovoCliente:hover,
-#btnMusic:hover,
-#btnListaClienti:hover,
-.modal-button.ok:hover,
-.navbar-btn:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow:
-        0 10px 20px rgba(0, 0, 0, 0.6),
-        inset 0 1px 0 rgba(255, 215, 0, 0.3);
-    background: linear-gradient(135deg, #ffeb3b, #ffc107);
-    color: #000000;
-}
-
-/* Effetto luccicante per i bottoni gold */
-.btn-primary::before,
-.dashboard-panel button::before,
-#btnCerca::before,
-#btnNuovoCliente::before,
-#btnMusic::before,
-#btnListaClienti::before,
-.modal-button.ok::before,
-.navbar-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-    transition: left 0.5s ease;
-}
-
-.btn-primary:hover::before,
-.dashboard-panel button:hover::before,
-#btnCerca:hover::before,
-#btnNuovoCliente:hover::before,
-#btnMusic:hover::before,
-#btnListaClienti:hover::before,
-.modal-button.ok:hover::before,
-.navbar-btn:hover::before {
-    left: 100%;
-}
-
-.btn-primary:active,
-.dashboard-panel button:active,
-#btnCerca:active,
-#btnNuovoCliente:active,
-#btnMusic:active,
-#btnListaClienti:active,
-.modal-button.ok:active,
-.navbar-btn:active {
-    transform: translateY(-1px) scale(1.01);
-}
-
-/* Bottone secondario/annulla */
-.btn-secondary,
-.modal-button.cancel {
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    margin-top: 1rem;
-    padding: 0.5rem 1rem !important; /* Ridotto il padding ulteriormente con !important */
-    font-size: 0.85rem !important; /* Ridotto la dimensione del font ulteriormente con !important */
-}
-.btn-secondary:hover,
-.modal-button.cancel:hover {
-    background-color: #5a6268;
-    transform: translateY(-2px);
-}
-
-/* Bottone pericolo (elimina) */
 .btn-danger {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 0.6rem 1.1rem !important; /* Ridotto il padding con !important */
-    border-radius: 8px;
-    font-weight: 600;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-    font-size: 0.9rem !important; /* leggermente più grande degli altri, ma ridotto con !important */
+    background-color: #DC3545; /* Rosso per eliminazione */
+    color: #FFFFFF;
+    border: 1px solid #C82333;
 }
 
 .btn-danger:hover {
-    background-color: #bd2130;
-    transform: translateY(-2px);
+    background-color: #C82333;
+    border-color: #BD2130;
 }
 
-/* Bottone per aggiungere (icona) */
+.btn-nav {
+    background-color: #444444; /* Grigio scuro per i bottoni di navigazione */
+    color: #FFFFFF;
+    border: 1px solid #333333;
+    min-width: 120px;
+}
+
+.btn-nav:hover {
+    background-color: #555555;
+    border-color: #444444;
+}
+
 .btn-icon {
     background: none;
-    border: none;
-    font-size: 1.3rem !important; /* Un po' più piccolo con !important */
-    cursor: pointer;
-    color: #ffd700; /* Accento oro */
-    transition: color 0.2s ease, transform 0.2s ease;
-    padding: 0 !important;
+    border: 1px solid #FFD700;
+    color: #FFD700;
+    font-size: 1.5em;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
 }
 
 .btn-icon:hover {
-    color: #ffeb3b; /* Oro più chiaro al passaggio */
-    transform: scale(1.1);
+    background-color: #FFD700;
+    color: #1a1a1a;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.2);
 }
 
-/* --- Stili per Input e Textarea --- */
-.input-field,
-.select-field,
-.textarea-field,
-.dashboard-panel input[type="text"],
-.dashboard-panel input[type="email"],
-.dashboard-panel input[type="tel"],
-.dashboard-panel input[type="date"],
-.dashboard-panel textarea {
+/* CONTROLLI DI NAVIGAZIONE CLIENTE (per scheda-cliente) */
+.client-navigation-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 15px 0;
+    border-bottom: 1px dashed #444444;
+}
+
+.pagination-info {
+    font-weight: bold;
+    color: #cccccc;
+}
+
+/* GRIGLIA DEI PANNELLI (per entrambe le pagine) */
+.panel-grid { /* Usato per scheda-cliente */
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Due colonne uguali */
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.dashboard-grid-container { /* Nuovo per dashboard */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 300px minimo per colonna */
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.panel { /* Stili base per tutti i pannelli (scheda e dashboard) */
+    background-color: #333333;
+    border: 1px solid #444444;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-subtitle { /* Stile per i sottotitoli nei pannelli della dashboard */
+    color: #cccccc;
+    font-size: 0.95em;
+    margin-bottom: 20px;
+    flex-grow: 1; /* Permette al sottotitolo di occupare spazio e spingere i campi sotto */
+}
+
+.panel-content { /* Usato per scheda-cliente */
+    flex-grow: 1;
+    margin-bottom: 20px;
+    color: #e0e0e0;
+}
+
+.panel-actions { /* Usato per scheda-cliente */
+    margin-top: auto;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Specifico per dashboard */
+.dashboard-panel button { /* Margine per i bottoni nella dashboard */
     width: 100%;
-    padding: 0.8rem;
-    margin-bottom: 1rem;
-    border: 1px solid rgba(255, 215, 0, 0.3); /* Bordo sottile oro */
-    border-radius: 8px;
-    background-color: rgba(26, 26, 26, 0.8); /* Modificato: Sfondo input leggermente più chiaro */
-    color: #fefefe; /* Testo chiaro */
-    font-size: 1rem;
+    margin-top: 15px;
+}
+
+.dashboard-panel input:last-of-type {
+    margin-bottom: 20px; /* Più spazio dopo l'ultimo input prima del bottone */
+}
+
+.panel-group { /* Il contenitore dei pannelli compatti "Musica" e "Agenda" */
+    display: grid;
+    grid-template-columns: 1fr; /* Default: una colonna */
+    gap: 25px;
+}
+
+.compact-panel { /* Per i pannelli "Musica" e "Agenda" */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Spinge bottoni in basso e titoli in alto */
+    min-width: 250px; /* Assicura una larghezza minima per i pannelli compatti */
+}
+
+.compact-panel .btn {
+    margin-top: 10px; /* Meno margine tra i bottoni compatti */
+}
+
+
+/* CAMPI DI TESTO E TEXTAREA (per entrambe le pagine) */
+p strong { /* Usato per scheda-cliente */
+    color: #ffffff;
+}
+
+.input-field,
+.textarea-field,
+.select-field {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #555555;
+    border-radius: 5px;
+    font-size: 1em;
+    color: #ffffff;
+    background-color: #2a2a2a;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-field:focus,
+.textarea-field:focus,
+.select-field:focus {
+    border-color: #FFD700;
+    box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
     outline: none;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    box-sizing: border-box; /* Assicura che padding e border siano inclusi nella larghezza */
 }
 
-.input-field:focus, .select-field:focus, .textarea-field:focus,
-.dashboard-panel input:focus, .dashboard-panel textarea:focus {
-    border-color: #ffd700; /* Bordo più acceso al focus */
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); /* Ombra luminosa al focus */
-}
-
-/* Placeholder color */
-.input-field::placeholder, .select-field::placeholder, .textarea-field::placeholder,
-.dashboard-panel input::placeholder, .dashboard-panel textarea::placeholder {
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.textarea-field {
-    min-height: 100px;
+.textarea-field { /* Usato per scheda-cliente */
+    min-height: 120px;
     resize: vertical;
 }
 
-/* --- Stili per Tabelle (Liste Clienti, Trattamenti, Acquisti) --- */
-.table-responsive {
-    overflow-x: auto;
-}
-
+/* TABELLE (per scheda-cliente) */
 .data-table {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin-top: 1rem;
-    border-radius: 8px; /* Bordi arrotondati per la tabella */
-    overflow: hidden; /* Nasconde ciò che eccede i bordi arrotondati */
+    border-collapse: collapse;
+    margin-top: 15px;
 }
 
 .data-table th,
 .data-table td {
-    padding: 12px 15px;
+    border: 1px solid #444444;
+    padding: 12px;
     text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Bordo inferiore leggero per il tema scuro */
-    color: #fefefe; /* Testo chiaro per le celle */
+    color: #e0e0e0;
 }
 
 .data-table thead th {
-    background-color: rgba(255, 215, 0, 0.1); /* Sfondo oro leggero per l'intestazione */
-    color: #ffd700; /* Testo oro per l'intestazione */
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.9em;
+    background-color: #FFD700;
+    color: #000000;
+    font-weight: bold;
     position: sticky;
     top: 0;
     z-index: 1;
 }
 
-.data-table tbody tr {
-    background-color: rgba(0, 0, 0, 0.65); /* Modificato: Sfondo più chiaro per le righe normali */
-}
-
 .data-table tbody tr:nth-child(even) {
-    background-color: rgba(0, 0, 0, 0.75); /* Modificato: Sfondo alternato leggermente più chiaro */
+    background-color: #3a3a3a;
 }
 
 .data-table tbody tr:hover {
-    background-color: rgba(255, 215, 0, 0.2); /* Sfondo oro più visibile al passaggio */
+    background-color: #555555;
 }
 
-.data-table tbody tr:last-child td {
-    border-bottom: none;
+.table-responsive {
+    overflow-x: auto;
+    margin-top: 10px;
 }
 
-/* RIMOSSA RIGHE TABELLA STORICO ACQUISTI */
-.acquisti-table th,
-.acquisti-table td {
-    border: none !important; /* Rimuove tutti i bordi */
-    padding: 8px 15px; /* Adatta il padding per un look più pulito senza bordi */
+/* SEZIONE ELIMINA CLIENTE (per scheda-cliente) */
+.delete-client-section {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px dashed #444444;
 }
 
-.acquisti-table thead th {
-    background-color: transparent; /* Rimuove lo sfondo dalle intestazioni */
-    color: #ffd700; /* Mantiene il testo oro per l'intestazione */
-    border-bottom: 1px solid rgba(255, 215, 0, 0.1) !important; /* Mantiene solo un bordo inferiore sottile */
-}
-
-.acquisti-table tbody tr {
-    background-color: transparent; /* Rimuove lo sfondo delle righe */
-}
-
-.acquisti-table tbody tr:nth-child(even) {
-    background-color: rgba(255, 215, 0, 0.08); /* Modificato: Un leggero sfondo alternato per leggibilità, leggermente più scuro */
-}
-
-.acquisti-table tbody tr:hover {
-    background-color: rgba(255, 215, 0, 0.18); /* Modificato: Sfondo leggero all'hover, leggermente più scuro */
-}
-
-
-/* Stili specifici per la lista clienti nella Dashboard */
-.client-list-item {
-    background-color: rgba(255, 255, 255, 0.15); /* Modificato: Sfondo leggermente più chiaro */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.7rem 1rem;
-    margin-bottom: 0.5rem;
-    border-radius: 5px;
-    color: #fefefe;
-    font-size: 0.95rem;
-    transition: background-color 0.2s ease;
-    cursor: pointer;
-    border: 1px solid rgba(255, 215, 0, 0.1);
-}
-
-.client-list-item:hover {
-    background-color: rgba(255, 215, 0, 0.28); /* Modificato: Sfondo più acceso all'hover */
-}
-
-.client-list-item .client-name {
-    font-weight: bold;
-    color: #ffd700; /* Nome cliente in oro */
-}
-
-.client-list-item .client-actions button {
-    margin-left: 0.5rem;
-    padding: 0.4rem 0.8rem !important;
-    font-size: 0.8rem !important;
-    min-width: unset !important;
-}
-
-/* --- Modali --- */
-.modal { /* Corrisponde a #appointment-modal nel tuo HTML */
+/* MODAL (POPUPS) (per scheda-cliente) */
+.modal {
+    display: none; /* Nascosto di default */
     position: fixed;
     z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.75); /* Sfondo semi-trasparente scuro */
-    display: flex; /* Utilizza flexbox per centrare il contenuto */
-    justify-content: center; /* Centra orizzontalmente */
-    align-items: center; /* Centra verticalmente */
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    overflow: auto; /* Permetti lo scroll sull'overlay se il modal-content è grande */
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
 }
 
-.modal.open {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* MODIFICHE CHIAVE PER LA DIMENSIONE E LO SCROLL DELLA MODALE */
 .modal-content {
-    background-color: #2b2b2b; /* Assicurati che sia uno sfondo scuro coerente */
-    padding: 2.5rem; /* Aumenta leggermente il padding interno per più spazio */
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); /* Ombra scura per profondità */
-    width: 90%; /* Occupa il 90% della larghezza del genitore (modal) */
-    max-width: 500px; /* Imposta una larghezza massima per evitare che sia troppo grande */
-    max-height: 90vh; /* Imposta un'altezza massima, il 90% dell'altezza del viewport */
-    overflow-y: auto; /* Aggiunge una scrollbar verticale se il contenuto supera max-height */
-    text-align: left; /* Allinea il testo a sinistra per i campi form */
-    color: #fefefe; /* Testo chiaro */
-    animation: slideIn 0.3s ease-out;
-    border: 1px solid rgba(255, 215, 0, 0.2); /* Bordo sottile oro */
-    position: relative; /* Per posizionamenti interni, se necessari */
-    margin: auto; /* Centra il blocco se il display non è flex */
+    background-color: #3a3a3a;
+    margin: auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4);
+    position: relative;
+    animation: fadeIn 0.3s ease-out;
+    color: #e0e0e0;
 }
 
-@keyframes slideIn {
-    from { transform: translateY(-50px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+.modal-content h3 {
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 25px;
+    font-size: 1.8em;
+    border-bottom: 1px solid #FFD700;
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #cccccc;
 }
 
 .modal-buttons {
     display: flex;
-    justify-content: flex-end; /* Allinea i bottoni a destra */
-    gap: 1rem;
-    margin-top: 2rem; /* Aumentato il margine superiore per più spazio */
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 30px;
 }
 
-/* I bottoni delle modali useranno gli stili .btn-primary, .btn-secondary, .btn-danger */
-/* Aggiunta specificità per i bottoni OK/Cancel nelle modali */
-.modal-button.ok, .modal-button.cancel {
-    padding: 0.7rem 1.2rem !important; /* Aumentato il padding per clickabilità */
-    font-size: 0.9rem !important; /* Aumentato leggermente la dimensione del font */
-    min-width: unset !important; /* Rimuovi min-width */
-    /* flex-grow: 1; */ /* Rimosso flex-grow per non forzare la larghezza piena se non desiderato */
-    margin-top: 0 !important; /* Rimuovi margin-top per allineamento nei modal-buttons con !important */
-}
-
-
-/* --- Stili per la Scheda Cliente (layout a pannelli) --- */
-.panel-grid {
-    display: grid;
-    gap: 2rem;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    margin-bottom: 2rem;
-}
-
-.panel {
-    background-color: rgba(0, 0, 0, 0.7); /* Modificato: Sfondo pannelli Scheda Cliente leggermente più chiaro */
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.1);
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    min-height: 200px;
-    border: 1px solid rgba(255, 215, 0, 0.2); /* Bordo sottile oro */
-}
-
-/* MODIFICA APPLICATA QUI: Stili per i titoli dei pannelli sulla Scheda Cliente */
-.panel-grid .panel-title {
-    font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
-    font-size: 1.8rem; /* Dimensione leggermente più piccola rispetto ai titoli della dashboard */
-    font-weight: 900;
-    background: linear-gradient(135deg, #ffd700, #ffeb3b); /* Gradiente oro */
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); /* Ombra luminosa */
-    animation: glow 2s ease-in-out infinite alternate; /* Animazione glow */
-    border-bottom: 1px solid rgba(255, 215, 0, 0.1); /* Mantiene il bordo inferiore */
-    padding-bottom: 0.8rem;
-    display: flex; /* Assicurati che rimanga flex per l'icona '+' */
-    justify-content: space-between;
-    align-items: center;
-}
-
-.panel-content {
-    flex-grow: 1;
-    padding-top: 0.5rem;
-    color: #cccccc; /* Testo all'interno dei pannelli */
-}
-
-.panel-actions {
-    margin-top: 1.5rem;
-    text-align: right;
-}
-
-.client-details-panel p {
-    font-size: 1.1rem;
-    margin-bottom: 0.8rem;
-    color: #fefefe;
-}
-
-.notes-panel textarea {
-    background-color: rgba(26, 26, 26, 0.8); /* Modificato: Sfondo textarea leggermente più chiaro */
-    color: #fefefe;
-    border: 1px solid rgba(255, 215, 0, 0.3);
-}
-
-/* Bottone Elimina Cliente al di fuori dei pannelli */
-.delete-client-section {
-    margin-top: 3rem;
-    text-align: center;
-}
-
-/* Stili per il nome completo del cliente nella scheda */
-#nome-completo {
-    color: #ffcc00; /* Nome cliente in oro */
-    font-size: 2.5rem;
-    font-weight: 400;
-    display: block;
-    margin-bottom: 1rem;
-    text-transform: none;
-    letter-spacing: normal;
-    text-align: left;
-    font-family: 'Great Vibes', cursive;
-}
-
-/* --- Stili per la Navbar --- */
-.main-navbar {
-    background: linear-gradient(90deg, #000000 0%, #1a1a1a 100%);
-    color: white;
-    padding: 15px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.15);
-    font-family: 'Inter', sans-serif;
-    position: sticky;
-    top: 0;
-    width: 100%;
-    z-index: 999;
-    box-sizing: border-box;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-}
-
-.navbar-brand {
-    display: flex;
-    align-items: center;
-}
-
-.navbar-brand h1 {
-    margin: 0;
-    font-family: 'Brush Script MT', 'Lucida Handwriting', 'Segoe Script', cursive;
-    font-size: 2.5em;
-    font-weight: 900;
-    background: linear-gradient(135deg, #ffd700, #ffeb3b);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-    transition: text-shadow 0.3s ease;
-}
-
-.navbar-brand h1:hover {
-    text-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
-}
-
-.navbar-links {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    gap: 30px;
-}
-
-.navbar-links li a {
-    color: #fefefe;
-    text-decoration: none;
-    font-size: 1.1em;
-    padding: 8px 15px;
-    border-radius: 25px;
-    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid transparent;
-}
-
-.navbar-links li a:hover {
-    background-color: rgba(255, 215, 0, 0.1);
-    color: #ffd700;
-    border-color: rgba(255, 215, 0, 0.3);
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-}
-
-/* I bottoni nella navbar useranno lo stile .navbar-btn, che è già incluso in .btn-primary */
-
-/* --- Stili per i Bottoni di Navigazione Scheda Cliente (Indietro/Avanti) --- */
-.client-navigation-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    max-width: 900px; /* Allineato con il container principale */
-    margin-bottom: 2rem; /* Spazio sotto i bottoni e sopra il panel-grid */
-    padding: 0 20px; /* Padding laterale per non incollarsi ai bordi */
-}
-
-.client-navigation-controls .btn-nav {
-    /* Questo stile è specifico per i bottoni Indietro/Avanti. */
-    /* Vengono applicati gli stili di .btn-primary per l'aspetto oro/nero. */
-    min-width: 90px !important; /* Ridotto ulteriormente con !important */
-    padding: 0.6rem 1rem !important; /* Ridotto il padding ulteriormente con !important */
-    font-size: 0.8rem !important; /* Ridotto la dimensione del font ulteriormente con !important */
-    margin-top: 0 !important; /* Rimuovi il margin-top per allinearli con !important */
-}
-
-.client-navigation-controls .pagination-info {
-    color: #ffd700; /* Colore oro per il testo di paginazione */
-    font-size: 1.1rem;
-    font-weight: 500;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-/* --- Responsive Design Generale --- */
-@media (max-width: 768px) {
-    body {
-        padding: 1rem;
-    }
-    .brand-title {
-        font-size: 3.5rem;
-    }
-    .brand-subtitle {
-        font-size: 1.8rem;
-        margin-bottom: 2rem;
-    }
-    .dashboard-grid-container {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-        align-items: stretch;
-    }
-    .column-stack-container {
-        gap: 1.5rem;
-    }
-    .dashboard-panel {
-        padding: 1.2rem;
-    }
-    .compact-panel {
-        padding: 0.8rem;
-    }
-    .panel-title {
-        font-size: 1.5rem; /* Riduci per i pannelli interni della scheda */
-    }
-    .dashboard-panel button,
-    .btn-primary,
-    .btn-secondary,
-    .btn-danger,
-    .modal-button,
-    #btnCerca,
-    #btnNuovoCliente,
-    #btnMusic,
-    #btnListaClienti,
-    .client-navigation-controls .btn-nav {
-        min-width: unset !important; /* Rimuovi min-width per i bottoni su mobile con !important */
-        padding: 0.6rem 1rem !important; /* Assicurati che il padding sia ridotto anche qui con !important */
-        font-size: 0.85rem !important; /* Assicurati che il font sia ridotto anche qui con !important */
-    }
-    .container {
-        padding: 1.5rem;
-    }
-    .page-title {
-        font-size: 2.5rem;
-        margin-bottom: 1.5rem;
-    }
-    .client-navigation-controls {
-        flex-direction: column;
-        gap: 1rem;
-        padding: 0 10px;
-    }
-    .client-navigation-controls .btn-nav {
-        width: 100% !important; /* I bottoni di navigazione occupano tutta la larghezza su mobile con !important */
-    }
-    .client-navigation-controls .pagination-info {
-        margin-top: 0.5rem;
-    }
-
-    /* Media Queries per la responsività della navbar */
-    .main-navbar {
-        flex-direction: column;
-        padding: 10px 20px;
-        text-align: center;
-    }
-    .navbar-brand {
-        margin-bottom: 15px;
-    }
-    .navbar-brand h1 {
-        font-size: 2em;
-    }
-    .navbar-links {
-        flex-direction: column;
-        gap: 10px;
-        width: 100%;
-        margin-bottom: 15px;
-    }
-    .navbar-links li {
-        width: 100%;
-    }
-    .navbar-links li a,
-    .navbar-btn {
-        display: block;
-        width: calc(100% - 20px);
-        padding: 12px 10px;
-        text-align: center;
-        margin: 0 auto;
-    }
-
-    /* Modal responsiveness for smaller screens */
-    .modal-content {
-        width: 95%; /* Make it take up more width on small screens */
-        padding: 1.5rem; /* Reduce padding for smaller screens */
-        max-width: none; /* Remove max-width on smaller screens */
-    }
-    .modal-buttons {
-        flex-direction: column; /* Stack buttons vertically on small screens */
-    }
-    .modal-button.ok, .modal-button.cancel {
-        width: 100%; /* Make buttons full width */
-    }
-}
-
-
-/* Responsive per la griglia su tablet o schermi intermedi */
-@media (min-width: 769px) and (max-width: 1024px) {
-    .dashboard-grid-container {
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
-    }
-}
-
-/* Miglioramenti per accessibilità */
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
-/* --- NUOVE REGOLE PER I BOTTONI NELLE TABELLE (AGGIUNTE QUI) --- */
-.data-table td .btn,
-.data-table td .btn-danger {
-    width: auto !important;
-    min-width: unset !important;
-    padding: 0.3rem 0.6rem !important;
-    font-size: 0.75rem !important;
-    margin: 2px;
-    text-align: center;
-    text-transform: none !important; /* Per testo "Modifica" ed "Elimina" */
-    letter-spacing: normal !important;
-    font-family: 'Inter', sans-serif !important; /* Usa font standard per coerenza */
-    display: inline-block; /* Assicura che i bottoni stiano sulla stessa riga */
-    vertical-align: middle; /* Allinea verticalmente */
-}
-
-/* Regola specifica per i bottoni "Modifica" (stilo primario ridotto) */
-.data-table td .btn-primary { /* Assicurati che questi bottoni abbiano anche la classe btn-primary */
-    background: linear-gradient(135deg, #ffd700, #ffb300) !important; /* Forza il colore oro */
-    color: #000000 !important; /* Forza il testo nero */
-    border: 1px solid rgba(255, 215, 0, 0.3) !important;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
-}
-
-/* Effetti hover per i bottoni nelle tabelle */
-.data-table td .btn:hover {
-    transform: translateY(-1px) scale(1.02) !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
-}
-
-/* Opzionale: Allineare i bottoni a destra nella cella "Azione" */
-.data-table td:last-child {
-    text-align: right;
-    white-space: nowrap; /* Evita che i bottoni vadano a capo */
-}
-
-/* Se decidi di usare le icone al posto del testo "Modifica" / "Elimina" */
-/* Dovrai aggiungere le classi 'btn-edit-icon' e 'btn-delete-icon' ai tuoi bottoni HTML */
-/* E, in quel caso, potresti commentare o rimuovere le regole per '.data-table td .btn' e '.data-table td .btn-danger' sopra */
-/* per dare precedenza agli stili delle icone se non vuoi lo sfondo colorato. */
-.data-table td .btn-edit-icon,
-.data-table td .btn-delete-icon {
-    background: none !important;
-    border: none !important;
-    padding: 0 !important; /* Niente padding per le icone pure */
-    width: auto !important;
-    min-width: unset !important;
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: color 0.2s ease, transform 0.2s ease;
-    font-size: 1.1rem !important; /* Dimensione dell'icona */
-    margin: 0 5px; /* Spazio tra le icone */
-}
-
-.data-table td .btn-edit-icon {
-    color: #ffd700 !important; /* Colore oro per l'icona modifica */
-}
-
-.data-table td .btn-edit-icon:hover {
-    color: #ffeb3b !important;
-    transform: scale(1.2) !important;
-}
-
-.data-table td .btn-delete-icon {
-    color: #dc3545 !important; /* Colore rosso per l'icona elimina */
-}
-
-.data-table td .btn-delete-icon:hover {
-    color: #bd2130 !important;
-    transform: scale(1.2) !important;
-}
-
-
-/* --- Agenda Specific Styles (Aggiungi/Modifica queste sezioni nel tuo style.css) --- */
-
-/* Assicurati che .container.agenda-container abbia una larghezza massima adeguata */
-.agenda-container {
-    max-width: 1400px; /* Potresti volerla leggermente più larga per più giorni */
-    margin: 2rem auto; /* Centra la pagina */
-    padding: 0 1.5rem;
-}
-
-.agenda-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding: 0 1rem;
-    flex-wrap: wrap; /* Permetti ai controlli di andare a capo su schermi piccoli */
-    gap: 1rem; /* Spazio tra gli elementi */
-}
-
-.agenda-controls h2 {
-    color: #ffd700;
-    font-size: 1.8rem;
-    margin: 0;
-    flex-grow: 1; /* Permetti al titolo di occupare lo spazio disponibile */
-    text-align: center;
-}
-
-.agenda-controls .btn-nav {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1rem !important;
-    padding: 0.8rem 1.2rem !important;
-}
-
-.agenda-controls .add-appointment-btn {
-    font-size: 1rem !important;
-    padding: 0.8rem 1.2rem !important;
-    margin-left: auto; /* Sposta il pulsante "Aggiungi" a destra */
-}
-
-/* Griglia della vista settimanale - QUESTO È IL CUORE DEL LAYOUT */
-.calendar-weekly-view {
-    display: grid;
-    /* La prima colonna è per gli orari, le altre 7 per i giorni.
-       La width degli orari può essere fissa (es. 80px) o percentuale. */
-    grid-template-columns: 80px repeat(7, 1fr);
-    border: 1px solid rgba(255, 215, 0, 0.2);
-    border-radius: 12px;
-    overflow: hidden; /* Per bordi arrotondati, e per scroll orizzontale se necessario */
-    background-color: rgba(0, 0, 0, 0.6); /* Sfondo del calendario */
-    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.15);
-    min-height: 700px; /* Altezza minima del contenitore calendario */
-}
-
-/* Colonna degli orari */
-.calendar-time-col {
-    background-color: rgba(0, 0, 0, 0.7);
-    border-right: 1px solid rgba(255, 215, 0, 0.1);
-    position: relative;
-    z-index: 20; /* Assicurati che sia sopra gli appuntamenti se si sovrappongono */
-    /* Assicurati che la colonna degli orari abbia un'altezza che si estende per tutti gli slot */
-    display: flex;
-    flex-direction: column;
-}
-
-.time-header {
-    height: 60px; /* Altezza dell'header sopra gli orari */
-    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
-    background-color: rgba(255, 215, 0, 0.15); /* Sfondo per l'angolo in alto a sinistra */
-    position: sticky; /* Rende l'header fisso quando scorri */
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 20; /* Deve essere sopra i giorni */
-}
-
-.time-slot {
-    height: 60px; /* Altezza di un blocco orario (es. 1 ora) */
-    min-height: 60px; /* Assicurati un'altezza minima per lo slot orario */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #bbb;
-    font-size: 0.9em;
-    border-bottom: 1px dashed rgba(255, 215, 0, 0.05); /* Linea guida per gli orari */
-}
-.time-slot:last-child {
-    border-bottom: none;
-}
-
-
-/* Griglia dei giorni - CORREZIONE DEL PROBLEMA DI LAYOUT */
-/* Qui era il punto in cui la griglia si rompeva.
-   `display: contents` è la soluzione corretta per permettere ai figli
-   di .calendar-days-grid di diventare direttamente figli di .calendar-weekly-view
-   senza creare un nuovo contesto di griglia annidato che rompe il layout. */
-.calendar-days-grid {
-    display: contents;
-    /* I figli di calendar-days-grid saranno le colonne dei giorni, gestite da calendar-weekly-view */
-}
-
-.calendar-day-col {
-    border-right: 1px solid rgba(255, 215, 0, 0.1);
-    background-color: rgba(0, 0, 0, 0.5); /* Sfondo per ogni giorno */
-    display: flex;
-    flex-direction: column;
-    position: relative; /* Importante per posizionare gli appuntamenti */
-}
-
-.calendar-day-col:last-child {
-    border-right: none;
-}
-
-.day-header {
-    height: 60px; /* Altezza uguale all'header degli orari */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background-color: rgba(255, 215, 0, 0.15); /* Sfondo per l'header del giorno */
-    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
-    color: #ffd700;
+.modal-button {
+    padding: 12px 25px;
+    border-radius: 5px;
     font-weight: bold;
-    position: sticky; /* Rende l'header del giorno fisso quando scorri */
-    top: 0;
-    z-index: 10;
-}
-
-.day-header .day-name {
-    font-size: 0.9em;
-    text-transform: uppercase;
-    color: rgba(255, 215, 0, 0.8);
-}
-
-.day-header .day-date {
-    font-size: 1.4em;
-    margin-top: 2px;
-}
-
-.day-header.current-day {
-    background-color: rgba(255, 215, 0, 0.3); /* Colore più acceso per il giorno corrente */
-    color: #fff;
-}
-
-
-.day-slots {
-    position: relative; /* Contenitore per gli appuntamenti posizionati assolutamente */
-    flex-grow: 1; /* Fa espandere gli slot per riempire l'altezza */
-    min-height: calc(11 * 60px); /* 11 ore * 60px/ora = 660px altezza minima, da 9:00 a 20:00, più una per l'ultima ora */
-    padding-top: 0; /* Assicurati che non ci sia padding sopra, gli appuntamenti usano `top` */
-    padding-bottom: 0;
-}
-
-.time-slot-placeholder {
-    height: 60px; /* Altezza di ogni placeholder, 1px per ogni minuto */
-    border-bottom: 1px dashed rgba(255, 215, 0, 0.05); /* Linee orizzontali sottili */
-}
-
-.time-slot-placeholder:last-child {
-    border-bottom: none;
-}
-
-/* Stili per i blocchi appuntamento */
-.appointment {
-    position: absolute;
-    left: 2px; /* Piccolo margine dal bordo sinistro */
-    right: 2px; /* Piccolo margine dal bordo destro */
-    background-color: rgba(255, 215, 0, 0.6); /* Colore di default per gli appuntamenti */
-    border-radius: 4px;
-    padding: 5px 8px;
-    font-size: 0.85em;
-    color: #000; /* Testo nero sull'oro */
-    overflow: hidden;
     cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    z-index: 5; /* Assicurati che siano sopra i placeholder */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    border: none;
 }
 
-.appointment:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-}
-
-.appointment .appointment-time {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 2px;
-}
-
-.appointment .appointment-client {
-    display: block;
-    font-size: 0.9em;
-    white-space: nowrap; /* Evita che il nome del cliente vada a capo */
-    overflow: hidden;
-    text-overflow: ellipsis; /* Aggiunge "..." se il testo è troppo lungo */
-}
-
-.appointment .appointment-service {
-    display: block;
-    font-size: 0.8em;
-    color: rgba(0, 0, 0, 0.8);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Stili per operatore specifico (es. operatore1, operatore2) */
-.appointment.operator-operator1 {
-    background-color: #ffd700; /* Oro pieno per Operatore 1 */
+.modal-button.ok {
+    background-color: #FFD700;
     color: #000;
 }
 
-.appointment.operator-operator2 {
-    background-color: #b8860b; /* Oro scuro per Operatore 2 */
-    color: #fff;
+.modal-button.ok:hover {
+    background-color: #E6C200;
+    transform: translateY(-2px);
 }
 
-/* Media Query per la vista Agenda su schermi più piccoli */
-@media (max-width: 1024px) {
-    .calendar-weekly-view {
-        grid-template-columns: 60px repeat(7, 1fr); /* Riduci la larghezza della colonna orari */
+.modal-button.cancel {
+    background-color: #555555;
+    color: #FFFFFF;
+}
+
+.modal-button.cancel:hover {
+    background-color: #666666;
+    transform: translateY(-2px);
+}
+
+/* ANIMAZIONI */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* RESPONSIVITÀ */
+@media (min-width: 769px) { /* Applica queste regole solo su schermi più grandi di 768px */
+    .dashboard-grid-container {
+        /* Assicurati che ci sia spazio per 3 colonne o 2, a seconda della larghezza */
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     }
 
-    .time-slot, .day-header {
-        height: 50px; /* Riduci l'altezza degli slot per schermi più piccoli */
-        min-height: 50px;
-    }
-
-    .day-slots {
-        min-height: calc(11 * 50px); /* Regola l'altezza minima del contenitore in base al nuovo slot height */
-    }
-
-    .appointment {
-        font-size: 0.75em; /* Riduci la dimensione del font negli appuntamenti */
-        padding: 3px 5px;
-    }
-
-    .agenda-controls {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .agenda-controls h2 {
-        text-align: center;
-        margin-bottom: 1rem;
-    }
-
-    .agenda-controls .btn-nav,
-    .agenda-controls .add-appointment-btn {
-        width: 100%;
-        margin-left: 0;
+    .panel-group {
+        /* Questo farà sì che il panel-group occupi l'ultima colonna e affianchi gli altri se c'è spazio */
+        grid-template-columns: repeat(2, 1fr); /* I due pannelli Musica e Agenda si affiancheranno */
+        grid-column: span 1; /* Il panel-group stesso occupa 1 colonna della griglia principale */
     }
 }
 
 @media (max-width: 768px) {
-    .calendar-weekly-view {
-        /* Su schermi molto piccoli, potresti voler mostrare solo pochi giorni o passare a una vista giornaliera.
-           Per ora, lo lasciamo scrollabile orizzontalmente. */
-        overflow-x: auto; /* Abilita lo scroll orizzontale se i giorni non ci stanno */
-        grid-template-columns: 60px repeat(7, minmax(100px, 1fr)); /* Min-width per i giorni */
+    .container {
+        padding: 15px;
     }
 
-    .calendar-day-col {
-        min-width: 100px; /* Assicurati che ogni colonna giorno abbia una larghezza minima */
+    .page-title {
+        font-size: 2.2em;
     }
 
-    .agenda-container {
-        padding: 0 0.5rem; /* Riduci padding laterale */
+    .panel-grid,
+    .dashboard-grid-container,
+    .panel-group { /* Tutto su una colonna su schermi piccoli */
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .btn {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .panel-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal-content {
+        width: 95%;
+        padding: 20px;
+    }
+    
+    .modal-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .dashboard-panel button { /* Annulla il margine sopra per button quando sono impilati */
+        margin-top: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    .page-title {
+        font-size: 1.8em;
+    }
+    .panel-title {
+        font-size: 1.4em;
+    }
+    .brand-subtitle {
+        font-size: 1em;
     }
 }
