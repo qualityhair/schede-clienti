@@ -151,14 +151,15 @@ app.get('/cerca-clienti', async (req, res) => {
 
         if (query) {
             const searchQuery = `%${query}%`;
-            const result = await pool.query(
-                `SELECT * FROM clienti
-                 WHERE nome ILIKE $1 OR
-                       cognome ILIKE $1 OR
-                       telefono ILIKE $1 OR
-                       email ILIKE $1,
-                [searchQuery]
-            );
+// Nella rotta '/cerca-clienti' in index.js
+const result = await pool.query(
+    `SELECT * FROM clienti
+     WHERE nome ILIKE $1 OR
+           cognome ILIKE $1 OR
+           telefono ILIKE $1 OR
+           email ILIKE $1`, // <-- Questa riga o la precedente è la riga 155 nel tuo file
+    [searchQuery] // Assicurati che [searchQuery] non sia vuoto o abbia elementi extra
+);
             clienti = result.rows;
         } else {
             // Se la query è vuota, mostra tutti i clienti (o restituisce un array vuoto se non vuoi mostrare tutti)
