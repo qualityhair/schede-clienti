@@ -57,7 +57,7 @@ app.use(session({
 
 // Middleware e rotte di autenticazione rimosse/commentate
 /*
-const isAuthenticated = (req, res, next) => { /* ... */ };
+
 app.get('/login', (req, res) => { /* ... */ });
 app.post('/login', async (req, res) => { /* ... */ });
 app.get('/logout', (req, res) => { /* ... */ });
