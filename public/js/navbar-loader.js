@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             showMessage(`Trovati ${clients.length} clienti per "${searchTerm}". Reindirizzamento alla scheda del primo risultato...`, 'success');
 
                             setTimeout(() => {
-                                window.location.href = `/scheda-cliente.html?id=${clients[0].id}&search_results=${encodedClientIds}&current_index=0`;
+                                window.location.href = `/scheda-cliente.html?id=${clients[0].id}&searchIds=${encodedClientIds}&index=0`;
                             }, 1500);
 
                         } else {
