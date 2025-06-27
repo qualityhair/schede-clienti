@@ -33,7 +33,7 @@ body {
     text-align: center;
     color: #ffffff; /* Bianco per il titolo principale */
     margin-bottom: 30px;
-    font-size: 2.8em;
+    font-size: 1.8em;
     padding-bottom: 10px;
     border-bottom: 2px solid #FFD700; /* Sottolineatura gialla accesa */
     /* Rimosso display: flex e align-items: center da qui per separare il nome */
