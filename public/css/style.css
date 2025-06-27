@@ -46,7 +46,7 @@ body {
     height: auto; /* Mantiene le proporzioni dell'immagine */
 
     /* --- NUOVE PROPRIETÀ PER L'EFFETTO OVALE E BORDO --- */
-    border-radius: 50%; /* Rende l'immagine ovale se rettangolare, circolare se quadrata */
+    border-radius: 30%; /* Rende l'immagine ovale se rettangolare, circolare se quadrata */
     border: 2px solid #FFD700; /* Bordo giallo sottile (regola 2px se vuoi più spesso/sottile) */
     object-fit: cover; /* Assicura che l'immagine copra l'intera area ovale/circolare senza distorsioni */
     overflow: hidden; /* Nasconde le parti dell'immagine che escono dal bordo ovale/circolare */
