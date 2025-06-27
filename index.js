@@ -1,9 +1,6 @@
 const express = require('express');
 const { Pool } = require('pg');
 const dotenv = require('dotenv');
-// const session = require('express-session'); // Questa è a posto
-// const MemoryStore = require('memorystore')(session); // Questa è a posto
-// const bcrypt = require('bcryptjs');
 const path = require('path');
 
 dotenv.config();
@@ -37,47 +34,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// RIMUOVI O COMMENTA TUTTO IL BLOCCO DI CONFIGURAZIONE DELLA SESSIONE
-/*
-// Sezione sessione rimossa:
-// app.use(session({
-//     cookie: { maxAge: 86400000 },
-//     store: new MemoryStore({
-//         checkPeriod: 86400000
-//     }),
-//     secret: process.env.SESSION_SECRET || 'keyboard cat',
-//     resave: false,
-//     saveUninitialized: false
-// }));
-*/
-
-// Middleware per controllare se l'utente è autenticato - NON È PIÙ NECESSARIO
-/*
-// const isAuthenticated = (req, res, next) => { ... };
-*/
-
-// Rotta per la pagina di login - NON È PIÙ NECESSARIA
-/*
-// app.get('/login', (req, res) => { ... });
-*/
-
-// Rotta per il processo di login - NON È PIÙ NECESSARIA
-/*
-// app.post('/login', async (req, res) => { ... });
-*/
-
-// Rotta per il logout - NON È PIÙ NECESSARIA
-/*
-// app.get('/logout', (req, res) => { ... });
-*/
-
 // Rotta principale, ora accessibile senza login
 app.get('/', (req, res) => {
-    // res.redirect('/login');
     res.redirect('/clienti');
 });
 
-// Tutte le rotte che prima usavano isAuthenticated, ora non ne hanno più bisogno
+// --- ROTTE PER IL RENDERING DELLE PAGINE ---
+// Queste rotte rendono le pagine HTML (EJS)
 app.get('/clienti', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM clienti ORDER BY nome ASC');
@@ -86,6 +49,10 @@ app.get('/clienti', async (req, res) => {
         console.error('Errore nel recupero dei clienti:', err);
         res.status(500).send('Errore nel recupero dei clienti');
     }
+});
+
+app.get('/clienti/aggiungi', (req, res) => {
+    res.render('aggiungi-cliente');
 });
 
 app.post('/clienti', async (req, res) => {
@@ -98,10 +65,6 @@ app.post('/clienti', async (req, res) => {
         console.error('Errore nell\'aggiunta del cliente:', err);
         res.status(500).send('Errore nell\'aggiunta del cliente');
     }
-});
-
-app.get('/clienti/aggiungi', (req, res) => {
-    res.render('aggiungi-cliente');
 });
 
 app.get('/clienti/:id/modifica', async (req, res) => {
@@ -143,7 +106,6 @@ app.post('/clienti/:id/elimina', async (req, res) => {
     }
 });
 
-// Rotta per la ricerca dei clienti
 app.get('/cerca-clienti', async (req, res) => {
     try {
         const query = req.query.query;
@@ -151,30 +113,141 @@ app.get('/cerca-clienti', async (req, res) => {
 
         if (query) {
             const searchQuery = `%${query}%`;
-// Nella rotta '/cerca-clienti' in index.js
-const result = await pool.query(
-    `SELECT * FROM clienti
-     WHERE nome ILIKE $1 OR
-           cognome ILIKE $1 OR
-           telefono ILIKE $1 OR
-           email ILIKE $1`, // <-- Questa riga o la precedente è la riga 155 nel tuo file
-    [searchQuery] // Assicurati che [searchQuery] non sia vuoto o abbia elementi extra
-);
+            const result = await pool.query(
+                `SELECT * FROM clienti
+                 WHERE nome ILIKE $1 OR
+                       cognome ILIKE $1 OR
+                       telefono ILIKE $1 OR
+                       email ILIKE $1`,
+                [searchQuery]
+            );
             clienti = result.rows;
         } else {
-            // Se la query è vuota, mostra tutti i clienti (o restituisce un array vuoto se non vuoi mostrare tutti)
-            const result = await pool.query('SELECT * FROM clienti ORDER BY id DESC'); // Questo è un fallback che potresti voler mantenere
+            const result = await pool.query('SELECT * FROM clienti ORDER BY id DESC');
             clienti = result.rows;
         }
-
-        // *** QUESTA È LA RIGA FONDAMENTALE CHE DEVE ESSERE res.json ***
-        res.json(clienti); // <--- DEVE ESSERE res.json(clienti); NON res.render()
-
+        res.json(clienti);
     } catch (error) {
         console.error('Errore durante la ricerca dei clienti:', error);
         res.status(500).send('Errore nella ricerca clienti: ' + error.message);
     }
 });
+
+
+// --- NUOVE ROTTE API (RESTful) per scheda-cliente.js ---
+// Queste rotte rispondono con JSON e non reindirizzano/renderizzano pagine.
+// Useranno il prefisso '/api' per chiarezza.
+
+// API: Recupera i dati di un singolo cliente (per scheda-cliente.js)
+app.get('/api/clienti/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const clientResult = await pool.query('SELECT * FROM clienti WHERE id = $1', [id]);
+        if (clientResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Cliente non trovato' });
+        }
+        const clientData = clientResult.rows[0];
+
+        // Recupera anche note e acquisti se esistono (anche se notes è già nel cliente, per completezza)
+        // La tua tabella `clienti` ha già `note`, quindi potremmo non aver bisogno di una tabella `note` separata
+        // Assumendo che gli acquisti siano in una tabella `acquisti` collegata a `clienti` tramite `cliente_id`
+        const acquistiResult = await pool.query('SELECT * FROM acquisti WHERE cliente_id = $1 ORDER BY data_acquisto DESC', [id]);
+        clientData.acquisti = acquistiResult.rows;
+
+        res.json(clientData);
+    } catch (err) {
+        console.error('Errore nel recupero dati API del cliente:', err);
+        res.status(500).json({ message: 'Errore nel recupero dati del cliente', error: err.message });
+    }
+});
+
+// API: Aggiorna le note di un cliente (da scheda-cliente.js)
+app.put('/api/clienti/:id/note', async (req, res) => {
+    const { id } = req.params;
+    const { note } = req.body;
+    try {
+        await pool.query('UPDATE clienti SET note = $1 WHERE id = $2', [note, id]);
+        res.status(200).json({ message: 'Note aggiornate con successo' });
+    } catch (err) {
+        console.error('Errore nell\'aggiornamento API delle note:', err);
+        res.status(500).json({ message: 'Errore nell\'aggiornamento delle note', error: err.message });
+    }
+});
+
+// API: Aggiunge un acquisto per un cliente (da scheda-cliente.js)
+// Presuppone una tabella 'acquisti' con colonne: id, cliente_id, trattamento_id, data_acquisto, prezzo, note
+app.post('/api/clienti/:id/acquisti', async (req, res) => {
+    const { id: clienteId } = req.params;
+    const { trattamento_id, data_acquisto, prezzo, note } = req.body;
+    try {
+        const result = await pool.query(
+            'INSERT INTO acquisti (cliente_id, trattamento_id, data_acquisto, prezzo, note) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [clienteId, trattamento_id, data_acquisto, prezzo, note]
+        );
+        res.status(201).json(result.rows[0]); // Restituisce il nuovo acquisto creato
+    } catch (err) {
+        console.error('Errore nell\'aggiunta API dell\'acquisto:', err);
+        res.status(500).json({ message: 'Errore nell\'aggiunta dell\'acquisto', error: err.message });
+    }
+});
+
+// API: Elimina un acquisto (da scheda-cliente.js)
+app.delete('/api/acquisti/:id', async (req, res) => {
+    const { id } = req.params; // Questo è l'ID dell'acquisto, non del cliente
+    try {
+        const result = await pool.query('DELETE FROM acquisti WHERE id = $1 RETURNING *', [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Acquisto non trovato' });
+        }
+        res.status(200).json({ message: 'Acquisto eliminato con successo' });
+    } catch (err) {
+        console.error('Errore nell\'eliminazione API dell\'acquisto:', err);
+        res.status(500).json({ message: 'Errore nell\'eliminazione dell\'acquisto', error: err.message });
+    }
+});
+
+
+// API: Recupera tutti i trattamenti (per dropdown in scheda-cliente.js)
+app.get('/api/trattamenti', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM trattamenti ORDER BY nome ASC');
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Errore nel recupero API dei trattamenti:', err);
+        res.status(500).json({ message: 'Errore nel recupero dei trattamenti', error: err.message });
+    }
+});
+
+// API: Aggiunge un nuovo trattamento (se necessario, ad esempio da un'altra pagina o API)
+app.post('/api/trattamenti', async (req, res) => {
+    const { nome, descrizione, prezzo } = req.body;
+    try {
+        const result = await pool.query(
+            'INSERT INTO trattamenti (nome, descrizione, prezzo) VALUES ($1, $2, $3) RETURNING *',
+            [nome, descrizione, prezzo]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        console.error('Errore nell\'aggiunta API del trattamento:', err);
+        res.status(500).json({ message: 'Errore nell\'aggiunta del trattamento', error: err.message });
+    }
+});
+
+// API: Elimina un trattamento
+app.delete('/api/trattamenti/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('DELETE FROM trattamenti WHERE id = $1 RETURNING *', [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Trattamento non trovato' });
+        }
+        res.status(200).json({ message: 'Trattamento eliminato con successo' });
+    } catch (err) {
+        console.error('Errore nell\'eliminazione API del trattamento:', err);
+        res.status(500).json({ message: 'Errore nell\'eliminazione del trattamento', error: err.message });
+    }
+});
+
 
 app.listen(port, () => {
     console.log(`🚀 Server avviato su http://0.0.0.0:${port}`);
