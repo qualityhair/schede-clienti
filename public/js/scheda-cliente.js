@@ -1,3 +1,5 @@
+
+// Inizio del file (DOM loaded)
 document.addEventListener("DOMContentLoaded", () => {
     // Riferimenti agli elementi DOM esistenti
     const nomeCompletoSpan = document.getElementById("nome-completo");
@@ -183,8 +185,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- Funzione per visualizzare i trattamenti ---
-    function displayTrattamenti(trattamenti) {
-        listaTrattamentiBody.innerHTML = ''; // Pulisce la lista esistente
+    
+function displayTrattamenti(trattamenti) {
+    listaTrattamentiBody.innerHTML = ''; // Pulisce la lista esistente
+
+    if (trattamenti.length === 0) {
+        listaTrattamentiBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nessun trattamento registrato per questo cliente.</td></tr>';
+        return;
+    }
+
+    // Ordina dal più vecchio al più recente
+    trattamenti.sort((a, b) => new Date(a.data_trattamento) - new Date(b.data_trattamento));
+ // Pulisce la lista esistente
         if (trattamenti.length === 0) {
             listaTrattamentiBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nessun trattamento registrato per questo cliente.</td></tr>';
             return;
@@ -216,12 +228,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- Funzione per visualizzare gli acquisti ---
-    function displayAcquisti(acquistiString) {
-        listaAcquistiBody.innerHTML = ''; // Pulisce la lista esistente
-        let acquisti = [];
-        try {
-            // Tenta di parsare la stringa JSON. Se fallisce, assume che sia testo o vuota.
-            acquisti = acquistiString ? JSON.parse(acquistiString) : [];
+    
+function displayAcquisti(acquistiString) {
+    listaAcquistiBody.innerHTML = ''; // Pulisce la lista esistente
+    let acquisti = [];
+    try {
+        acquisti = acquistiString ? JSON.parse(acquistiString) : [];
+    } catch (e) {
+        console.error("Errore nel parsing dello storico acquisti JSON:", e);
+        acquisti = [];
+    }
+
+    if (acquisti.length === 0) {
+        listaAcquistiBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun acquisto registrato per questo cliente.</td></tr>';
+        return;
+    }
+
+    // Ordina dal più vecchio al più recente
+    acquisti.sort((a, b) => new Date(a.data) - new Date(b.data));
+
         } catch (e) {
             console.error("Errore nel parsing dello storico acquisti JSON:", e);
             // Se il JSON è malformato, inizializza come array vuoto
