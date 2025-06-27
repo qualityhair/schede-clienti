@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 setTimeout(() => {
                     // Reindirizza alla scheda del PRIMO cliente trovato
                     // e passa tutti gli ID e l'indice corrente (0 per il primo)
-                    window.location.href = `/scheda-cliente.html?id=${clients[0].id}&search_results=${encodedClientIds}&current_index=0`;
+                    window.location.href = `/scheda-cliente.html?id=${clients[0].id}&searchIds=${encodedClientIds}&index=0`;
                 }, 1500);
 
             } else {
