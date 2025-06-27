@@ -55,21 +55,20 @@ document.addEventListener("DOMContentLoaded", () => {
     async function handleApiResponse(response) {
         const contentType = response.headers.get("content-type");
 
-        // RIMOSSO IL CONTROLLO E REINDIRIZZAMENTO PER 401 E ALTRI STATUS NON JSON
-        // Dato che il login è stato disabilitato, non ha più senso questa logica lato client.
-        if (contentType && contentType.includes("application/json")) {
+        if (response.status === 401) {
+            showMessage('La tua sessione è scaduta o non sei autorizzato. Effettua nuovamente il login.', 'error');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1500);
+            return null;
+        } else if (contentType && contentType.includes("application/json")) {
             return await response.json();
         } else {
-            // Se la risposta non è JSON, e non è un 401 specifico,
-            // logga l'errore ma non reindirizzare al login.
-            // Potrebbe essere un 404 (come ora) o un altro errore server.
-            const textResponse = await response.text(); // Leggi il testo della risposta per debugging
-            console.error('Risposta API non JSON o inattesa:', response.status, textResponse);
-            // Potresti mostrare un messaggio più generico all'utente se la risposta non è OK.
-            if (!response.ok) {
-                 showMessage(`Errore server (${response.status}): ${textResponse.substring(0, 100)}...`, 'error');
-            }
-            return null; // Ritorna null per indicare che non ci sono dati JSON validi
+            showMessage('Accesso non autorizzato o sessione scaduta. Verrai reindirizzato al login.', 'error');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1500);
+            return null;
         }
     }
 
@@ -87,23 +86,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // ***** MODIFICA QUI: L'URL DEVE CORRISPONDERE ALLA ROTTA DEL BACKEND *****
-            // Il backend ha app.get('/cerca-clienti', ...)
-            const response = await fetch(`/cerca-clienti?query=${encodeURIComponent(searchTerm)}`);
-            // ************************************************************************
-
-            // Questo blocco if(!response.ok) è già gestito in handleApiResponse, ma lo lascio se vuoi un controllo più specifico qui
-            // const data = await handleApiResponse(response);
-            // if (data === null) return; // handleApiResponse potrebbe reindirizzare o mostrare errore
+            const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
+            const data = await handleApiResponse(response);
+            if (data === null) return;
 
             if (!response.ok) {
-                // Se la risposta non è OK, gestiscila (handleApiResponse si è già occupata del messaggio)
-                const errorText = await response.text(); // Per debugging
-                throw new Error(`Errore HTTP ${response.status} durante la ricerca: ${errorText}`);
+                const errorDetails = data.error || "Errore sconosciuto";
+                throw new Error(`Errore nella ricerca clienti: ${errorDetails}`);
             }
-            
-            // Assicurati che il backend ritorni JSON anche in caso di 404 o altri errori
-            const clients = await response.json(); // Tenta di parsare JSON
+
+            const clients = data; // I dati JSON sono già stati parsati da handleApiResponse
 
             if (clients.length > 0) {
                 // Estrai solo gli ID dei clienti trovati
@@ -143,24 +135,21 @@ document.addEventListener("DOMContentLoaded", () => {
         const newClientData = { nome, cognome, email, telefono };
 
         try {
-            // ***** MODIFICA QUI: L'URL DEVE CORRISPONDERE ALLA ROTTA DEL BACKEND *****
-            // Il backend ha app.post('/clienti', ...)
-            const response = await fetch("/clienti", { // Rimosso '/api'
-            // ************************************************************************
+            const response = await fetch("/api/clienti", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newClientData),
             });
 
-            // Gestione della risposta API. handleApiResponse ora non reindirizza al login
+            const data = await handleApiResponse(response);
+            if (data === null) return;
+
             if (!response.ok) {
-                 const errorDetails = await response.text(); // Leggi il testo della risposta per debugging
-                 console.error('Errore risposta API aggiunta cliente:', errorDetails);
-                 throw new Error(`Errore durante l'aggiunta del cliente (${response.status}): ${errorDetails.substring(0, 100)}`);
+                const errorDetail = data.error || "Errore sconosciuto";
+                throw new Error(`Errore durante l'aggiunta del cliente: ${errorDetail}`);
             }
 
-            const data = await response.json(); // Tentiamo di parsare JSON direttamente qui, senza handleApiResponse per evitare logica non necessaria
-
+            // Cliente aggiunto con successo, reindirizza direttamente alla sua scheda
             if (data.id) {
                 showMessage(`Cliente ${nome} ${cognome} aggiunto con successo! Reindirizzamento alla scheda cliente...`, 'success');
                 // Pulisci i campi del form dopo l'aggiunta riuscita e prima del reindirizzamento
@@ -172,13 +161,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.location.href = `/scheda-cliente.html?id=${data.id}`;
                 }, 1500);
             } else {
+                // Fallback: se per qualche motivo l'ID non viene restituito
                 showMessage(`Cliente ${nome} ${cognome} aggiunto con successo!`, 'success');
+                // Pulisci i campi del form
                 newClientNameInput.value = "";
                 newClientSurnameInput.value = "";
                 newClientEmailInput.value = "";
                 newClientPhoneInput.value = "";
+                // Poiché non visualizziamo più la lista, un redirect alla dashboard o lista clienti può essere un fallback sensato
                 setTimeout(() => {
-                    window.location.href = '/clienti'; // Reindirizza a /clienti che mostra la lista di tutti i clienti
+                    window.location.href = '/dashboard.html'; // Torna alla dashboard "vuota" o a lista-clienti
                 }, 1500);
             }
 
@@ -202,7 +194,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (searchInput) {
         searchInput.addEventListener("keypress", (event) => {
             if (event.key === "Enter") {
-                event.preventDefault(); // Previeni l'invio del form HTML standard
                 handleSearchClient();
             }
         });
