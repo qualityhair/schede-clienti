@@ -1,4 +1,3 @@
-
 // Inizio del file (DOM loaded)
 document.addEventListener("DOMContentLoaded", () => {
     // Riferimenti agli elementi DOM esistenti
@@ -185,22 +184,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- Funzione per visualizzare i trattamenti ---
-    
-function displayTrattamenti(trattamenti) {
-    listaTrattamentiBody.innerHTML = ''; // Pulisce la lista esistente
+    function displayTrattamenti(trattamenti) {
+        listaTrattamentiBody.innerHTML = ''; // Pulisce la lista esistente
 
-    if (trattamenti.length === 0) {
-        listaTrattamentiBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nessun trattamento registrato per questo cliente.</td></tr>';
-        return;
-    }
-
-    // Ordina dal più vecchio al più recente
-    trattamenti.sort((a, b) => new Date(a.data_trattamento) - new Date(b.data_trattamento));
- // Pulisce la lista esistente
         if (trattamenti.length === 0) {
             listaTrattamentiBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nessun trattamento registrato per questo cliente.</td></tr>';
             return;
         }
+
+        // Ordina dal più vecchio al più recente
+        trattamenti.sort((a, b) => new Date(a.data_trattamento) - new Date(b.data_trattamento));
 
         trattamenti.forEach(trattamento => {
             const row = listaTrattamentiBody.insertRow();
@@ -228,36 +221,23 @@ function displayTrattamenti(trattamenti) {
     }
 
     // --- Funzione per visualizzare gli acquisti ---
-    
-function displayAcquisti(acquistiString) {
-    listaAcquistiBody.innerHTML = ''; // Pulisce la lista esistente
-    let acquisti = [];
-    try {
-        acquisti = acquistiString ? JSON.parse(acquistiString) : [];
-    } catch (e) {
-        console.error("Errore nel parsing dello storico acquisti JSON:", e);
-        acquisti = [];
-    }
-
-    if (acquisti.length === 0) {
-        listaAcquistiBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun acquisto registrato per questo cliente.</td></tr>';
-        return;
-    }
-
-    // Ordina dal più vecchio al più recente
-    acquisti.sort((a, b) => new Date(a.data) - new Date(b.data));
-
+    function displayAcquisti(acquistiString) {
+        listaAcquistiBody.innerHTML = ''; // Pulisce la lista esistente
+        let acquisti = [];
+        try {
+            acquisti = acquistiString ? JSON.parse(acquistiString) : [];
         } catch (e) {
             console.error("Errore nel parsing dello storico acquisti JSON:", e);
-            // Se il JSON è malformato, inizializza come array vuoto
             acquisti = [];
         }
-
 
         if (acquisti.length === 0) {
             listaAcquistiBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun acquisto registrato per questo cliente.</td></tr>';
             return;
         }
+
+        // Ordina dal più vecchio al più recente
+        acquisti.sort((a, b) => new Date(a.data) - new Date(b.data));
 
         acquisti.forEach((acquisto, index) => {
             const row = listaAcquistiBody.insertRow();
@@ -655,108 +635,100 @@ function displayAcquisti(acquistiString) {
     // --- Gestione della paginazione (esistente) ---
     function updatePaginationButtons() {
         if (searchResultsIds.length > 1) {
+            btnPrecedente.disabled = (currentIndex === 0);
+            btnSuccessivo.disabled = (currentIndex === searchResultsIds.length - 1);
+            infoPaginazione.textContent = `Cliente ${currentIndex + 1} di ${searchResultsIds.length}`;
             btnPrecedente.style.display = 'inline-block';
             btnSuccessivo.style.display = 'inline-block';
-            infoPaginazione.textContent = `Cliente ${currentIndex + 1} di ${searchResultsIds.length}`;
-            btnPrecedente.disabled = currentIndex === 0;
-            btnSuccessivo.disabled = currentIndex === searchResultsIds.length - 1;
+            infoPaginazione.style.display = 'inline-block';
         } else {
             btnPrecedente.style.display = 'none';
             btnSuccessivo.style.display = 'none';
-            infoPaginazione.textContent = '';
+            infoPaginazione.style.display = 'none';
         }
     }
 
-    function navigateClient(direction) {
-        if (direction === 'prev' && currentIndex > 0) {
-            currentIndex--;
-        } else if (direction === 'next' && currentIndex < searchResultsIds.length - 1) {
-            currentIndex++;
+    async function navigateClient(direction) {
+        if (searchResultsIds.length === 0) return;
+
+        let newIndex = currentIndex;
+        if (direction === 'prev') {
+            newIndex--;
+        } else if (direction === 'next') {
+            newIndex++;
         }
-        const newClientId = searchResultsIds[currentIndex];
-        window.history.pushState({ clientId: newClientId, searchResultsIds, currentIndex }, '', `/scheda-cliente.html?id=${newClientId}&search_results=${encodeURIComponent(JSON.stringify(searchResultsIds))}&current_index=${currentIndex}`);
-        currentClientId = newClientId;
-        loadClientData(currentClientId);
-        updatePaginationButtons();
+
+        if (newIndex >= 0 && newIndex < searchResultsIds.length) {
+            currentIndex = newIndex;
+            currentClientId = searchResultsIds[currentIndex]; // Aggiorna currentClientId
+            await loadClientData(currentClientId);
+            updatePaginationButtons();
+        }
     }
 
     // --- Inizializzazione della pagina ---
-    function initializePage() {
-        const params = new URLSearchParams(window.location.search);
-        currentClientId = params.get("id");
+    async function initializePage() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const clientIdFromUrl = urlParams.get('id');
+        const searchIdsParam = urlParams.get('searchIds');
+        const currentIndexParam = urlParams.get('index');
 
-        const searchResultsParam = params.get("search_results");
-        if (searchResultsParam) {
-            try {
-                searchResultsIds = JSON.parse(decodeURIComponent(searchResultsParam));
-                currentIndex = parseInt(params.get("current_index") || '0');
-                if (isNaN(currentIndex) || currentIndex < 0 || currentIndex >= searchResultsIds.length) {
-                    currentIndex = 0;
-                }
-            } catch (e) {
-                console.error("Errore nel parsing dei search_results:", e);
-                searchResultsIds = [currentClientId];
+        if (clientIdFromUrl) {
+            currentClientId = clientIdFromUrl;
+            if (searchIdsParam) {
+                searchResultsIds = searchIdsParam.split(',');
+                currentIndex = parseInt(currentIndexParam, 10) || 0;
+            } else {
+                searchResultsIds = [currentClientId]; // Se non c'è ricerca, il cliente corrente è l'unico
                 currentIndex = 0;
             }
+            await loadClientData(currentClientId);
+            updatePaginationButtons();
         } else {
-            searchResultsIds = [currentClientId];
-            currentIndex = 0;
+            showMessage("Nessun cliente specificato nell'URL.", 'info');
+            // Potresti reindirizzare alla dashboard o mostrare un messaggio di errore
         }
-
-        loadClientData(currentClientId);
-        updatePaginationButtons();
     }
 
-    // --- Event Listeners ---
-    btnEliminaCliente.addEventListener("click", confirmDeleteClient);
-    salvaNoteBtn.addEventListener("click", handleSalvaNote);
+    // --- Listener Eventi ---
+    btnEliminaCliente.addEventListener('click', confirmDeleteClient);
+    salvaNoteBtn.addEventListener('click', handleSalvaNote);
+
+    // Listener per i bottoni di paginazione
+    btnPrecedente.addEventListener('click', () => navigateClient('prev'));
+    btnSuccessivo.addEventListener('click', () => navigateClient('next'));
 
     // *** AGGIUNTO/RIPRISTINATO ***
-    // Event listener per la modale "Aggiungi Acquisto"
+    // Listener per i bottoni/form della modale aggiungi acquisto
     if (aggiungiAcquistoBtn) {
-        aggiungiAcquistoBtn.addEventListener("click", () => {
-            openModal(modalAggiungiAcquisto);
-            // Imposta la data corrente come predefinita
-            if (dataAcquistoInput) {
-                dataAcquistoInput.valueAsDate = new Date();
-            }
-        });
-    }
-    if (annullaAcquistoBtn) {
-        annullaAcquistoBtn.addEventListener("click", () => {
-            closeModal(modalAggiungiAcquisto, formAggiungiAcquisto);
-        });
+        aggiungiAcquistoBtn.addEventListener('click', () => openModal(modalAggiungiAcquisto));
     }
     if (formAggiungiAcquisto) {
-        formAggiungiAcquisto.addEventListener("submit", handleAddAcquisto);
+        formAggiungiAcquisto.addEventListener('submit', handleAddAcquisto);
+    }
+    if (annullaAcquistoBtn) {
+        annullaAcquistoBtn.addEventListener('click', () => closeModal(modalAggiungiAcquisto, formAggiungiAcquisto));
     }
     // ********************
 
     // *** AGGIUNTO/RIPRISTINATO ***
-    // --- NUOVI Event Listeners per la modale "Aggiungi Trattamento" ---
+    // Listener per i bottoni/form della modale aggiungi trattamento
     if (aggiungiTrattamentoBtn) {
-        aggiungiTrattamentoBtn.addEventListener("click", () => {
-            openModal(modalAggiungiTrattamento);
-            if (dataTrattamentoInput) {
-                dataTrattamentoInput.valueAsDate = new Date(); // Completato: imposta la data corrente
-            }
-        });
-    }
-    if (cancelTrattamentoBtn) {
-        cancelTrattamentoBtn.addEventListener("click", () => {
-            closeModal(modalAggiungiTrattamento, formAddTrattamento);
-        });
+        aggiungiTrattamentoBtn.addEventListener('click', () => openModal(modalAggiungiTrattamento));
     }
     if (formAddTrattamento) {
-        formAddTrattamento.addEventListener("submit", handleAddTrattamento);
+        formAddTrattamento.addEventListener('submit', handleAddTrattamento);
+    }
+    if (cancelTrattamentoBtn) {
+        cancelTrattamentoBtn.addEventListener('click', () => closeModal(modalAggiungiTrattamento, formAddTrattamento));
     }
     // ********************
 
-    // --- NUOVI Event Listeners per la modale "Modifica Dettagli Cliente" ---
+    // Listener per la modale di modifica cliente
     if (modificaDettagliBtn) {
         modificaDettagliBtn.addEventListener('click', () => {
-            // Popola il form con i dati attuali del cliente prima di aprire la modale
-            if (currentClienteData) { // Assicurati che i dati del cliente siano stati caricati
+            // Pre-popola la modale con i dati attuali del cliente
+            if (currentClienteData) {
                 modificaClienteIdInput.value = currentClientId;
                 modificaNomeInput.value = currentClienteData.nome || '';
                 modificaCognomeInput.value = currentClienteData.cognome || '';
@@ -767,21 +739,15 @@ function displayAcquisti(acquistiString) {
         });
     }
 
-    if (annullaModificaClienteBtn) {
-        annullaModificaClienteBtn.addEventListener('click', () => {
-            closeModal(modificaClienteModal, formModificaCliente);
-        });
-    }
-
     if (formModificaCliente) {
         formModificaCliente.addEventListener('submit', handleModificaCliente);
     }
-    // ********************
+
+    if (annullaModificaClienteBtn) {
+        annullaModificaClienteBtn.addEventListener('click', () => closeModal(modificaClienteModal, formModificaCliente));
+    }
 
 
-    btnPrecedente.addEventListener("click", () => navigateClient('prev'));
-    btnSuccessivo.addEventListener("click", () => navigateClient('next'));
-
-    // Inizializza la pagina al caricamento
+    // Avvia l'inizializzazione quando il DOM è pronto
     initializePage();
 });
