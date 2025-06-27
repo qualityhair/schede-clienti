@@ -40,16 +40,21 @@ body {
 }
 
 .page-logo {
-    display: block; /* Permette di usare margin: auto per centrarlo */
-    margin: 0 auto 30px auto; /* Centra orizzontalmente e aggiunge spazio sotto */
-    max-width: 250px; /* Imposta una larghezza massima per il logo */
+    display: block;
+    margin: 0 auto 30px auto;
+    max-width: 250px; /* Mantieni la larghezza massima che desideri */
     height: auto; /* Mantiene le proporzioni dell'immagine */
-    /* Potresti voler aggiungere un bordo o un'ombra per far risaltare il logo,
-       similmente alla sottolineatura del vecchio titolo: */
-    /* border-bottom: 2px solid #FFD700; */
-    /* padding-bottom: 10px; */
-}
 
+    /* --- NUOVE PROPRIETÀ PER L'EFFETTO OVALE E BORDO --- */
+    border-radius: 50%; /* Rende l'immagine ovale se rettangolare, circolare se quadrata */
+    border: 2px solid #FFD700; /* Bordo giallo sottile (regola 2px se vuoi più spesso/sottile) */
+    object-fit: cover; /* Assicura che l'immagine copra l'intera area ovale/circolare senza distorsioni */
+    overflow: hidden; /* Nasconde le parti dell'immagine che escono dal bordo ovale/circolare */
+    /* --- FINE NUOVE PROPRIETÀ --- */
+
+    /* Potresti voler aggiungere anche un'ombra per farla risaltare */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
 
 
 .page-title #nome-completo { /* Specifico per scheda-cliente */
