@@ -1,265 +1,267 @@
-const express = require('express');
-const { Pool } = require('pg');
-const dotenv = require('dotenv');
-const path = require('path');
+require('dotenv').config();
 
-dotenv.config();
+const express = require("express");
+const { Pool } = require("pg");
+const path = require("path");
+const bodyParser = require("body-parser");
+
+const passport = require("passport");
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+const session = require("express-session");
 
 const app = express();
+
+// --- Configurazione DB ---
+const connectionString = process.env.DATABASE_URL;
+const db = new Pool(connectionString
+  ? {
+      connectionString,
+      ssl: { rejectUnauthorized: false },
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+    }
+  : {
+      host: "schede-clienti-db-v2.flycast",
+      user: "postgres",
+      password: "YourStrongPassword123!",
+      database: "postgres",
+      port: 5432,
+      ssl: { rejectUnauthorized: false },
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+    }
+);
+db.on('error', (err) => console.error('Errore pool:', err.message));
+setInterval(() => db.query('SELECT 1').catch(e => console.error('DB ping failed:', e.message)), 5 * 60 * 1000);
+db.connect()
+  .then(() => console.log("✅ Connesso al DB PostgreSQL!"))
+  .catch(err => console.error("Errore connessione DB:", err));
+
+// --- Middleware base ---
+app.use(express.static("public"));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'default_session_secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false }
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+// --- Google OAuth ---
+passport.serializeUser((user, done) => done(null, user));
+passport.deserializeUser((user, done) => done(null, user));
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL,
+  },
+  (accessToken, refreshToken, profile, done) => {
+    const email = profile.emails?.[0].value;
+    if (email === "qualityhairbolzano@gmail.com") {
+      return done(null, profile);
+    } else {
+      return done(null, false, { message: "Email non autorizzata" });
+    }
+  }
+));
+
+// --- Middleware autenticazione ---
+function ensureAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) return next();
+  res.redirect("/");
+}
+
+// --- Rotte OAuth ---
+app.get("/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] }));
+
+app.get("/auth/google/callback",
+  passport.authenticate("google", { failureRedirect: "/" }),
+  (req, res) => {
+    res.redirect("/dashboard.html");
+  });
+
+app.get("/logout", (req, res) => {
+  req.logout(() => {
+    res.redirect("/");
+  });
+});
+
+// --- Redirect root ---
+app.get("/", (req, res) => {
+  if (req.isAuthenticated()) {
+    res.redirect("/dashboard.html");
+  } else {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+  }
+});
+
+// --- Rotte protette ---
+app.get("/dashboard.html", ensureAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "dashboard.html"));
+});
+app.get("/lista-clienti.html", ensureAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "lista-clienti.html"));
+});
+app.use("/api", ensureAuthenticated);
+
+// --- API CLIENTI ---
+app.get("/api/clienti", async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM clienti");
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/clienti", async (req, res) => {
+  const { nome, cognome, email, telefono } = req.body;
+  try {
+    const sql = "INSERT INTO clienti (nome, cognome, email, telefono) VALUES ($1, $2, $3, $4) RETURNING id";
+    const result = await db.query(sql, [nome, cognome, email, telefono]);
+    res.status(201).json({ id: result.rows[0].id });
+  } catch (err) {
+    res.status(err.code === '23505' ? 409 : 500).json({ error: err.message });
+  }
+});
+
+app.put("/api/clienti/:id", async (req, res) => {
+  const { id } = req.params;
+  const { nome, cognome, email, telefono } = req.body;
+  try {
+    await db.query("UPDATE clienti SET nome=$1, cognome=$2, telefono=$3, email=$4 WHERE id=$5",
+      [nome, cognome, telefono, email, id]);
+    res.json({ message: "Aggiornato" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/clienti/cerca", async (req, res) => {
+  const term = `%${req.query.term}%`;
+  try {
+    const result = await db.query(
+      "SELECT * FROM clienti WHERE nome ILIKE $1 OR cognome ILIKE $2",
+      [term, term]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/clienti/:id", async (req, res) => {
+  try {
+    const c = await db.query("SELECT id, nome, cognome, email, telefono, preferenze_note, storico_acquisti FROM clienti WHERE id=$1", [req.params.id]);
+    if (c.rows.length === 0) return res.status(404).json({ error: "Non trovato" });
+    const t = await db.query("SELECT * FROM trattamenti WHERE cliente_id=$1 ORDER BY data_trattamento DESC", [req.params.id]);
+    res.json({ client: c.rows[0], trattamenti: t.rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/clienti/:id/note", async (req, res) => {
+  const { preferenze_note } = req.body;
+  if (preferenze_note === undefined) return res.status(400).json({ error: 'Campo note mancante' });
+  try {
+    const r = await db.query("UPDATE clienti SET preferenze_note=$1 WHERE id=$2", [preferenze_note, req.params.id]);
+    if (r.rowCount === 0) return res.status(404).json({ error: 'Cliente non trovato' });
+    res.json({ message: "Note aggiornate!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/clienti/:id/acquisti", async (req, res) => {
+  const { storico_acquisti } = req.body;
+  if (storico_acquisti === undefined) return res.status(400).json({ error: 'Campo storico mancante' });
+  try {
+    const r = await db.query("UPDATE clienti SET storico_acquisti=$1 WHERE id=$2", [storico_acquisti, req.params.id]);
+    if (r.rowCount === 0) return res.status(404).json({ error: 'Cliente non trovato' });
+    res.json({ message: "Storico aggiornato!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/clienti/:id", async (req, res) => {
+  try {
+    await db.query("DELETE FROM trattamenti WHERE cliente_id=$1", [req.params.id]);
+    await db.query("DELETE FROM clienti WHERE id=$1", [req.params.id]);
+    res.json({ message: "Eliminato" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- API TRATTAMENTI ---
+app.get("/api/trattamenti/:id", async (req, res) => {
+  try {
+    const r = await db.query("SELECT * FROM trattamenti WHERE id=$1", [req.params.id]);
+    if (r.rows.length === 0) return res.status(404).json({ error: "Non trovato" });
+    res.json(r.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/clienti/:id/trattamenti", async (req, res) => {
+  try {
+    const r = await db.query("SELECT * FROM trattamenti WHERE cliente_id=$1 ORDER BY data_trattamento ASC", [req.params.id]);
+    res.json(r.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/trattamenti", async (req, res) => {
+  const { cliente_id, tipo_trattamento, descrizione, data_trattamento, note } = req.body;
+  try {
+    await db.query(
+      "INSERT INTO trattamenti (cliente_id, tipo_trattamento, descrizione, data_trattamento, note) VALUES ($1, $2, $3, $4, $5)",
+      [cliente_id, tipo_trattamento, descrizione, data_trattamento, note]
+    );
+    res.status(201).json({ message: "Trattamento aggiunto" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/trattamenti/:id", async (req, res) => {
+  const { id } = req.params;
+  const { tipo_trattamento, descrizione, data_trattamento, note } = req.body;
+  try {
+    await db.query(
+      "UPDATE trattamenti SET tipo_trattamento=$1, descrizione=$2, data_trattamento=$3, note=$4 WHERE id=$5",
+      [tipo_trattamento, descrizione, data_trattamento, note, id]
+    );
+    res.json({ message: "Trattamento aggiornato" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/trattamenti/:id", async (req, res) => {
+  try {
+    await db.query("DELETE FROM trattamenti WHERE id=$1", [req.params.id]);
+    res.json({ message: "Trattamento eliminato" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Avvio server ---
 const port = process.env.PORT || 8080;
-
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
+app.listen(port, '0.0.0.0', () => {
+  console.log(`🚀 Server avviato su http://0.0.0.0:${port}`);
 });
-
-// ********** AGGIUNTA IMPORTANTE: GESTIONE ERRORI DEL POOL **********
-pool.on('error', (err, client) => {
-    console.error('Errore inatteso sul client idle del pool di database', err);
-});
-// ********************************************************************
-
-pool.connect()
-    .then(() => console.log('✅ Connesso al DB PostgreSQL!'))
-    .catch(err => {
-        console.error('Errore connessione DB INIZIALE:', err);
-    });
-
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
-// Rotta principale, ora accessibile senza login
-app.get('/', (req, res) => {
-    res.redirect('/clienti');
-});
-
-// --- ROTTE PER IL RENDERING DELLE PAGINE ---
-// Queste rotte rendono le pagine HTML (EJS)
-app.get('/clienti', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM clienti ORDER BY nome ASC');
-        res.render('clienti', { clienti: result.rows });
-    } catch (err) {
-        console.error('Errore nel recupero dei clienti:', err);
-        res.status(500).send('Errore nel recupero dei clienti');
-    }
-});
-
-app.get('/clienti/aggiungi', (req, res) => {
-    res.render('aggiungi-cliente');
-});
-
-app.post('/clienti', async (req, res) => {
-    const { nome, cognome, telefono, email, data_nascita, note } = req.body;
-    try {
-        await pool.query('INSERT INTO clienti (nome, cognome, telefono, email, data_nascita, note) VALUES ($1, $2, $3, $4, $5, $6)',
-            [nome, cognome, telefono, email, data_nascita || null, note]);
-        res.redirect('/clienti');
-    } catch (err) {
-        console.error('Errore nell\'aggiunta del cliente:', err);
-        res.status(500).send('Errore nell\'aggiunta del cliente');
-    }
-});
-
-app.get('/clienti/:id/modifica', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const result = await pool.query('SELECT * FROM clienti WHERE id = $1', [id]);
-        if (result.rows.length > 0) {
-            res.render('modifica-cliente', { cliente: result.rows[0] });
-        } else {
-            res.status(404).send('Cliente non trovato');
-        }
-    } catch (err) {
-        console.error('Errore nel recupero del cliente per modifica:', err);
-        res.status(500).send('Errore nel recupero del cliente');
-    }
-});
-
-app.post('/clienti/:id/modifica', async (req, res) => {
-    const { id } = req.params;
-    const { nome, cognome, telefono, email, data_nascita, note } = req.body;
-    try {
-        await pool.query('UPDATE clienti SET nome = $1, cognome = $2, telefono = $3, email = $4, data_nascita = $5, note = $6 WHERE id = $7',
-            [nome, cognome, telefono, email, data_nascita || null, note, id]);
-        res.redirect('/clienti');
-    } catch (err) {
-        console.error('Errore nella modifica del cliente:', err);
-        res.status(500).send('Errore nella modifica del cliente');
-    }
-});
-
-app.post('/clienti/:id/elimina', async (req, res) => {
-    const { id } = req.params;
-    try {
-        await pool.query('DELETE FROM clienti WHERE id = $1', [id]);
-        res.redirect('/clienti');
-    } catch (err) {
-        console.error('Errore nell\'eliminazione del cliente:', err);
-        res.status(500).send('Errore nell\'eliminazione del cliente');
-    }
-});
-
-app.get('/cerca-clienti', async (req, res) => {
-    try {
-        const query = req.query.query;
-        let clienti;
-
-        if (query) {
-            const searchQuery = `%${query}%`;
-            const result = await pool.query(
-                `SELECT * FROM clienti
-                 WHERE nome ILIKE $1 OR
-                       cognome ILIKE $1 OR
-                       telefono ILIKE $1 OR
-                       email ILIKE $1`,
-                [searchQuery]
-            );
-            clienti = result.rows;
-        } else {
-            const result = await pool.query('SELECT * FROM clienti ORDER BY id DESC');
-            clienti = result.rows;
-        }
-        res.json(clienti);
-    } catch (error) {
-        console.error('Errore durante la ricerca dei clienti:', error);
-        res.status(500).send('Errore nella ricerca clienti: ' + error.message);
-    }
-});
-
-
-// --- NUOVE ROTTE API (RESTful) per scheda-cliente.js ---
-// Queste rotte rispondono con JSON e non reindirizzano/renderizzano pagine.
-// Useranno il prefisso '/api' per chiarezza.
-
-// API: Recupera i dati di un singolo cliente (per scheda-cliente.js)
-app.get('/api/clienti/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const clientResult = await pool.query('SELECT * FROM clienti WHERE id = $1', [id]);
-        if (clientResult.rows.length === 0) {
-            return res.status(404).json({ message: 'Cliente non trovato' });
-        }
-        const clientData = clientResult.rows[0];
-
-        // Recupera anche note e acquisti se esistono (anche se notes è già nel cliente, per completezza)
-        // La tua tabella `clienti` ha già `note`, quindi potremmo non aver bisogno di una tabella `note` separata
-        // Assumendo che gli acquisti siano in una tabella `acquisti` collegata a `clienti` tramite `cliente_id`
-        const acquistiResult = await pool.query('SELECT * FROM acquisti WHERE cliente_id = $1 ORDER BY data_acquisto DESC', [id]);
-        clientData.acquisti = acquistiResult.rows;
-
-        res.json(clientData);
-    } catch (err) {
-        console.error('Errore nel recupero dati API del cliente:', err);
-        res.status(500).json({ message: 'Errore nel recupero dati del cliente', error: err.message });
-    }
-});
-
-// API: Aggiorna le note di un cliente (da scheda-cliente.js)
-app.put('/api/clienti/:id/note', async (req, res) => {
-    const { id } = req.params;
-    const { note } = req.body;
-    try {
-        await pool.query('UPDATE clienti SET note = $1 WHERE id = $2', [note, id]);
-        res.status(200).json({ message: 'Note aggiornate con successo' });
-    } catch (err) {
-        console.error('Errore nell\'aggiornamento API delle note:', err);
-        res.status(500).json({ message: 'Errore nell\'aggiornamento delle note', error: err.message });
-    }
-});
-
-// API: Aggiunge un acquisto per un cliente (da scheda-cliente.js)
-// Presuppone una tabella 'acquisti' con colonne: id, cliente_id, trattamento_id, data_acquisto, prezzo, note
-app.post('/api/clienti/:id/acquisti', async (req, res) => {
-    const { id: clienteId } = req.params;
-    const { trattamento_id, data_acquisto, prezzo, note } = req.body;
-    try {
-        const result = await pool.query(
-            'INSERT INTO acquisti (cliente_id, trattamento_id, data_acquisto, prezzo, note) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [clienteId, trattamento_id, data_acquisto, prezzo, note]
-        );
-        res.status(201).json(result.rows[0]); // Restituisce il nuovo acquisto creato
-    } catch (err) {
-        console.error('Errore nell\'aggiunta API dell\'acquisto:', err);
-        res.status(500).json({ message: 'Errore nell\'aggiunta dell\'acquisto', error: err.message });
-    }
-});
-
-// API: Elimina un acquisto (da scheda-cliente.js)
-app.delete('/api/acquisti/:id', async (req, res) => {
-    const { id } = req.params; // Questo è l'ID dell'acquisto, non del cliente
-    try {
-        const result = await pool.query('DELETE FROM acquisti WHERE id = $1 RETURNING *', [id]);
-        if (result.rowCount === 0) {
-            return res.status(404).json({ message: 'Acquisto non trovato' });
-        }
-        res.status(200).json({ message: 'Acquisto eliminato con successo' });
-    } catch (err) {
-        console.error('Errore nell\'eliminazione API dell\'acquisto:', err);
-        res.status(500).json({ message: 'Errore nell\'eliminazione dell\'acquisto', error: err.message });
-    }
-});
-
-
-// API: Recupera tutti i trattamenti (per dropdown in scheda-cliente.js)
-app.get('/api/trattamenti', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT * FROM trattamenti ORDER BY nome ASC');
-        res.json(result.rows);
-    } catch (err) {
-        console.error('Errore nel recupero API dei trattamenti:', err);
-        res.status(500).json({ message: 'Errore nel recupero dei trattamenti', error: err.message });
-    }
-});
-
-// API: Aggiunge un nuovo trattamento (se necessario, ad esempio da un'altra pagina o API)
-app.post('/api/trattamenti', async (req, res) => {
-    const { nome, descrizione, prezzo } = req.body;
-    try {
-        const result = await pool.query(
-            'INSERT INTO trattamenti (nome, descrizione, prezzo) VALUES ($1, $2, $3) RETURNING *',
-            [nome, descrizione, prezzo]
-        );
-        res.status(201).json(result.rows[0]);
-    } catch (err) {
-        console.error('Errore nell\'aggiunta API del trattamento:', err);
-        res.status(500).json({ message: 'Errore nell\'aggiunta del trattamento', error: err.message });
-    }
-});
-
-// API: Elimina un trattamento
-app.delete('/api/trattamenti/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const result = await pool.query('DELETE FROM trattamenti WHERE id = $1 RETURNING *', [id]);
-        if (result.rowCount === 0) {
-            return res.status(404).json({ message: 'Trattamento non trovato' });
-        }
-        res.status(200).json({ message: 'Trattamento eliminato con successo' });
-    } catch (err) {
-        console.error('Errore nell\'eliminazione API del trattamento:', err);
-        res.status(500).json({ message: 'Errore nell\'eliminazione del trattamento', error: err.message });
-    }
-});
-
-
-app.listen(port, () => {
-    console.log(`🚀 Server avviato su http://0.0.0.0:${port}`);
-});
-
-// ********** AGGIUNTA IMPORTANTE: GESTIONE ECCEZIONI GLOBALI **********
-process.on('uncaughtException', (err) => {
-    console.error('ERRORE CRITICO: Eccezione non catturata:', err);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('ERRORE CRITICO: Promessa non gestita:', reason);
-    console.error(promise);
-});
-// ********************************************************************
