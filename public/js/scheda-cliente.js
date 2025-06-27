@@ -676,7 +676,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (clientIdFromUrl) {
             currentClientId = clientIdFromUrl;
             if (searchIdsParam) {
-                searchResultsIds = searchIdsParam.split(',');
+                try {
+                    // Decodifica l'URI e poi parsa la stringa JSON per ottenere l'array di ID
+                    searchResultsIds = JSON.parse(decodeURIComponent(searchIdsParam));
+                } catch (e) {
+                    console.error("Errore nel parsing di searchIdsParam:", e);
+                    searchResultsIds = []; // In caso di errore, inizializza un array vuoto
+                }
                 currentIndex = parseInt(currentIndexParam, 10) || 0;
             } else {
                 searchResultsIds = [currentClientId]; // Se non c'è ricerca, il cliente corrente è l'unico
