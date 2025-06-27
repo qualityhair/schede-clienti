@@ -112,47 +112,53 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- Gestione generica delle risposte API (modificata per callback) ---
+    // --- Gestione generica delle risposte API (MODIFICATA: Rimosso reindirizzamento 401) ---
     async function handleApiResponse(response) {
         const contentType = response.headers.get("content-type");
 
-        if (response.status === 401) {
-            showMessage('La tua sessione è scaduta o non sei autorizzato. Effettua nuovamente il login.', 'error', () => {
-                window.location.href = '/';
-            });
-            return null;
-        } else if (contentType && contentType.includes("application/json")) {
+        // Rimosso il reindirizzamento per status 401.
+        // Se si verifica un 401, l'errore verrà gestito dal blocco catch
+        // o da un !response.ok nelle funzioni chiamanti.
+        // if (response.status === 401) {
+        //     showMessage('La tua sessione è scaduta o non sei autorizzato. Effettua nuovamente il login.', 'error', () => {
+        //         window.location.href = '/';
+        //     });
+        //     return null;
+        // }
+
+        if (contentType && contentType.includes("application/json")) {
             return await response.json();
         } else {
             // Se la risposta non è JSON ma è 200 OK (es. no content per delete)
             if (response.ok) {
                 return {}; // Restituisci un oggetto vuoto se non c'è contenuto JSON ma l'operazione è riuscita
             }
-            // Altrimenti, è un errore non JSON o un problema generico
-            showMessage('Accesso non autorizzato o sessione scaduta. Verrai reindirizzato al login.', 'error', () => {
-                window.location.href = '/';
-            });
-            return null;
+            // Altrimenti, è un errore non JSON o un problema generico.
+            // NON reindirizzare qui automaticamente, lascia che la funzione chiamante gestisca l'errore.
+            // showMessage('Accesso non autorizzato o sessione scaduta. Verrai reindirizzato al login.', 'error', () => {
+            //     window.location.href = '/';
+            // });
+            // Questo blocco lancerà un errore che sarà catturato dalla funzione chiamante,
+            // che a sua volta mostrerà un messaggio tramite showMessage.
+            throw new Error(`Errore HTTP: ${response.status} ${response.statusText}`);
         }
     }
 
-    // --- Funzione per caricare i dati del cliente ---
+    // --- Funzione per caricare i dati del cliente (MODIFICATA: Rimozione /api/) ---
     async function loadClientData(clientId) {
         if (!clientId) {
             showMessage("ID Cliente non fornito nell'URL. Ricarica la pagina da un cliente valido.", 'error');
             return;
         }
         try {
-            const response = await fetch(`/api/clienti/${clientId}`);
+            // URL MODIFICATO: rimosso /api/
+            const response = await fetch(`/clienti/${clientId}`);
             const data = await handleApiResponse(response);
 
-            if (data === null) {
-                // handleApiResponse ha già gestito l'errore o il reindirizzamento
-                return;
-            }
-
-            if (!response.ok) {
-                throw new Error(data.error || "Errore nel caricamento dei dati del cliente.");
+            if (!response.ok) { // Controlla response.ok dopo handleApiResponse
+                 // handleApiResponse ora lancerà un errore se non è ok, quindi il catch lo prenderà.
+                 // Non serve un return qui se handleApiResponse tira un errore.
+                throw new Error(data?.error || "Errore nel caricamento dei dati del cliente.");
             }
 
             // Popola i campi del cliente e salva i dati nella variabile globale
@@ -182,7 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- Funzione per visualizzare i trattamenti ---
+    // --- Funzione per visualizzare i trattamenti (Nessuna modifica necessaria qui) ---
     function displayTrattamenti(trattamenti) {
         listaTrattamentiBody.innerHTML = ''; // Pulisce la lista esistente
         if (trattamenti.length === 0) {
@@ -215,7 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- Funzione per visualizzare gli acquisti ---
+    // --- Funzione per visualizzare gli acquisti (Nessuna modifica necessaria qui) ---
     function displayAcquisti(acquistiString) {
         listaAcquistiBody.innerHTML = ''; // Pulisce la lista esistente
         let acquisti = [];
@@ -227,7 +233,6 @@ document.addEventListener("DOMContentLoaded", () => {
             // Se il JSON è malformato, inizializza come array vuoto
             acquisti = [];
         }
-
 
         if (acquisti.length === 0) {
             listaAcquistiBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun acquisto registrato per questo cliente.</td></tr>';
@@ -252,7 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // --- Funzioni di salvataggio/eliminazione ---
+    // --- Funzioni di salvataggio/eliminazione (MODIFICATE: Rimozione /api/) ---
 
     async function confirmDeleteTrattamento(trattamentoId) {
         if (typeof showCustomModal !== 'function') {
@@ -266,15 +271,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!confirmed) return;
 
                 try {
-                    const response = await fetch(`/api/trattamenti/${trattamentoId}`, {
+                    // URL MODIFICATO: rimosso /api/
+                    const response = await fetch(`/trattamenti/${trattamentoId}`, {
                         method: 'DELETE',
                     });
                     const data = await handleApiResponse(response);
 
-                    if (data === null) return;
-
-                    if (!response.ok) {
-                        throw new Error(data.error || "Errore durante l'eliminazione del trattamento.");
+                    if (!response.ok) { // Controlla response.ok dopo handleApiResponse
+                        throw new Error(data?.error || "Errore durante l'eliminazione del trattamento.");
                     }
                     showMessage("Trattamento eliminato con successo!", 'success');
                     loadClientData(currentClientId); // Ricarica i dati del cliente per aggiornare la lista
@@ -288,15 +292,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Questo blocco viene eseguito se showCustomModal non è definita e l'utente conferma
         try {
-            const response = await fetch(`/api/trattamenti/${trattamentoId}`, {
+            // URL MODIFICATO: rimosso /api/
+            const response = await fetch(`/trattamenti/${trattamentoId}`, {
                 method: 'DELETE',
             });
             const data = await handleApiResponse(response);
 
-            if (data === null) return;
-
-            if (!response.ok) {
-                throw new Error(data.error || "Errore durante l'eliminazione del trattamento.");
+            if (!response.ok) { // Controlla response.ok dopo handleApiResponse
+                throw new Error(data?.error || "Errore durante l'eliminazione del trattamento.");
             }
             showMessage("Trattamento eliminato con successo!", 'success');
             loadClientData(currentClientId);
@@ -319,15 +322,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!confirmed) return;
 
                 try {
-                    const response = await fetch(`/api/clienti/${currentClientId}`, {
+                    // URL MODIFICATO: rimosso /api/
+                    const response = await fetch(`/clienti/${currentClientId}`, {
                         method: 'DELETE',
                     });
                     const data = await handleApiResponse(response);
 
-                    if (data === null) return;
-
-                    if (!response.ok) {
-                        throw new Error(data.error || "Errore durante l'eliminazione del cliente.");
+                    if (!response.ok) { // Controlla response.ok dopo handleApiResponse
+                        throw new Error(data?.error || "Errore durante l'eliminazione del cliente.");
                     }
                     showMessage("Cliente eliminato con successo! Reindirizzamento alla dashboard...", 'success', () => {
                         window.location.href = "/dashboard.html";
@@ -342,15 +344,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Questo blocco viene eseguito se showCustomModal non è definita e l'utente conferma
         try {
-            const response = await fetch(`/api/clienti/${currentClientId}`, {
+            // URL MODIFICATO: rimosso /api/
+            const response = await fetch(`/clienti/${currentClientId}`, {
                 method: 'DELETE',
             });
             const data = await handleApiResponse(response);
 
-            if (data === null) return;
-
-            if (!response.ok) {
-                throw new Error(data.error || "Errore durante l'eliminazione del cliente.");
+            if (!response.ok) { // Controlla response.ok dopo handleApiResponse
+                throw new Error(data?.error || "Errore durante l'eliminazione del cliente.");
             }
             showMessage("Cliente eliminato con successo! Reindirizzamento alla dashboard...", 'success', () => {
                 window.location.href = "/dashboard.html";
@@ -364,17 +365,16 @@ document.addEventListener("DOMContentLoaded", () => {
     async function handleSalvaNote() {
         const note = clienteNoteTextarea.value.trim();
         try {
-            const response = await fetch(`/api/clienti/${currentClientId}/note`, {
+            // URL MODIFICATO: rimosso /api/
+            const response = await fetch(`/clienti/${currentClientId}/note`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ preferenze_note: note })
             });
             const data = await handleApiResponse(response);
 
-            if (data === null) return;
-
-            if (!response.ok) {
-                throw new Error(data.error || "Errore nel salvataggio delle note.");
+            if (!response.ok) { // Controlla response.ok dopo handleApiResponse
+                throw new Error(data?.error || "Errore nel salvataggio delle note.");
             }
             showMessage("Note salvate con successo!", 'success');
         } catch (error) {
@@ -383,7 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // *** AGGIUNTO/RIPRISTINATO ***
+    // *** AGGIUNTO/RIPRISTINATO (MODIFICATA: Rimozione /api/) ***
     async function handleAddAcquisto(event) {
         event.preventDefault();
         const prodotto = prodottoAcquistoInput.value.trim();
@@ -400,9 +400,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const nuovoAcquisto = { prodotto, data, prezzo, quantita, note };
 
         try {
-            const clientResponse = await fetch(`/api/clienti/${currentClientId}`);
+            // URL MODIFICATO: rimosso /api/
+            const clientResponse = await fetch(`/clienti/${currentClientId}`);
             const clientData = await handleApiResponse(clientResponse);
-            if (clientData === null || !clientResponse.ok || !clientData.client) {
+            if (!clientResponse.ok || !clientData.client) { // Controlla response.ok dopo handleApiResponse
                 throw new Error(clientData ? (clientData.error || "Errore nel recupero dati cliente per acquisto.") : "Errore sconosciuto nel recupero dati cliente.");
             }
 
@@ -416,17 +417,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
             storicoAcquisti.push(nuovoAcquisto);
 
-            const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
+            // URL MODIFICATO: rimosso /api/
+            const response = await fetch(`/clienti/${currentClientId}/acquisti`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ storico_acquisti: JSON.stringify(storicoAcquisti) })
             });
             const dataResponse = await handleApiResponse(response);
 
-            if (dataResponse === null) return;
-
-            if (!response.ok) {
-                throw new Error(dataResponse.error || "Errore nell'aggiunta dell'acquisto.");
+            if (!response.ok) { // Controlla response.ok dopo handleApiResponse
+                throw new Error(dataResponse?.error || "Errore nell'aggiunta dell'acquisto.");
             }
 
             showMessage("Acquisto aggiunto con successo!", 'success');
@@ -439,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     // ********************
 
-    // --- NUOVA FUNZIONE: Gestione dell'aggiunta Trattamento tramite Modale ---
+    // --- NUOVA FUNZIONE: Gestione dell'aggiunta Trattamento tramite Modale (MODIFICATA: Rimozione /api/) ---
     async function handleAddTrattamento(event) {
         event.preventDefault();
 
@@ -454,12 +454,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const note = noteTrattamentoInput.value.trim();
 
         if (!tipo_trattamento || !data_trattamento) {
-            showMessage("Per favore, compila tutti i campi obbligatori (Tipo, Data).", 'error');
+            showMessage("Per favor, compila tutti i campi obbligatori (Tipo, Data).", 'error');
             return;
         }
 
         try {
-            const response = await fetch(`/api/trattamenti`, {
+            // URL MODIFICATO: rimosso /api/
+            const response = await fetch(`/trattamenti`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -472,10 +473,8 @@ document.addEventListener("DOMContentLoaded", () => {
             });
             const data = await handleApiResponse(response);
 
-            if (data === null) return;
-
-            if (!response.ok) {
-                throw new Error(data.error || "Errore nell'aggiunta del trattamento.");
+            if (!response.ok) { // Controlla response.ok dopo handleApiResponse
+                throw new Error(data?.error || "Errore nell'aggiunta del trattamento.");
             }
 
             showMessage("Trattamento aggiunto con successo!", 'success');
@@ -499,9 +498,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!confirmed) return;
 
                 try {
-                    const clientResponse = await fetch(`/api/clienti/${currentClientId}`);
+                    // URL MODIFICATO: rimosso /api/
+                    const clientResponse = await fetch(`/clienti/${currentClientId}`);
                     const clientData = await handleApiResponse(clientResponse);
-                    if (clientData === null || !clientResponse.ok || !clientData.client) {
+                    if (!clientResponse.ok || !clientData.client) { // Controlla response.ok dopo handleApiResponse
                         throw new Error(clientData ? (clientData.error || "Errore nel recupero dati cliente per eliminazione acquisto.") : "Errore sconosciuto nel recupero dati cliente.");
                     }
 
@@ -517,17 +517,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (indexToDelete >= 0 && indexToDelete < storicoAcquisti.length) {
                         storicoAcquisti.splice(indexToDelete, 1);
 
-                        const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
+                        // URL MODIFICATO: rimosso /api/
+                        const response = await fetch(`/clienti/${currentClientId}/acquisti`, {
                             method: 'PUT',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ storico_acquisti: JSON.stringify(storicoAcquisti) })
                         });
                         const dataResponse = await handleApiResponse(response);
 
-                        if (dataResponse === null) return;
-
-                        if (!response.ok) {
-                            throw new Error(dataResponse.error || "Errore nell'eliminazione dell'acquisto.");
+                        if (!response.ok) { // Controlla response.ok dopo handleApiResponse
+                            throw new Error(dataResponse?.error || "Errore nell'eliminazione dell'acquisto.");
                         }
                         showMessage("Acquisto eliminato con successo!", 'success');
                         loadClientData(currentClientId);
@@ -545,9 +544,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Questo blocco viene eseguito se showCustomModal non è definita e l'utente conferma
         try {
-            const clientResponse = await fetch(`/api/clienti/${currentClientId}`);
+            // URL MODIFICATO: rimosso /api/
+            const clientResponse = await fetch(`/clienti/${currentClientId}`);
             const clientData = await handleApiResponse(clientResponse);
-            if (clientData === null || !clientResponse.ok || !clientData.client) {
+            if (!clientResponse.ok || !clientData.client) { // Controlla response.ok dopo handleApiResponse
                 throw new Error(clientData ? (clientData.error || "Errore nel recupero dati cliente per eliminazione acquisto.") : "Errore sconosciuto nel recupero dati cliente.");
             }
 
@@ -563,17 +563,16 @@ document.addEventListener("DOMContentLoaded", () => {
             if (indexToDelete >= 0 && indexToDelete < storicoAcquisti.length) {
                 storicoAcquisti.splice(indexToDelete, 1);
 
-                const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
+                // URL MODIFICATO: rimosso /api/
+                const response = await fetch(`/clienti/${currentClientId}/acquisti`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ storico_acquisti: JSON.stringify(storicoAcquisti) })
                 });
                 const dataResponse = await handleApiResponse(response);
 
-                if (dataResponse === null) return;
-
-                if (!response.ok) {
-                    throw new Error(dataResponse.error || "Errore nell'eliminazione dell'acquisto.");
+                if (!response.ok) { // Controlla response.ok dopo handleApiResponse
+                    throw new Error(dataResponse?.error || "Errore nell'eliminazione dell'acquisto.");
                 }
                 showMessage("Acquisto eliminato con successo!", 'success');
                 loadClientData(currentClientId);
@@ -587,7 +586,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- NUOVA FUNZIONE: Gestione del salvataggio delle modifiche al cliente (tramite modale) ---
+    // --- NUOVA FUNZIONE: Gestione del salvataggio delle modifiche al cliente (tramite modale) (MODIFICATA: Rimozione /api/) ---
     async function handleModificaCliente(event) {
         event.preventDefault();
 
@@ -601,7 +600,8 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         try {
-            const response = await fetch(`/api/clienti/${clienteId}`, {
+            // URL MODIFICATO: rimosso /api/
+            const response = await fetch(`/clienti/${clienteId}`, {
                 method: 'PUT', // O 'PATCH' a seconda della tua API backend
                 headers: {
                     'Content-Type': 'application/json'
@@ -611,10 +611,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = await handleApiResponse(response);
 
-            if (data === null) return; // handleApiResponse ha già gestito errori di sessione
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Errore durante il salvataggio delle modifiche al cliente.');
+            if (!response.ok) { // Controlla response.ok dopo handleApiResponse
+                throw new Error(data?.error || 'Errore durante il salvataggio delle modifiche al cliente.');
             }
 
             showMessage('Dettagli cliente aggiornati con successo!', 'success');
@@ -693,48 +691,46 @@ document.addEventListener("DOMContentLoaded", () => {
             openModal(modalAggiungiAcquisto);
             // Imposta la data corrente come predefinita
             if (dataAcquistoInput) {
-                dataAcquistoInput.valueAsDate = new Date();
+                const today = new Date();
+                dataAcquistoInput.value = today.toISOString().split('T')[0];
             }
         });
     }
     if (annullaAcquistoBtn) {
-        annullaAcquistoBtn.addEventListener("click", () => {
-            closeModal(modalAggiungiAcquisto, formAggiungiAcquisto);
-        });
+        annullaAcquistoBtn.addEventListener("click", () => closeModal(modalAggiungiAcquisto, formAggiungiAcquisto));
     }
     if (formAggiungiAcquisto) {
         formAggiungiAcquisto.addEventListener("submit", handleAddAcquisto);
     }
     // ********************
 
-    // *** AGGIUNTO/RIPRISTINATO ***
-    // --- NUOVI Event Listeners per la modale "Aggiungi Trattamento" ---
+    // --- Event Listener per Aggiungi Trattamento (NUOVO/RIPRISTINATO) ---
     if (aggiungiTrattamentoBtn) {
         aggiungiTrattamentoBtn.addEventListener("click", () => {
             openModal(modalAggiungiTrattamento);
+            // Imposta la data corrente come predefinita
             if (dataTrattamentoInput) {
-                dataTrattamentoInput.valueAsDate = new Date(); // Completato: imposta la data corrente
+                const today = new Date();
+                dataTrattamentoInput.value = today.toISOString().split('T')[0];
             }
         });
     }
     if (cancelTrattamentoBtn) {
-        cancelTrattamentoBtn.addEventListener("click", () => {
-            closeModal(modalAggiungiTrattamento, formAddTrattamento);
-        });
+        cancelTrattamentoBtn.addEventListener("click", () => closeModal(modalAggiungiTrattamento, formAddTrattamento));
     }
     if (formAddTrattamento) {
         formAddTrattamento.addEventListener("submit", handleAddTrattamento);
     }
     // ********************
 
-    // --- NUOVI Event Listeners per la modale "Modifica Dettagli Cliente" ---
+    // --- Event Listener per Modifica Cliente (NUOVO) ---
     if (modificaDettagliBtn) {
         modificaDettagliBtn.addEventListener('click', () => {
-            // Popola il form con i dati attuali del cliente prima di aprire la modale
-            if (currentClienteData) { // Assicurati che i dati del cliente siano stati caricati
-                modificaClienteIdInput.value = currentClientId;
-                modificaNomeInput.value = currentClienteData.nome || '';
-                modificaCognomeInput.value = currentClienteData.cognome || '';
+            // Popola la modale con i dati attuali del cliente
+            if (currentClienteData) {
+                modificaClienteIdInput.value = currentClienteData.id;
+                modificaNomeInput.value = currentClienteData.nome;
+                modificaCognomeInput.value = currentClienteData.cognome;
                 modificaEmailInput.value = currentClienteData.email || '';
                 modificaTelefonoInput.value = currentClienteData.telefono || '';
             }
@@ -743,9 +739,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (annullaModificaClienteBtn) {
-        annullaModificaClienteBtn.addEventListener('click', () => {
-            closeModal(modificaClienteModal, formModificaCliente);
-        });
+        annullaModificaClienteBtn.addEventListener('click', () => closeModal(modificaClienteModal, formModificaCliente));
     }
 
     if (formModificaCliente) {
@@ -753,9 +747,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     // ********************
 
-
-    btnPrecedente.addEventListener("click", () => navigateClient('prev'));
-    btnSuccessivo.addEventListener("click", () => navigateClient('next'));
+    // Event listener per la paginazione
+    if (btnPrecedente) {
+        btnPrecedente.addEventListener('click', () => navigateClient('prev'));
+    }
+    if (btnSuccessivo) {
+        btnSuccessivo.addEventListener('click', () => navigateClient('next'));
+    }
 
     // Inizializza la pagina al caricamento
     initializePage();
