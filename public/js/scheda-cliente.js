@@ -636,7 +636,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!response.ok) {
                 throw new Error(data.error || 'Errore durante il salvataggio delle modifiche al cliente.');
-            }<br>            showMessage('Dettagli cliente aggiornati con successo!', 'success');
+            }            showMessage('Dettagli cliente aggiornati con successo!', 'success');
             closeModal(modificaClienteModal, formModificaCliente);
             loadClientData(currentClientId); // Ricarica i dati per aggiornare la scheda
         } catch (error) {
