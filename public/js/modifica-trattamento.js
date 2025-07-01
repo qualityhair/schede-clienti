@@ -47,6 +47,7 @@ const formModificaTrattamento = document.getElementById('form-modifica-trattamen
 const tipoTrattamentoSelect = document.getElementById('tipo_trattamento');
 const descrizioneTextarea = document.getElementById('descrizione');
 const dataTrattamentoInput = document.getElementById('data_trattamento');
+const prezzoModificaTrattamentoInput = document.getElementById('prezzo_modifica_trattamento'); // AGGIUNTA
 const noteTextarea = document.getElementById('note');
 const pageTitle = document.getElementById('pageTitle');
 const backToSchedaBtn = document.getElementById('backToSchedaBtn');
@@ -100,6 +101,7 @@ async function fetchTrattamentoDetails(id) {
             tipoTrattamentoSelect.value = trattamento.tipo_trattamento || '';
             descrizioneTextarea.value = trattamento.descrizione || '';
             dataTrattamentoInput.value = trattamento.data_trattamento ? new Date(trattamento.data_trattamento).toISOString().split('T')[0] : '';
+            prezzoModificaTrattamentoInput.value = trattamento.prezzo !== undefined && trattamento.prezzo !== null ? parseFloat(trattamento.prezzo).toFixed(2) : ''; // AGGIUNTA
             noteTextarea.value = trattamento.note || '';
 
             // Memorizza l'ID del cliente per il reindirizzamento
@@ -156,9 +158,14 @@ formModificaTrattamento.addEventListener('submit', async (event) => {
         tipo_trattamento: tipoTrattamentoSelect.value,
         descrizione: descrizioneTextarea.value,
         data_trattamento: dataTrattamentoInput.value,
+        prezzo: parseFloat(prezzoModificaTrattamentoInput.value), // AGGIUNTA
         note: noteTextarea.value
     };
-
+    // AGGIUNTA DELLA VALIDAZIONE DEL PREZZO
+    if (isNaN(updatedTreatment.prezzo) || updatedTreatment.prezzo < 0) {
+        showCustomModal('Il prezzo deve essere un numero valido e non negativo.', 'error');
+        return; // Ferma l'esecuzione se il prezzo non è valido
+    }
     if (!updatedTreatment.tipo_trattamento || !updatedTreatment.data_trattamento) {
         showCustomModal('Tipo Trattamento e Data Trattamento sono obbligatori.', 'error');
         return;
