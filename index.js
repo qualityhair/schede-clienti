@@ -232,11 +232,14 @@ app.get("/api/clienti/:id/trattamenti", async (req, res) => {
 });
 
 app.post("/api/trattamenti", async (req, res) => {
-  const { cliente_id, tipo_trattamento, descrizione, data_trattamento, note } = req.body;
+  // Aggiungi 'prezzo' qui:
+  const { cliente_id, tipo_trattamento, descrizione, data_trattamento, note, prezzo } = req.body;
   try {
     await db.query(
-      "INSERT INTO trattamenti (cliente_id, tipo_trattamento, descrizione, data_trattamento, note) VALUES ($1, $2, $3, $4, $5)",
-      [cliente_id, tipo_trattamento, descrizione, data_trattamento, note]
+      // Assicurati che 'prezzo' sia nella posizione corretta ($5)
+      "INSERT INTO trattamenti (cliente_id, tipo_trattamento, descrizione, data_trattamento, prezzo, note) VALUES ($1, $2, $3, $4, $5, $6)",
+      // Assicurati che 'prezzo' sia nella posizione corretta nell'array
+      [cliente_id, tipo_trattamento, descrizione, data_trattamento, prezzo, note]
     );
     res.status(201).json({ message: "Trattamento aggiunto" });
   } catch (err) {
@@ -246,11 +249,14 @@ app.post("/api/trattamenti", async (req, res) => {
 
 app.put("/api/trattamenti/:id", async (req, res) => {
   const { id } = req.params;
-  const { tipo_trattamento, descrizione, data_trattamento, note } = req.body;
+  // Aggiungi 'prezzo' qui:
+  const { tipo_trattamento, descrizione, data_trattamento, note, prezzo } = req.body;
   try {
     await db.query(
-      "UPDATE trattamenti SET tipo_trattamento=$1, descrizione=$2, data_trattamento=$3, note=$4 WHERE id=$5",
-      [tipo_trattamento, descrizione, data_trattamento, note, id]
+      // Assicurati che 'prezzo' sia nella posizione corretta ($4)
+      "UPDATE trattamenti SET tipo_trattamento=$1, descrizione=$2, data_trattamento=$3, prezzo=$4, note=$5 WHERE id=$6",
+      // Assicurati che 'prezzo' sia nella posizione corretta nell'array
+      [tipo_trattamento, descrizione, data_trattamento, prezzo, note, id]
     );
     res.json({ message: "Trattamento aggiornato" });
   } catch (err) {
