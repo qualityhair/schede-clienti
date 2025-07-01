@@ -581,7 +581,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("Errore nel parsing dello storico acquisti esistente per eliminazione:", e);
                 showMessage("Errore: Impossibile eliminare l'acquisto. Dati storici malformati.", 'error');
                 return;
-            }<br>            if (indexToDelete >= 0 && indexToDelete < storicoAcquisti.length) {
+            }           if (indexToDelete >= 0 && indexToDelete < storicoAcquisti.length) {
                 storicoAcquisti.splice(indexToDelete, 1);
 
                 const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
