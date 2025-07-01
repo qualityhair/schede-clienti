@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const prodottoAcquistoInput = document.getElementById("prodotto-acquisto");
     const dataAcquistoInput = document.getElementById("data-acquisto");
     const prezzoAcquistoInput = document.getElementById("prezzo-acquisto");
-    const quantitaAcquistoInput = document.getElementById("quantita-acquisto");
+    const quantitaAcquistoInput = document = document.getElementById("quantita-acquisto");
     const noteAcquistoTextarea = document.getElementById("note-acquisto");
     // ********************
 
@@ -38,6 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Campi input specifici della modale trattamento (AGGIORNATI CON ID COERENTI AL TUO HTML)
     const tipoTrattamentoInput = document.getElementById('tipoTrattamento');
     const dataTrattamentoInput = document.getElementById('dataTrattamento');
+    // --- INIZIO MODIFICA: AGGIUNTA RIFERIMENTO INPUT PREZZO ---
+    const prezzoTrattamentoInput = document.getElementById('prezzoTrattamento');
+    // --- FINE MODIFICA ---
     const descrizioneTrattamentoInput = document.getElementById('descrizioneTrattamento');
     const noteTrattamentoInput = document.getElementById('noteTrattamento');
     // ********************
@@ -188,7 +191,9 @@ document.addEventListener("DOMContentLoaded", () => {
         listaTrattamentiBody.innerHTML = ''; // Pulisce la lista esistente
 
         if (trattamenti.length === 0) {
-            listaTrattamentiBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nessun trattamento registrato per questo cliente.</td></tr>';
+            // --- INIZIO MODIFICA: AGGIORNAMENTO COLSPAN ---
+            listaTrattamentiBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun trattamento registrato per questo cliente.</td></tr>';
+            // --- FINE MODIFICA ---
             return;
         }
 
@@ -200,6 +205,9 @@ document.addEventListener("DOMContentLoaded", () => {
             row.insertCell().textContent = trattamento.tipo_trattamento;
             row.insertCell().textContent = trattamento.descrizione;
             row.insertCell().textContent = new Date(trattamento.data_trattamento).toLocaleDateString('it-IT');
+            // --- INIZIO MODIFICA: AGGIUNTA CELLA PREZZO ---
+            row.insertCell().textContent = trattamento.prezzo ? `€ ${parseFloat(trattamento.prezzo).toFixed(2)}` : 'N/A';
+            // --- FINE MODIFICA ---
             row.insertCell().textContent = trattamento.note || "N/A";
 
             const actionCell = row.insertCell();
@@ -440,8 +448,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error("Errore aggiunta acquisto:", error);
             showMessage(`Errore nell'aggiunta dell'acquisto: ${error.message}`, 'error');
-        }
-    }
+        }<br>    }
     // ********************
 
     // --- NUOVA FUNZIONE: Gestione dell'aggiunta Trattamento tramite Modale ---
@@ -455,10 +462,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const tipo_trattamento = tipoTrattamentoInput.value.trim();
         const data_trattamento = dataTrattamentoInput.value;
+        // --- INIZIO MODIFICA: RECUPERO E VALIDAZIONE PREZZO ---
+        const prezzo_trattamento = parseFloat(prezzoTrattamentoInput.value);
+        if (isNaN(prezzo_trattamento) || prezzo_trattamento < 0) {
+            showMessage("Per favore, inserisci un prezzo valido (un numero non negativo).", 'error');
+            return;
+        }
+        // --- FINE MODIFICA ---
         const descrizione = descrizioneTrattamentoInput.value.trim();
         const note = noteTrattamentoInput.value.trim();
 
-        if (!tipo_trattamento || !data_trattamento) {
+        if (!tipo_trattamento || !data_trattamento) { // Ora solo tipo e data sono obbligatori prima della validazione prezzo
             showMessage("Per favore, compila tutti i campi obbligatori (Tipo, Data).", 'error');
             return;
         }
@@ -471,6 +485,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     cliente_id: currentClientId,
                     tipo_trattamento,
                     data_trattamento,
+                    // --- INIZIO MODIFICA: INCLUSIONE PREZZO NEL BODY ---
+                    prezzo: prezzo_trattamento,
+                    // --- FINE MODIFICA ---
                     descrizione,
                     note
                 })
@@ -563,9 +580,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("Errore nel parsing dello storico acquisti esistente per eliminazione:", e);
                 showMessage("Errore: Impossibile eliminare l'acquisto. Dati storici malformati.", 'error');
                 return;
-            }
-
-            if (indexToDelete >= 0 && indexToDelete < storicoAcquisti.length) {
+            }<br>            if (indexToDelete >= 0 && indexToDelete < storicoAcquisti.length) {
                 storicoAcquisti.splice(indexToDelete, 1);
 
                 const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
@@ -620,9 +635,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!response.ok) {
                 throw new Error(data.error || 'Errore durante il salvataggio delle modifiche al cliente.');
-            }
-
-            showMessage('Dettagli cliente aggiornati con successo!', 'success');
+            }<br>            showMessage('Dettagli cliente aggiornati con successo!', 'success');
             closeModal(modificaClienteModal, formModificaCliente);
             loadClientData(currentClientId); // Ricarica i dati per aggiornare la scheda
         } catch (error) {
@@ -648,112 +661,90 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    async function navigateClient(direction) {
-        if (searchResultsIds.length === 0) return;
-
-        let newIndex = currentIndex;
-        if (direction === 'prev') {
-            newIndex--;
-        } else if (direction === 'next') {
-            newIndex++;
-        }
-
-        if (newIndex >= 0 && newIndex < searchResultsIds.length) {
-            currentIndex = newIndex;
-            currentClientId = searchResultsIds[currentIndex]; // Aggiorna currentClientId
-            await loadClientData(currentClientId);
-            updatePaginationButtons();
-        }
-    }
-
-    // --- Inizializzazione della pagina ---
-    async function initializePage() {
+    async function getClientIdsFromSearch() {
         const urlParams = new URLSearchParams(window.location.search);
-        const clientIdFromUrl = urlParams.get('id');
-        const searchIdsParam = urlParams.get('searchIds');
-        const currentIndexParam = urlParams.get('index');
+        const query = urlParams.get('query');
+        const ids = urlParams.get('ids');
+        const initialIndex = urlParams.get('index');
 
-        if (clientIdFromUrl) {
-            currentClientId = clientIdFromUrl;
-            if (searchIdsParam) {
-                try {
-                    // Decodifica l'URI e poi parsa la stringa JSON per ottenere l'array di ID
-                    searchResultsIds = JSON.parse(decodeURIComponent(searchIdsParam));
-                } catch (e) {
-                    console.error("Errore nel parsing di searchIdsParam:", e);
-                    searchResultsIds = []; // In caso di errore, inizializza un array vuoto
-                }
-                currentIndex = parseInt(currentIndexParam, 10) || 0;
+        if (ids) {
+            searchResultsIds = ids.split(',').map(id => parseInt(id, 10));
+            currentIndex = parseInt(initialIndex, 10) || 0;
+            if (searchResultsIds.length > 0) {
+                currentClientId = searchResultsIds[currentIndex];
+                loadClientData(currentClientId);
             } else {
-                searchResultsIds = [currentClientId]; // Se non c'è ricerca, il cliente corrente è l'unico
-                currentIndex = 0;
+                showMessage("Nessun cliente trovato con la ricerca.", 'info');
+                // Potresti voler reindirizzare alla dashboard se non ci sono clienti
+                // window.location.href = "/dashboard.html";
             }
-            await loadClientData(currentClientId);
-            updatePaginationButtons();
         } else {
-            showMessage("Nessun cliente specificato nell'URL.", 'info');
-            // Potresti reindirizzare alla dashboard o mostrare un messaggio di errore
+            // Se non ci sono 'ids' nell'URL, prova a caricare un singolo cliente se 'id' è presente
+            const clientIdParam = urlParams.get('id');
+            if (clientIdParam) {
+                currentClientId = parseInt(clientIdParam, 10);
+                loadClientData(currentClientId);
+            } else {
+                showMessage("Nessun ID cliente fornito nell'URL. Ricarica la pagina dalla dashboard.", 'error');
+                // Reindirizza l'utente alla dashboard o gestisci l'errore
+                // window.location.href = "/dashboard.html";
+            }
         }
+        updatePaginationButtons();
     }
 
-    // --- Listener Eventi ---
+    // --- EVENT LISTENERS (Aggiornati) ---
     btnEliminaCliente.addEventListener('click', confirmDeleteClient);
     salvaNoteBtn.addEventListener('click', handleSalvaNote);
 
-    // Listener per i bottoni di paginazione
-    btnPrecedente.addEventListener('click', () => navigateClient('prev'));
-    btnSuccessivo.addEventListener('click', () => navigateClient('next'));
+    // Gestione della paginazione
+    btnPrecedente.addEventListener('click', () => {
+        if (currentIndex > 0) {
+            currentIndex--;
+            currentClientId = searchResultsIds[currentIndex];
+            loadClientData(currentClientId);
+            updatePaginationButtons();
+        }
+    });
 
-    // *** AGGIUNTO/RIPRISTINATO ***
-    // Listener per i bottoni/form della modale aggiungi acquisto
-    if (aggiungiAcquistoBtn) {
-        aggiungiAcquistoBtn.addEventListener('click', () => openModal(modalAggiungiAcquisto));
-    }
-    if (formAggiungiAcquisto) {
-        formAggiungiAcquisto.addEventListener('submit', handleAddAcquisto);
-    }
-    if (annullaAcquistoBtn) {
-        annullaAcquistoBtn.addEventListener('click', () => closeModal(modalAggiungiAcquisto, formAggiungiAcquisto));
-    }
-    // ********************
+    btnSuccessivo.addEventListener('click', () => {
+        if (currentIndex < searchResultsIds.length - 1) {
+            currentIndex++;
+            currentClientId = searchResultsIds[currentIndex];
+            loadClientData(currentClientId);
+            updatePaginationButtons();
+        }
+    });
 
-    // *** AGGIUNTO/RIPRISTINATO ***
-    // Listener per i bottoni/form della modale aggiungi trattamento
-    if (aggiungiTrattamentoBtn) {
-        aggiungiTrattamentoBtn.addEventListener('click', () => openModal(modalAggiungiTrattamento));
-    }
-    if (formAddTrattamento) {
-        formAddTrattamento.addEventListener('submit', handleAddTrattamento);
-    }
-    if (cancelTrattamentoBtn) {
-        cancelTrattamentoBtn.addEventListener('click', () => closeModal(modalAggiungiTrattamento, formAddTrattamento));
-    }
-    // ********************
+    // Event Listeners per la modale Aggiungi Trattamento
+    aggiungiTrattamentoBtn.addEventListener('click', () => openModal(modalAggiungiTrattamento));
+    cancelTrattamentoBtn.addEventListener('click', () => closeModal(modalAggiungiTrattamento, formAddTrattamento));
+    formAddTrattamento.addEventListener('submit', handleAddTrattamento);
 
-    // Listener per la modale di modifica cliente
-    if (modificaDettagliBtn) {
-        modificaDettagliBtn.addEventListener('click', () => {
-            // Pre-popola la modale con i dati attuali del cliente
-            if (currentClienteData) {
-                modificaClienteIdInput.value = currentClientId;
-                modificaNomeInput.value = currentClienteData.nome || '';
-                modificaCognomeInput.value = currentClienteData.cognome || '';
-                modificaEmailInput.value = currentClienteData.email || '';
-                modificaTelefonoInput.value = currentClienteData.telefono || '';
-            }
+    // Event Listeners per la modale Aggiungi Acquisto
+    aggiungiAcquistoBtn.addEventListener('click', () => openModal(modalAggiungiAcquisto));
+    annullaAcquistoBtn.addEventListener('click', () => closeModal(modalAggiungiAcquisto, formAggiungiAcquisto));
+    formAggiungiAcquisto.addEventListener('submit', handleAddAcquisto);
+
+    // Event Listeners per la modale Modifica Cliente
+    modificaDettagliBtn.addEventListener('click', () => {
+        if (currentClienteData) {
+            // Popola la modale con i dati attuali del cliente
+            modificaClienteIdInput.value = currentClienteData.id;
+            modificaNomeInput.value = currentClienteData.nome;
+            modificaCognomeInput.value = currentClienteData.cognome;
+            modificaEmailInput.value = currentClienteData.email || '';
+            modificaTelefonoInput.value = currentClienteData.telefono || '';
             openModal(modificaClienteModal);
-        });
-    }
+        } else {
+            showMessage("Nessun dato cliente disponibile per la modifica.", 'info');
+        }
+    });
 
-    if (formModificaCliente) {
-        formModificaCliente.addEventListener('submit', handleModificaCliente);
-    }
-
-    if (annullaModificaClienteBtn) {
-        annullaModificaClienteBtn.addEventListener('click', () => closeModal(modificaClienteModal, formModificaCliente));
-    }
+    annullaModificaClienteBtn.addEventListener('click', () => closeModal(modificaClienteModal, formModificaCliente));
+    formModificaCliente.addEventListener('submit', handleModificaCliente);
 
 
-    // Avvia l'inizializzazione quando il DOM è pronto
-    initializePage();
+    // Carica i dati del cliente all'avvio della pagina
+    getClientIdsFromSearch();
 });
