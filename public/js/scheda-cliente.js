@@ -647,52 +647,98 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // --- Gestione della paginazione (esistente) ---
-    function updatePaginationButtons() {
-        if (searchResultsIds.length > 1) {
-            btnPrecedente.disabled = (currentIndex === 0);
-            btnSuccessivo.disabled = (currentIndex === searchResultsIds.length - 1);
-            infoPaginazione.textContent = `Cliente ${currentIndex + 1} di ${searchResultsIds.length}`;
-            btnPrecedente.style.display = 'inline-block';
-            btnSuccessivo.style.display = 'inline-block';
-            infoPaginazione.style.display = 'inline-block';
-        } else {
-            btnPrecedente.style.display = 'none';
-            btnSuccessivo.style.display = 'none';
-            infoPaginazione.style.display = 'none';
-        }
+function updatePaginationButtons() {
+    if (searchResultsIds.length > 1) {
+        btnPrecedente.disabled = (currentIndex === 0);
+        btnSuccessivo.disabled = (currentIndex === searchResultsIds.length - 1);
+        infoPaginazione.textContent = `Cliente ${currentIndex + 1} di ${searchResultsIds.length}`;
+        btnPrecedente.style.display = 'inline-block';
+        btnSuccessivo.style.display = 'inline-block';
+        infoPaginazione.style.display = 'inline-block';
+    } else {
+        btnPrecedente.style.display = 'none';
+        btnSuccessivo.style.display = 'none';
+        infoPaginazione.style.display = 'none';
     }
+}
 
-    async function getClientIdsFromSearch() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const query = urlParams.get('query');
-        const ids = urlParams.get('ids');
-        const initialIndex = urlParams.get('index');
+async function getClientIdsFromSearch() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientIdParam = urlParams.get('id'); // Ho rinominato 'id' in 'clientIdParam' per chiarezza
+    const searchIdsParam = urlParams.get('searchIds'); // Ora corrisponde al nome del parametro URL
+    const initialIndexParam = urlParams.get('index');
 
-        if (ids) {
-            searchResultsIds = ids.split(',').map(id => parseInt(id, 10));
-            currentIndex = parseInt(initialIndex, 10) || 0;
-            if (searchResultsIds.length > 0) {
-                currentClientId = searchResultsIds[currentIndex];
-                loadClientData(currentClientId);
+    if (searchIdsParam) {
+        try {
+            // *** MODIFICA CRUCIALE QUI: USA JSON.parse() ***
+            searchResultsIds = JSON.parse(searchIdsParam);
+
+            // Aggiungi una validazione per assicurarti che sia un array di numeri
+            if (!Array.isArray(searchResultsIds) || searchResultsIds.some(isNaN)) {
+                console.error("Errore: searchResultsIds non è un array valido di numeri.");
+                // Fallback: se il parsing fallisce, tratta come singolo cliente
+                if (clientIdParam) {
+                    currentClientId = parseInt(clientIdParam, 10);
+                    searchResultsIds = [currentClientId]; // Disabilita la paginazione
+                    currentIndex = 0;
+                    showMessage("Dati di ricerca non validi. Visualizzazione del singolo cliente.", 'info');
+                } else {
+                    showMessage("Nessun cliente valido da visualizzare.", 'error');
+                    return; // Esci se non c'è neanche un ID singolo
+                }
             } else {
-                showMessage("Nessun cliente trovato con la ricerca.", 'info');
-                // Potresti voler reindirizzare alla dashboard se non ci sono clienti
-                // window.location.href = "/dashboard.html";
+                // Se searchIds è valido, procedi
+                currentIndex = parseInt(initialIndexParam, 10) || 0;
+                // Assicurati che l'indice sia valido per l'array
+                if (currentIndex < 0 || currentIndex >= searchResultsIds.length) {
+                    currentIndex = 0; // Ripristina a 0 se l'indice non è valido
+                }
+                currentClientId = searchResultsIds[currentIndex];
             }
-        } else {
-            // Se non ci sono 'ids' nell'URL, prova a caricare un singolo cliente se 'id' è presente
-            const clientIdParam = urlParams.get('id');
+        } catch (e) {
+            console.error("Errore nel parsing di searchIds JSON:", e);
+            showMessage("Errore nei dati di ricerca. Caricamento del singolo cliente.", 'error');
+            // Fallback in caso di errore di parsing JSON
             if (clientIdParam) {
                 currentClientId = parseInt(clientIdParam, 10);
-                loadClientData(currentClientId);
+                searchResultsIds = [currentClientId];
+                currentIndex = 0;
             } else {
-                showMessage("Nessun ID cliente fornito nell'URL. Ricarica la pagina dalla dashboard.", 'error');
-                // Reindirizza l'utente alla dashboard o gestisci l'errore
-                // window.location.href = "/dashboard.html";
+                showMessage("Nessun ID cliente valido trovato.", 'error');
+                return;
             }
         }
-        updatePaginationButtons();
+    } else {
+        // Se non ci sono 'searchIds' nell'URL, prova a caricare un singolo cliente se 'id' è presente
+        if (clientIdParam) {
+            currentClientId = parseInt(clientIdParam, 10);
+            searchResultsIds = [currentClientId]; // Imposta l'array con il solo ID corrente per disabilitare paginazione
+            currentIndex = 0;
+        } else {
+            showMessage("Nessun ID cliente fornito nell'URL. Ricarica la pagina dalla dashboard.", 'error');
+            // Reindirizza l'utente alla dashboard o gestisci l'errore
+            // window.location.href = "/dashboard.html";
+            return; // Esci se non c'è un ID valido
+        }
     }
+
+    // A questo punto, currentClientId dovrebbe essere impostato e valido
+    if (currentClientId) {
+        await loadClientData(currentClientId); // Carica i dati del cliente
+        updatePaginationButtons(); // Aggiorna lo stato dei pulsanti dopo aver caricato
+    } else {
+        // Questo caso dovrebbe essere già gestito dai blocchi precedenti
+        showMessage("Impossibile caricare il cliente. ID non valido.", 'error');
+    }
+}
+
+// Assicurati che questa funzione sia chiamata all'avvio della pagina
+// Esempio:
+// document.addEventListener("DOMContentLoaded", async () => {
+//     // ... altre inizializzazioni
+//     await getClientIdsFromSearch();
+//     // ...
+// });
 
     // --- EVENT LISTENERS (Aggiornati) ---
     btnEliminaCliente.addEventListener('click', confirmDeleteClient);
