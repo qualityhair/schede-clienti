@@ -10,6 +10,10 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const session = require("express-session");
 
 const app = express();
+// --- QUI DEVI AGGIUNGERE LA RIGA ---
+app.set('trust proxy', 1); // Questa riga è fondamentale per Fly.io
+// --- FINE AGGIUNTA ---
+
 
 // --- Configurazione DB ---
 const connectionString = process.env.DATABASE_URL;
