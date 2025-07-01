@@ -448,7 +448,8 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error("Errore aggiunta acquisto:", error);
             showMessage(`Errore nell'aggiunta dell'acquisto: ${error.message}`, 'error');
-        }<br>    }
+        }
+    }
     // ********************
 
     // --- NUOVA FUNZIONE: Gestione dell'aggiunta Trattamento tramite Modale ---
