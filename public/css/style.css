@@ -815,7 +815,7 @@ p strong { /* Usato per scheda-cliente */
     color: #333333; /* Testo scuro per la leggibilità sul chiaro */
     border: 1px solid #777777; /* Bordo un po' più visibile */
     padding: 18px; /* Aumenta un po' il padding interno */
-    min-height: 180px; /* Rendi l'area di testo più alta */
+    min-height: 120px; /* Rendi l'area di testo più alta */
     border-radius: 8px; /* Bordi leggermente più arrotondati per un look morbido */
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2); /* Ombra interna per profondità */
 }
