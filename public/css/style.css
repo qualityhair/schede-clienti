@@ -807,3 +807,26 @@ p strong { /* Usato per scheda-cliente */
         top: 20px;
     }
 }
+
+
+/* Modifiche specifiche per il campo note nella sezione Note e Preferenze */
+.notes-panel #cliente-note { /* Applica questi stili solo al textarea dentro .notes-panel */
+    background-color: #f0f0f0; /* Sfondo molto chiaro */
+    color: #333333; /* Testo scuro per la leggibilità sul chiaro */
+    border: 1px solid #777777; /* Bordo un po' più visibile */
+    padding: 18px; /* Aumenta un po' il padding interno */
+    min-height: 180px; /* Rendi l'area di testo più alta */
+    border-radius: 8px; /* Bordi leggermente più arrotondati per un look morbido */
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2); /* Ombra interna per profondità */
+}
+
+.notes-panel #cliente-note::placeholder {
+    color: #888888; /* Colore più scuro per il placeholder sul chiaro */
+    font-style: italic;
+}
+
+.notes-panel #cliente-note:focus {
+    border-color: #FFD700; /* Bordo giallo acceso al focus */
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.25); /* Ombra esterna gialla al focus */
+    outline: none;
+}
