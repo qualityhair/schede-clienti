@@ -830,3 +830,19 @@ p strong { /* Usato per scheda-cliente */
     box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.25); /* Ombra esterna gialla al focus */
     outline: none;
 }
+
+/* Modifica la sezione "Note e Preferenze" */
+.panel.notes-panel .panel-content {
+    display: flex; /* Trasforma il contenitore in un flex container */
+    flex-direction: column; /* Impila gli elementi (textarea e bottone) in verticale */
+    gap: 15px; /* Aggiunge spazio tra la textarea e il bottone */
+    align-items: flex-end; /* Allinea gli elementi al lato destro del contenitore */
+    /* Assicurati che il bottone non si stiri per occupare tutta la larghezza */
+    width: 100%; /* Il content deve occupare il 100% per permettere l'allineamento */
+}
+
+/* Potrebbe essere utile dare al bottone "Salva Note" una larghezza definita o massima */
+#salva-note-btn {
+    max-width: 150px; /* Imposta una larghezza massima per il bottone, ad esempio 150px */
+    width: auto; /* Permette al bottone di adattarsi al contenuto ma non superare il max-width */
+}
