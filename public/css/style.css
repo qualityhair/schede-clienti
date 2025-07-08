@@ -867,7 +867,7 @@ p strong { /* Usato per scheda-cliente */
     color: #333333;
     border: 1px solid #777777;
     padding: 18px;
-    min-height: 150px; /* L'altezza che abbiamo deciso insieme */
+    min-height: 100px; /* L'altezza che abbiamo deciso insieme */
     border-radius: 8px;
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
     width: 100%; /* Assicurati che il textarea sia sempre al 100% */
