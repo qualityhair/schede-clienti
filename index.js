@@ -9,6 +9,8 @@ const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const session = require("express-session");
 
+const pgSession = require('connect-pg-simple')(session);
+
 const app = express();
 // --- QUI DEVI AGGIUNGERE LA RIGA ---
 app.set('trust proxy', 1); // Questa riga è fondamentale per Fly.io
@@ -52,10 +54,19 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'default_session_secret',
   resave: false,
   saveUninitialized: false,
+  // --- AGGIUNGI O VERIFICA BENE QUESTA RIGA ---
+  rolling: true, // Questo è cruciale: estende la durata della sessione ad ogni richiesta attiva
+  // ---------------------------------------------
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // Imposta a true in produzione per HTTPS
+    secure: process.env.NODE_ENV === 'production',
     maxAge: 30 * 24 * 60 * 60 * 1000 // 30 giorni in millisecondi
-  }
+  },
+  // --- AGGIUNGI QUESTO BLOCCO PER LO STORE DELLA SESSIONE ---
+  store: new pgSession({
+    pool: db, // Usa il tuo pool di connessioni PostgreSQL 'db'
+    tableName: 'app_sessions' // Nome della tabella dove verranno salvate le sessioni
+  })
+  // -----------------------------------------------------------
 }));
 
 app.use(passport.initialize());
