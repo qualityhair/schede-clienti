@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Calendario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css"> 
+
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.13/main.min.css' rel='stylesheet' />
+    
+    <style>
+        /* Stili aggiuntivi per FullCalendar per renderlo più simile a GC */
+        #calendar {
+            max-width: 1100px;
+            margin: 40px auto;
+        }
+
+        /* Regola l'altezza delle righe nella vista settimanale/giornaliera */
+        .fc-timegrid-slot {
+            height: 2.5em; /* Aumenta o diminuisci per regolare l'altezza delle fasce orarie */
+        }
+        
+        /* Centra il testo nelle celle del giorno (vista mese) */
+        .fc-daygrid-day-number {
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Stile per gli eventi */
+        .fc-event {
+            border-radius: 4px;
+            font-size: .85em;
+            cursor: pointer;
+        }
+        .fc-event-main {
+            padding: 2px 4px;
+        }
+        .fc-event-title {
+            white-space: normal; /* Permette al titolo di andare a capo */
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">Quality Hair Bolzano</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/clienti">Clienti</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/calendario">Calendario</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1>Gestione Appuntamenti</h1>
+        <p class="lead">Calendario eventi sincronizzato da Google Calendar.</p>
+
+        <div id='calendar'></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.13/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.13/locales/it.global.min.js'></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            
+		var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth', // Vista iniziale: mese
+                locale: 'it', // Imposta la lingua italiana
+                firstDay: 1, // La settimana inizia con Lunedì
+                timeZone: 'UTC', // <-- AGGIUNGI O MODIFICA QUESTA RIGA PER GESTIRE I FUSI ORARI CORRETTAMENTE
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay' // Viste disponibili
+                },
+                slotMinTime: '08:00:00', // Inizia la giornata lavorativa alle 8:00
+                slotMaxTime: '20:00:00', // Termina la giornata lavorativa alle 20:00
+                navLinks: true,
+                editable: false,
+                selectable: true,
+
+                eventClick: function(info) {
+                    let details = 'Evento: ' + info.event.title +
+                                  '\nInizio: ' + info.event.start.toLocaleString('it-IT') +
+                                  '\nFine: ' + info.event.end.toLocaleString('it-IT');
+
+                    if (info.event.extendedProps.description) {
+                        details += '\nDescrizione: ' + info.event.extendedProps.description;
+                    }
+                    if (info.event.extendedProps.location) {
+                        details += '\nLuogo: ' + info.event.extendedProps.location;
+                    }
+                    if (info.event.extendedProps.creator_email) {
+                        details += '\nCreato da: ' + info.event.extendedProps.creator_email;
+                    }
+
+                    alert(details);
+                },
+
+                events: function(fetchInfo, successCallback, failureCallback) {
+                    fetch('/api/events')
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            const events = data.map(event => {
+                                // Converti le stringhe di tempo in oggetti Date per manipolarle
+                                // Ma non usare getHours(), getMinutes() ecc. che dipendono dal fuso orario locale.
+                                // FullCalendar userà la proprietà allDay.
+                                
+                                // Qui il calcolo di isAllDay non è più strettamente necessario,
+                                // perché FullCalendar lo deduce se 'start' e 'end' sono solo date senza orario,
+                                // ma se le tue date hanno sempre T00:00:00Z, è utile per chiarezza.
+                                // La cosa più importante è che FullCalendar sia impostato su timeZone: 'UTC'.
+                                
+                                // Per essere più robusti con il calcolo isAllDay, possiamo usare getUTCHours() ecc.
+                                const startTime = new Date(event.start_time);
+                                const endTime = new Date(event.end_time);
+
+                                const isAllDay = (
+                                    startTime.getUTCHours() === 0 && startTime.getUTCMinutes() === 0 && startTime.getUTCSeconds() === 0 &&
+                                    endTime.getUTCHours() === 0 && endTime.getUTCMinutes() === 0 && endTime.getUTCSeconds() === 0 &&
+                                    (endTime.getTime() - startTime.getTime()) % (24 * 60 * 60 * 1000) === 0
+                                );
+
+                                return {
+                                    id: event.id,
+                                    title: event.summary,
+                                    start: event.start_time,
+                                    end: event.end_time,
+                                    description: event.description,
+                                    location: event.location,
+                                    creator_email: event.creator_email,
+                                    allDay: isAllDay // Questa proprietà è fondamentale per FullCalendar
+                                };
+                            });
+                            successCallback(events);
+                        })
+                        .catch(error => {
+                            console.error('Errore nel caricamento degli eventi per FullCalendar:', error);
+                            failureCallback(error);
+                            alert('Errore nel caricamento degli eventi: ' + error.message);
+                        });
+                }
+            });
+            calendar.render();
+        });
+    </script>
+</body>
+</html>
