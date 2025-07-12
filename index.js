@@ -12,23 +12,48 @@ const session = require("express-session");
 const pgSession = require('connect-pg-simple')(session);
 
 // --- INIZIO: AGGIUNTE NECESSARIE PER GOOGLE CALENDAR ---
-const { google } = require('googleapis'); // <--- AGGIUNGI QUESTA RIGA!
+const { google } = require('googleapis'); // Lascia questa riga all'inizio del file
 
-// Carica il percorso del file delle credenziali dal .env.local
-const googleCredentialsPath = process.env.GOOGLE_CREDENTIALS_PATH;
-
-// Assicurati che il percorso delle credenziali sia specificato
-if (!googleCredentialsPath) {
-    console.error("ERRORE: Variabile d'ambiente GOOGLE_CREDENTIALS_PATH non trovata.");
-    console.error("Assicurati di aver specificato il percorso del file JSON delle credenziali nel .env.local (es. GOOGLE_CREDENTIALS_PATH='./config/google-credentials.json').");
-    process.exit(1);
-}
-
-let auth;       // Variabile per l'oggetto di autenticazione Google
+let authClient; // Variabile per l'oggetto di autenticazione Google
 let calendar;   // Variabile per l'istanza del client Google Calendar
 
 // ID del calendario da cui leggere gli eventi.
 const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || 'primary';
+
+// Aggiungi questo controllo per differenziare l'ambiente di produzione da quello locale
+if (process.env.NODE_ENV === 'production' && process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+    // In produzione su Fly.io, usa la chiave del service account dalle variabili d'ambiente
+    try {
+        const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+        authClient = new google.auth.JWT(
+            credentials.client_email,
+            null,
+            credentials.private_key,
+            ['https://www.googleapis.com/auth/calendar.readonly'] // Assicurati che gli scope siano corretti
+        );
+        console.log('Credenziali Google caricate da variabile d\'ambiente (produzione).');
+    } catch (error) {
+        console.error('ERRORE: Impossibile parsare GOOGLE_SERVICE_ACCOUNT_KEY. Assicurati che il formato JSON sia corretto.', error);
+        process.exit(1); // Esci se non riesci a leggere le credenziali (importante per Fly.io)
+    }
+} else if (process.env.GOOGLE_CREDENTIALS_PATH) {
+    // In locale, usa il percorso del file specificato in .env.local
+    // Questo è il tuo codice esistente, ora sotto una condizione
+    authClient = new google.auth.GoogleAuth({
+        keyFile: process.env.GOOGLE_CREDENTIALS_PATH,
+        scopes: ['https://www.googleapis.com/auth/calendar.readonly'], // Assicurati che gli scope siano corretti
+    });
+    console.log('Credenziali Google caricate da file locale.');
+} else {
+    // Se nessuna delle due variabili d'ambiente è impostata
+    console.error('ERRORE: Credenziali Google non configurate. Imposta GOOGLE_SERVICE_ACCOUNT_KEY (produzione) o GOOGLE_CREDENTIALS_PATH (locale).');
+    process.exit(1); // Esci se le credenziali non sono configurate
+}
+
+// Inizializza l'istanza del client Google Calendar con l'autenticazione
+calendar = google.calendar({ version: 'v3', auth: authClient });
+
+// --- FINE: AGGIUNTE NECESSARIE PER GOOGLE CALENDAR ---
 
 // --- BLOCCO DI INIZIALIZZAZIONE GOOGLE CALENDAR (INCOLLA QUI IL CODICE!) ---
 try {
