@@ -20,7 +20,7 @@ let calendar;   // Variabile per l'istanza del client Google Calendar
 // ID del calendario da cui leggere gli eventi.
 const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || 'primary';
 
-// Aggiungi questo controllo per differenziare l'ambiente di produzione da quello locale
+// Questo è il blocco principale che gestisce l'autenticazione in base all'ambiente
 if (process.env.NODE_ENV === 'production' && process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
     // In produzione su Fly.io, usa la chiave del service account dalle variabili d'ambiente
     try {
@@ -32,53 +32,50 @@ if (process.env.NODE_ENV === 'production' && process.env.GOOGLE_SERVICE_ACCOUNT_
             ['https://www.googleapis.com/auth/calendar.readonly'] // Assicurati che gli scope siano corretti
         );
         console.log('Credenziali Google caricate da variabile d\'ambiente (produzione).');
+
+        // Ora che authClient è pronto, inizializza il calendario e avvia la sincronizzazione
+        calendar = google.calendar({ version: 'v3', auth: authClient });
+        console.log("Google Calendar inizializzato con credenziali di produzione.");
+        syncGoogleCalendarEvents(); // Avvia la sincronizzazione degli eventi una volta che è tutto pronto
+        // Se vuoi sincronizzare periodicamente (es. ogni 15 minuti), scommenta la riga qui sotto:
+        // setInterval(syncGoogleCalendarEvents, 900000); // 900000 ms = 15 minuti
+
     } catch (error) {
         console.error('ERRORE: Impossibile parsare GOOGLE_SERVICE_ACCOUNT_KEY. Assicurati che il formato JSON sia corretto.', error);
         process.exit(1); // Esci se non riesci a leggere le credenziali (importante per Fly.io)
     }
 } else if (process.env.GOOGLE_CREDENTIALS_PATH) {
     // In locale, usa il percorso del file specificato in .env.local
-    // Questo è il tuo codice esistente, ora sotto una condizione
+    // Inizializza GoogleAuth che poi richiederà getClient()
     authClient = new google.auth.GoogleAuth({
         keyFile: process.env.GOOGLE_CREDENTIALS_PATH,
         scopes: ['https://www.googleapis.com/auth/calendar.readonly'], // Assicurati che gli scope siano corretti
     });
     console.log('Credenziali Google caricate da file locale.');
+
+    // Ottieni il client di autenticazione (async) e inizializza il client di Google Calendar
+    authClient.getClient().then(client => { // Qui si usa il `client` restituito da getClient()
+        calendar = google.calendar({ version: 'v3', auth: client }); // Usa `client` per auth
+        console.log("Google Calendar inizializzato con credenziali locali.");
+        syncGoogleCalendarEvents(); // Avvia la sincronizzazione degli eventi
+        // Se vuoi sincronizzare periodicamente (es. ogni 15 minuti), scommenta la riga qui sotto:
+        // setInterval(syncGoogleCalendarEvents, 900000); // 900000 ms = 15 minuti
+    }).catch(err => {
+        console.error("Errore nell'ottenere il client di autenticazione Google (locale):", err.message);
+        process.exit(1);
+    });
+
 } else {
     // Se nessuna delle due variabili d'ambiente è impostata
     console.error('ERRORE: Credenziali Google non configurate. Imposta GOOGLE_SERVICE_ACCOUNT_KEY (produzione) o GOOGLE_CREDENTIALS_PATH (locale).');
     process.exit(1); // Esci se le credenziali non sono configurate
 }
 
-// Inizializza l'istanza del client Google Calendar con l'autenticazione
-calendar = google.calendar({ version: 'v3', auth: authClient });
+// *** IMPORTANTE: Non ci deve essere più nessun altro blocco di inizializzazione
+// di 'auth' o 'calendar' dopo questo 'if/else if/else'.
+// Tutto ciò che è necessario fare una volta che 'calendar' è pronto
+// (es. chiamare syncGoogleCalendarEvents()) deve essere all'interno dei blocchi `if` ed `else if`.
 
-// --- FINE: AGGIUNTE NECESSARIE PER GOOGLE CALENDAR ---
-
-// --- BLOCCO DI INIZIALIZZAZIONE GOOGLE CALENDAR (INCOLLA QUI IL CODICE!) ---
-try {
-    auth = new google.auth.GoogleAuth({
-        keyFile: googleCredentialsPath, // Indica il percorso del tuo file JSON
-        scopes: ['https://www.googleapis.com/auth/calendar.readonly'], // Scope per sola lettura
-    });
-
-    // Ottieni il client di autenticazione e inizializza il client di Google Calendar
-    auth.getClient().then(authClient => {
-        console.log("Google Auth Client ottenuto. Inizializzo Google Calendar..."); // Aggiunto per debug
-        calendar = google.calendar({ version: 'v3', auth: authClient });
-        // Una volta che il client di Google Calendar è pronto, avvia la sincronizzazione degli eventi.
-        syncGoogleCalendarEvents();
-        // Se vuoi sincronizzare periodicamente (es. ogni 15 minuti), scommenta la riga qui sotto:
-        // setInterval(syncGoogleCalendarEvents, 900000); // 900000 ms = 15 minuti
-    }).catch(err => {
-        console.error("Errore nell'ottenere il client di autenticazione Google:", err.message);
-        process.exit(1);
-    });
-
-} catch (error) {
-    console.error("ERRORE durante il caricamento o l'inizializzazione delle credenziali Google:", error.message);
-    process.exit(1);
-}
 // --- FINE: AGGIUNTE NECESSARIE PER GOOGLE CALENDAR ---
 
 
