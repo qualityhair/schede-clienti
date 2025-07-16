@@ -248,6 +248,7 @@ const dbConfig = {
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
+    allowExitOnIdle: true // <-- AGGIUNGI QUESTA RIGA
 };
 
 const db = new Pool(dbConfig); // Crea il pool con la configurazione decisa sopra
