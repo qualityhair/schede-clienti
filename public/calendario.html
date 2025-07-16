@@ -40,9 +40,37 @@
             white-space: normal; /* Permette al titolo di andare a capo */
         }
     </style>
+
+<style>
+    /* Fix per testo FullCalendar su sfondo chiaro */
+    .fc-col-header-cell-cushion,    /* Intestazioni giorni (Lun, Mar...) */
+    .fc-daygrid-day-number,         /* Numeri del giorno (1, 2, 3...) */
+    .fc-timegrid-slot-label-cushion, /* <-- IL SELETTORE GIUSTO CHE HAI TROVATO TU! */
+    .fc-list-event-time,            /* Orari nella vista "Lista" */
+    .fc-toolbar-title {             /* Titolo del calendario (es. "Luglio 2025") */
+        color: #212529 !important;
+        text-decoration: none !important;
+    }
+
+    /* Colora anche i bottoni della toolbar */
+    .fc-toolbar-chunk .fc-button {
+        background-color: #f8f9fa;
+        color: #212529;
+        border-color: #dee2e6;
+    }
+    
+    /* Stile per i bottoni quando sono attivi */
+    .fc-toolbar-chunk .fc-button-primary:not(:disabled).fc-button-active {
+         background-color: #0d6efd;
+         border-color: #0d6efd;
+         color: white;
+    }
+</style>
+
+
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
             <a class="navbar-brand" href="/dashboard">Quality Hair Bolzano</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -73,7 +101,8 @@
         <h1>Gestione Appuntamenti</h1>
         <p class="lead">Calendario eventi sincronizzato da Google Calendar.</p>
 
-        <div id='calendar'></div>
+<div id='calendar' class="bg-white p-3 rounded"></div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -82,94 +111,86 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.13/locales/it.global.min.js'></script>
     
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
-            
-		var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth', // Vista iniziale: mese
-                locale: 'it', // Imposta la lingua italiana
-                firstDay: 1, // La settimana inizia con Lunedì
-                timeZone: 'UTC', // <-- AGGIUNGI O MODIFICA QUESTA RIGA PER GESTIRE I FUSI ORARI CORRETTAMENTE
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay' // Viste disponibili
-                },
-                slotMinTime: '08:00:00', // Inizia la giornata lavorativa alle 8:00
-                slotMaxTime: '20:00:00', // Termina la giornata lavorativa alle 20:00
-                navLinks: true,
-                editable: false,
-                selectable: true,
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
 
-                eventClick: function(info) {
-                    let details = 'Evento: ' + info.event.title +
-                                  '\nInizio: ' + info.event.start.toLocaleString('it-IT') +
-                                  '\nFine: ' + info.event.end.toLocaleString('it-IT');
+        // Mappa dei Color ID di Google Calendar ai colori reali
+        const googleColorMap = {
+            '1': '#a4bdfc', '2': '#7ae7bf', '3': '#dbadff', '4': '#ff887c',
+            '5': '#fbd75b', '6': '#ffb878', '7': '#46d6db', '8': '#e1e1e1',
+            '9': '#5484ed', '10': '#51b749', '11': '#dc2127'
+        };
 
-                    if (info.event.extendedProps.description) {
-                        details += '\nDescrizione: ' + info.event.extendedProps.description;
-                    }
-                    if (info.event.extendedProps.location) {
-                        details += '\nLuogo: ' + info.event.extendedProps.location;
-                    }
-                    if (info.event.extendedProps.creator_email) {
-                        details += '\nCreato da: ' + info.event.extendedProps.creator_email;
-                    }
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'timeGridWeek', // Vista iniziale: settimana
+            locale: 'it',
+            firstDay: 1,
+            dayMaxEventRows: true, // Gestisce gli eventi "all-day"
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+            },
+            slotMinTime: '08:00:00',
+            slotMaxTime: '20:00:00',
+            navLinks: true,
+            editable: false,
+            selectable: true,
 
-                    alert(details);
-                },
+            eventClick: function(info) {
+                // Formatta le date in modo più leggibile per l'alert
+                const startTime = info.event.start ? info.event.start.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' }) : 'N/D';
+                const endTime = info.event.end ? info.event.end.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' }) : 'N/D';
 
-                events: function(fetchInfo, successCallback, failureCallback) {
-                    fetch('/api/events')
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`HTTP error! status: ${response.status}`);
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            const events = data.map(event => {
-                                // Converti le stringhe di tempo in oggetti Date per manipolarle
-                                // Ma non usare getHours(), getMinutes() ecc. che dipendono dal fuso orario locale.
-                                // FullCalendar userà la proprietà allDay.
-                                
-                                // Qui il calcolo di isAllDay non è più strettamente necessario,
-                                // perché FullCalendar lo deduce se 'start' e 'end' sono solo date senza orario,
-                                // ma se le tue date hanno sempre T00:00:00Z, è utile per chiarezza.
-                                // La cosa più importante è che FullCalendar sia impostato su timeZone: 'UTC'.
-                                
-                                // Per essere più robusti con il calcolo isAllDay, possiamo usare getUTCHours() ecc.
-                                const startTime = new Date(event.start_time);
-                                const endTime = new Date(event.end_time);
+                let details = 'Evento: ' + info.event.title +
+                              '\nInizio: ' + startTime +
+                              '\nFine: ' + endTime;
 
-                                const isAllDay = (
-                                    startTime.getUTCHours() === 0 && startTime.getUTCMinutes() === 0 && startTime.getUTCSeconds() === 0 &&
-                                    endTime.getUTCHours() === 0 && endTime.getUTCMinutes() === 0 && endTime.getUTCSeconds() === 0 &&
-                                    (endTime.getTime() - startTime.getTime()) % (24 * 60 * 60 * 1000) === 0
-                                );
+                if (info.event.extendedProps.description) {
+                    details += '\nDescrizione: ' + info.event.extendedProps.description;
+                }
+                if (info.event.extendedProps.location) {
+                    details += '\nLuogo: ' + info.event.extendedProps.location;
+                }
+                alert(details);
+            },
 
-                                return {
-                                    id: event.id,
-                                    title: event.summary,
-                                    start: event.start_time,
-                                    end: event.end_time,
+            events: function(fetchInfo, successCallback, failureCallback) {
+                fetch('/api/events')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        const events = data.map(event => {
+                            const eventColor = googleColorMap[event.color_id] || null;
+                            return {
+                                id: event.google_event_id,
+                                title: event.summary,
+                                start: event.start_time,
+                                end: event.end_time,
+                                allDay: event.is_all_day,
+                                color: eventColor,
+                                textColor: '#212529', // Testo scuro per leggibilità
+                                extendedProps: {
                                     description: event.description,
                                     location: event.location,
-                                    creator_email: event.creator_email,
-                                    allDay: isAllDay // Questa proprietà è fondamentale per FullCalendar
-                                };
-                            });
-                            successCallback(events);
-                        })
-                        .catch(error => {
-                            console.error('Errore nel caricamento degli eventi per FullCalendar:', error);
-                            failureCallback(error);
-                            alert('Errore nel caricamento degli eventi: ' + error.message);
+                                    creator_email: event.creator_email
+                                }
+                            };
                         });
-                }
-            });
-            calendar.render();
+                        successCallback(events);
+                    })
+                    .catch(error => {
+                        console.error('Errore nel caricamento degli eventi:', error);
+                        failureCallback(error);
+                    });
+            }
         });
-    </script>
+        calendar.render();
+    });
+</script>
 </body>
 </html>

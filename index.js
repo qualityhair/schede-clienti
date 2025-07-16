@@ -26,11 +26,14 @@ if (process.env.NODE_ENV === 'production' && process.env.GOOGLE_SERVICE_ACCOUNT_
     try {
         const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
         authClient = new google.auth.JWT(
-            credentials.client_email,
-            null,
-            credentials.private_key,
-            ['https://www.googleapis.com/auth/calendar.readonly'] // Assicurati che gli scope siano corretti
-        );
+    credentials.client_email,
+    null,
+    credentials.private_key,
+    [
+        'https://www.googleapis.com/auth/calendar.readonly',
+        'https://www.googleapis.com/auth/calendar.events.readonly'
+    ] 
+);
         console.log('Credenziali Google caricate da variabile d\'ambiente (produzione).');
 
         // Ora che authClient è pronto, inizializza il calendario e avvia la sincronizzazione
@@ -38,7 +41,7 @@ if (process.env.NODE_ENV === 'production' && process.env.GOOGLE_SERVICE_ACCOUNT_
         console.log("Google Calendar inizializzato con credenziali di produzione.");
         syncGoogleCalendarEvents(); // Avvia la sincronizzazione degli eventi una volta che è tutto pronto
         // Se vuoi sincronizzare periodicamente (es. ogni 15 minuti), scommenta la riga qui sotto:
-        // setInterval(syncGoogleCalendarEvents, 900000); // 900000 ms = 15 minuti
+        setInterval(syncGoogleCalendarEvents, 900000); // 900000 ms = 15 minuti
 
     } catch (error) {
         console.error('ERRORE: Impossibile parsare GOOGLE_SERVICE_ACCOUNT_KEY. Assicurati che il formato JSON sia corretto.', error);
@@ -47,10 +50,15 @@ if (process.env.NODE_ENV === 'production' && process.env.GOOGLE_SERVICE_ACCOUNT_
 } else if (process.env.GOOGLE_CREDENTIALS_PATH) {
     // In locale, usa il percorso del file specificato in .env.local
     // Inizializza GoogleAuth che poi richiederà getClient()
-    authClient = new google.auth.GoogleAuth({
-        keyFile: process.env.GOOGLE_CREDENTIALS_PATH,
-        scopes: ['https://www.googleapis.com/auth/calendar.readonly'], // Assicurati che gli scope siano corretti
-    });
+
+authClient = new google.auth.GoogleAuth({
+    keyFile: process.env.GOOGLE_CREDENTIALS_PATH,
+    scopes: [
+        'https://www.googleapis.com/auth/calendar.readonly',
+        'https://www.googleapis.com/auth/calendar.events.readonly'
+    ], 
+});
+
     console.log('Credenziali Google caricate da file locale.');
 
     // Ottieni il client di autenticazione (async) e inizializza il client di Google Calendar
@@ -59,7 +67,7 @@ if (process.env.NODE_ENV === 'production' && process.env.GOOGLE_SERVICE_ACCOUNT_
         console.log("Google Calendar inizializzato con credenziali locali.");
         syncGoogleCalendarEvents(); // Avvia la sincronizzazione degli eventi
         // Se vuoi sincronizzare periodicamente (es. ogni 15 minuti), scommenta la riga qui sotto:
-        // setInterval(syncGoogleCalendarEvents, 900000); // 900000 ms = 15 minuti
+        setInterval(syncGoogleCalendarEvents, 900000); // 900000 ms = 15 minuti
     }).catch(err => {
         console.error("Errore nell'ottenere il client di autenticazione Google (locale):", err.message);
         process.exit(1);
@@ -94,14 +102,14 @@ async function syncGoogleCalendarEvents() {
 
         console.log(`Ricerca eventi dal ${now.toLocaleString()} al ${maxTime.toLocaleString()} nel calendario ID: ${CALENDAR_ID}`);
 
-        const res = await calendar.events.list({
-            calendarId: CALENDAR_ID,
-            timeMin: now.toISOString(),
-            timeMax: maxTime.toISOString(),
-            showDeleted: false,
-            singleEvents: true,
-            orderBy: 'startTime',
-        });
+const res = await calendar.events.list({
+    calendarId: CALENDAR_ID,
+    timeMin: now.toISOString(),
+    timeMax: maxTime.toISOString(),
+    showDeleted: false,
+    singleEvents: true,
+    orderBy: 'startTime',
+});;
 
         const events = res.data.items;
         if (!events || events.length === 0) {
@@ -112,48 +120,62 @@ async function syncGoogleCalendarEvents() {
 
         console.log(`Trovati ${events.length} eventi da Google Calendar:`);
 
-        // --- NUOVA LOGICA: Salvare/Aggiornare gli eventi nel database ---
-        for (const event of events) {
-            const eventSummary = event.summary || 'Nessun titolo';
-            const eventDescription = event.description || null;
-            const eventLocation = event.location || null;
-            const eventStart = event.start.dateTime || event.start.date; // Può essere dateTime o solo date (per eventi all-day)
-            const eventEnd = event.end.dateTime || event.end.date;       // Può essere dateTime o solo date
-            const eventCreatorEmail = event.creator ? event.creator.email : null;
-            const eventLastModified = event.updated || new Date().toISOString(); // 'updated' è la data dell'ultima modifica da Google
 
-            // Stampa nella console, come prima
-            console.log(`  - Evento: "${eventSummary}" (Inizio: ${new Date(eventStart).toLocaleString()}, Fine: ${new Date(eventEnd).toLocaleString()})`);
 
-            // Query SQL per UPSERT (UPDATE o INSERT) basata su google_event_id
-            const query = `
-                INSERT INTO calendar_events (google_event_id, summary, description, location, start_time, end_time, creator_email, last_modified)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                ON CONFLICT (google_event_id) DO UPDATE SET
-                    summary = EXCLUDED.summary,
-                    description = EXCLUDED.description,
-                    location = EXCLUDED.location,
-                    start_time = EXCLUDED.start_time,
-                    end_time = EXCLUDED.end_time,
-                    creator_email = EXCLUDED.creator_email,
-                    last_modified = EXCLUDED.last_modified,
-                    updated_at = CURRENT_TIMESTAMP;
-            `;
+// --- NUOVA LOGICA: Salvare/Aggiornare gli eventi nel database ---
+for (const event of events) {
 
-            const values = [
-                event.id, // Questo è l'ID univoco di Google Calendar per l'evento
-                eventSummary,
-                eventDescription,
-                eventLocation,
-                eventStart,
-                eventEnd,
-                eventCreatorEmail,
-                eventLastModified
-            ];
+    console.log('EVENTO DA GOOGLE:', event.id, 'COLOR ID:', event.colorId); // <--- RIGA DI DEBUG
 
-            try {
-                // Esegui la query sul database
-                await db.query(query, values);
+    const eventSummary = event.summary || 'Nessun titolo';
+    const eventDescription = event.description || null;
+    const eventLocation = event.location || null;
+    const eventStart = event.start.dateTime || event.start.date;
+    const eventEnd = event.end.dateTime || event.end.date;
+    const eventCreatorEmail = event.creator ? event.creator.email : null;
+    const eventLastModified = event.updated || new Date().toISOString();
+    const isAllDay = !!event.start.date;
+    const colorId = event.colorId || null; // <--- ASSICURATI CHE QUESTA RIGA SIA QUI
+
+    // Stampa nella console, come prima
+    console.log(`  - Evento: "${eventSummary}" (Inizio: ${new Date(eventStart).toLocaleString()}, Fine: ${new Date(eventEnd).toLocaleString()})`);
+
+    // Query SQL per UPSERT (UPDATE o INSERT) basata su google_event_id
+    const query = `
+        INSERT INTO calendar_events (google_event_id, summary, description, location, start_time, end_time, creator_email, last_modified, is_all_day, color_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        ON CONFLICT (google_event_id) DO UPDATE SET
+            summary = EXCLUDED.summary,
+            description = EXCLUDED.description,
+            location = EXCLUDED.location,
+            start_time = EXCLUDED.start_time,
+            end_time = EXCLUDED.end_time,
+            creator_email = EXCLUDED.creator_email,
+            last_modified = EXCLUDED.last_modified,
+            is_all_day = EXCLUDED.is_all_day,
+            color_id = EXCLUDED.color_id,
+            updated_at = CURRENT_TIMESTAMP;
+    `;
+    const values = [
+        event.id,
+        eventSummary,
+        eventDescription,
+        eventLocation,
+        eventStart,
+        eventEnd,
+        eventCreatorEmail,
+        eventLastModified,
+        isAllDay,
+        colorId
+    ];
+
+
+
+    try {
+        // Esegui la query sul database
+        await db.query(query, values);
+
+
                 // console.log(`Evento "${eventSummary}" (ID: ${event.id}) salvato/aggiornato nel DB.`); // Decommenta per debug dettagliato
             } catch (dbError) {
                 console.error(`Errore nel salvare l'evento "${eventSummary}" (ID: ${event.id}) nel DB:`, dbError.message);
@@ -212,41 +234,24 @@ app.set('trust proxy', 1); // Questa riga è fondamentale per Fly.io
 // --- Configurazione DB ---
 const connectionString = process.env.DATABASE_URL;
 
-let dbConfig;
-
-if (connectionString) {
-    dbConfig = {
-        connectionString,
-        max: 20,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 2000,
-    };
-
-    // Questa è la parte cruciale: disabilita SSL e imposta password vuota per localhost
-    if (connectionString.includes('localhost') || connectionString.includes('127.0.0.1')) {
-        dbConfig.ssl = false;
-
-    } else {
-        // Altrimenti (per Fly.io), abilita SSL come prima
-        dbConfig.ssl = { rejectUnauthorized: false };
-    }
-} else {
-    // Questo blocco non dovrebbe essere usato ora che hai DATABASE_URL nel .env
-    // È altamente consigliabile rimuovere la password hardcoded in un'applicazione reale.
-    dbConfig = {
-        host: "schede-clienti-db-v2.flycast",
-        user: "postgres",
-        password: "YourStrongPassword123!",
-        database: "postgres",
-        port: 5432,
-        ssl: { rejectUnauthorized: false },
-        max: 20,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 2000,
-    };
+if (!connectionString) {
+    console.error("ERRORE: La variabile d'ambiente DATABASE_URL non è stata definita!");
+    console.error("Assicurati che sia presente nel file .env (per lo sviluppo locale) o nei segreti di Fly.io (per la produzione).");
+    process.exit(1); // Esce dall'applicazione se il DB non è configurato.
 }
 
+const isLocalConnection = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+
+const dbConfig = {
+    connectionString,
+    ssl: isLocalConnection ? false : { rejectUnauthorized: false }, // Disabilita SSL solo se la connessione è locale
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+};
+
 const db = new Pool(dbConfig); // Crea il pool con la configurazione decisa sopra
+
 
 db.on('error', (err) => console.error('Errore pool:', err.message));
 setInterval(() => db.query('SELECT 1').catch(e => console.error('DB ping failed:', e.message)), 5 * 60 * 1000);
