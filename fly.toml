@@ -2,7 +2,8 @@ app = "schede-clienti"
 primary_region = "fra"
 
 [build]
-builtin = "node"
+# La riga 'builtin = "node"' è stata rimossa.
+# Fly.io ora cercherà e userà automaticamente il Dockerfile.
 
 [http_service]
 auto_start_machines = true
