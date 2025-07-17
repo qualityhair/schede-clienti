@@ -52,7 +52,7 @@ try {
         syncGoogleCalendarEvents();
         
         // Se vuoi sincronizzare periodicamente, puoi de-commentare questa riga
-        // setInterval(syncGoogleCalendarEvents, 900000); 
+        setInterval(syncGoogleCalendarEvents, 900000); 
     }).catch(err => {
         console.error("ERRORE CRITICO: Impossibile ottenere il client di autenticazione Google:", err.message);
         process.exit(1);
@@ -88,6 +88,7 @@ async function syncGoogleCalendarEvents() {
             showDeleted: false,
             singleEvents: true,
             orderBy: 'startTime',
+fields: 'items(id,summary,description,location,start,end,creator,updated,colorId)' // <--- RIGA DA AGGIUNGERE
         });
 
         const events = res.data.items;
