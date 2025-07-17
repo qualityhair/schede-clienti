@@ -137,23 +137,49 @@
             editable: false,
             selectable: true,
 
-            eventClick: function(info) {
-                // Formatta le date in modo più leggibile per l'alert
-                const startTime = info.event.start ? info.event.start.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' }) : 'N/D';
-                const endTime = info.event.end ? info.event.end.toLocaleString('it-IT', { dateStyle: 'short', timeStyle: 'short' }) : 'N/D';
-
-                let details = 'Evento: ' + info.event.title +
-                              '\nInizio: ' + startTime +
-                              '\nFine: ' + endTime;
-
-                if (info.event.extendedProps.description) {
-                    details += '\nDescrizione: ' + info.event.extendedProps.description;
-                }
-                if (info.event.extendedProps.location) {
-                    details += '\nLuogo: ' + info.event.extendedProps.location;
-                }
-                alert(details);
-            },
+eventClick: async function(info) {
+    // 1. Estrai il titolo dell'evento e isola il termine di ricerca (la prima parola)
+    const eventTitle = info.event.title;
+    const searchTerm = eventTitle.split(' ')[0].trim();
+    
+    if (!searchTerm) {
+        alert('Titolo evento non valido per la ricerca del cliente.');
+        return;
+    }
+    
+    console.log('Evento cliccato. Cerco il cliente con il nome:', searchTerm);
+    
+    try {
+        // 2. Chiama la tua API di ricerca
+        const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
+        if (!response.ok) {
+            throw new Error('Errore di rete nella ricerca del cliente.');
+        }
+        
+        const clientiTrovati = await response.json();
+        
+        // 3. Analizza i risultati
+        if (clientiTrovati.length === 0) {
+            alert(`Nessun cliente trovato con il nome "${searchTerm}".`);
+        } else if (clientiTrovati.length === 1) {
+            // Trovato un solo cliente: reindirizza alla sua scheda
+            const clienteId = clientiTrovati[0].id;
+            console.log(`Cliente trovato! ID: ${clienteId}. Reindirizzamento...`);
+            window.location.href = `/scheda-cliente.html?id=${clienteId}`;
+        } else {
+            // Trovati più clienti: costruisci l'URL con la paginazione
+            console.log(`Trovati ${clientiTrovati.length} clienti. Reindirizzamento con paginazione...`);
+            const ids = clientiTrovati.map(c => c.id);
+            const primoId = ids[0];
+            // Reindirizza passando sia l'ID del primo cliente da mostrare, sia l'array completo di tutti gli ID
+            window.location.href = `/scheda-cliente.html?id=${primoId}&searchIds=${JSON.stringify(ids)}&index=0`;
+        }
+        
+    } catch (error) {
+        console.error('Errore durante la ricerca del cliente:', error);
+        alert('Si è verificato un errore durante la ricerca.');
+    }
+},
 
             events: function(fetchInfo, successCallback, failureCallback) {
                 fetch('/api/events')
