@@ -103,6 +103,8 @@
             locale: 'it',
             firstDay: 1,
             dayMaxEventRows: true, // Gestisce gli eventi "all-day"
+    displayEventTime: false, // <-- AGGIUNGI QUESTA RIGA
+
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
@@ -166,31 +168,60 @@ eventClick: async function(info) {
                         }
                         return response.json();
                     })
-                    .then(data => {
-                        const events = data.map(event => {
-                            const eventColor = googleColorMap[event.color_id] || null;
-                            return {
-                                id: event.google_event_id,
-                                title: event.summary,
-                                start: event.start_time,
-                                end: event.end_time,
-                                allDay: event.is_all_day,
-                                color: eventColor,
-                                        
-        		// --- INIZIO MODIFICA COLORE ---
-       			 color: '#A58C83',   // Colore Pantone "Mocha Mousse"
-        		textColor: 'white',   // Il testo bianco ci sta benissimo
-        		// --- FINE MODIFICA COLORE ---
+.then(data => {
+    // --- Definiamo i nostri 4 colori ---
+    const coloreTino = '#00796B';          // Pavone
+    const coloreSandro = '#81C784';        // Salvia
+    const coloreClienti = '#D4AC0D';       // Giallo Senape (per il lavoro)
+    const coloreGenerale = '#FF9800';      // Mandarino (Pausa, Personale, ecc.)
 
-                                extendedProps: {
-                                    description: event.description,
-                                    location: event.location,
-                                    creator_email: event.creator_email
-                                }
-                            };
-                        });
-                        successCallback(events);
-                    })
+    // Lista delle sigle che identificano un trattamento di un cliente
+    const sigleTrattamenti = [
+        'tg', 'tn', 'tratt', 'p', 'piega', 'perm', 
+        'balajage', 'schiariture', 'meches', 'barba', 'pul'
+    ];
+
+    const events = data.map(event => {
+        const titolo = event.summary.toLowerCase();
+        
+        let coloreDaUsare = coloreGenerale; // REGOLA DI DEFAULT: tutto è "Generale" (Mandarino)
+        let testoColore = 'white';
+
+        // È un appuntamento di un cliente?
+        if (sigleTrattamenti.some(sigla => titolo.endsWith(' ' + sigla) || titolo.endsWith(sigla) || titolo.includes(' ' + sigla + ' '))) {
+            coloreDaUsare = coloreClienti;
+            testoColore = '#000000'; // Testo nero sul giallo senape
+        }
+
+        // È di Sandro? Questo sovrascrive il resto.
+        if (titolo.includes('sandro')) {
+            coloreDaUsare = coloreSandro;
+            testoColore = 'white'; // Ripristina a bianco per il salvia se preferisci
+        }
+        
+        // È di Tino? Questo ha la priorità massima.
+        if (titolo.includes('tino')) {
+            coloreDaUsare = coloreTino;
+            testoColore = 'white';
+        }
+        
+        return {
+            id: event.google_event_id,
+            title: event.summary,
+            start: event.start_time,
+            end: event.end_time,
+            allDay: event.is_all_day,
+            color: coloreDaUsare,
+            textColor: testoColore,
+            extendedProps: {
+                description: event.description,
+                location: event.location,
+                creator_email: event.creator_email
+            }
+        };
+    });
+    successCallback(events);
+})
                     .catch(error => {
                         console.error('Errore nel caricamento degli eventi:', error);
                         failureCallback(error);
