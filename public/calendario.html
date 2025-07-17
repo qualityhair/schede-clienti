@@ -70,32 +70,9 @@
 
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/dashboard">Quality Hair Bolzano</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/dashboard">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/clienti">Clienti</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="/calendario">Calendario</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/logout">Logout</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+
+<div id="navbar"></div>
+
 
     <div class="container mt-4">
         <h1>Gestione Appuntamenti</h1>
@@ -199,7 +176,12 @@ eventClick: async function(info) {
                                 end: event.end_time,
                                 allDay: event.is_all_day,
                                 color: eventColor,
-                                textColor: '#212529', // Testo scuro per leggibilità
+                                        
+        		// --- INIZIO MODIFICA COLORE ---
+       			 color: '#A58C83',   // Colore Pantone "Mocha Mousse"
+        		textColor: 'white',   // Il testo bianco ci sta benissimo
+        		// --- FINE MODIFICA COLORE ---
+
                                 extendedProps: {
                                     description: event.description,
                                     location: event.location,
@@ -218,5 +200,7 @@ eventClick: async function(info) {
         calendar.render();
     });
 </script>
+
+    <script src="/js/navbar-loader.js"></script>
 </body>
 </html>
