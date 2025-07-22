@@ -52,26 +52,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- Gestione generica delle risposte API ---
-    async function handleApiResponse(response) {
-        const contentType = response.headers.get("content-type");
-
-        if (response.status === 401) {
-            showMessage('La tua sessione è scaduta o non sei autorizzato. Effettua nuovamente il login.', 'error');
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 1500);
-            return null;
-        } else if (contentType && contentType.includes("application/json")) {
-            return await response.json();
-        } else {
-            showMessage('Accesso non autorizzato o sessione scaduta. Verrai reindirizzato al login.', 'error');
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 1500);
-            return null;
-        }
+async function handleApiResponse(response) {
+    // Se la risposta è un reindirizzamento (gestito dal guardiano del server)
+    // il browser lo seguirà automaticamente. Qui, intercettiamo il caso
+    // in cui il reindirizzamento è "manuale" o fallisce.
+    if (response.redirected) {
+        window.location.href = response.url; // Segui il reindirizzamento del server
+        return null;
     }
 
+    // Se il server risponde con un 401 o 403 (Non autorizzato)
+    if (response.status === 401 || response.status === 403) {
+        showMessage('Sessione scaduta o non autorizzato. Verrai reindirizzato al login.', 'error');
+        setTimeout(() => {
+            window.location.href = '/'; // Vai alla home, che gestirà il login
+        }, 1500);
+        return null;
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+        return await response.json();
+    }
+    
+    // Se la risposta non è JSON e non è un errore gestito,
+    // potrebbe essere un altro problema. Evitiamo il loop.
+    console.error("Risposta API non valida:", response);
+    showMessage('Errore imprevisto nella comunicazione con il server.', 'error');
+    return null; // Non fare nulla, evita il loop
+}
 
     // --- Funzioni per la Gestione Clienti ---
 

@@ -231,35 +231,55 @@ passport.use(new GoogleStrategy({
     }
 ));
 
+// ===========================================
+// DEFINIZIONE DELLE FUNZIONI "GUARDIANO"
+// ===========================================
+
 function ensureAuthenticated(req, res, next) {
-    if (req.isAuthenticated()) return next();
-    res.redirect("/");
+    if (req.isAuthenticated()) {
+        return next();
+    }
+    res.redirect('/');
 }
 
-app.get("/auth/google",
-    passport.authenticate("google", { scope: ["profile", "email"] }));
+// ===========================================
+// DEFINIZIONE DELLE ROUTE
+// ===========================================
 
-app.get("/auth/google/callback",
-    passport.authenticate("google", { failureRedirect: "/" }),
-    (req, res) => {
-        res.redirect("/dashboard.html");
-    });
-
-app.get("/logout", (req, res) => {
-    req.logout(() => {
-        res.redirect("/");
-    });
-});
-
-app.get("/", (req, res) => {
+// LA ROTTA PRINCIPALE ("/")
+app.get('/', (req, res) => {
     if (req.isAuthenticated()) {
-        res.redirect("/dashboard.html");
+        res.redirect('/dashboard.html');
     } else {
-        res.sendFile(path.join(__dirname, "public", "index.html"));
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
     }
 });
 
-// --- Rotte protette ---
+// LA ROTTA DI AUTENTICAZIONE GOOGLE
+app.get('/auth/google', 
+    passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+// IL CALLBACK DI GOOGLE
+app.get('/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/' }),
+    (req, res) => {
+        res.redirect('/dashboard.html');
+    }
+);
+
+// LA ROTTA DI LOGOUT
+app.get('/logout', (req, res, next) => {
+    req.logout(function(err) {
+        if (err) { return next(err); }
+        res.redirect('/');
+    });
+});
+
+
+// ===========================================
+// ROTTE PROTETTE
+// ===========================================
 app.get("/dashboard.html", ensureAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, "public", "dashboard.html"));
 });
