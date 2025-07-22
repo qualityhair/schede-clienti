@@ -195,36 +195,35 @@ app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+// SOSTITUISCI la configurazione di session con questa:
 app.use(session({
     secret: process.env.SESSION_SECRET || 'default_session_secret',
     resave: false,
     saveUninitialized: false,
     rolling: true,
-// Aggiorna la sezione cookie
-cookie: {
-  secure: process.env.NODE_ENV === 'production',
-  httpOnly: true,
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  maxAge: 30 * 24 * 60 * 60 * 1000,
-  path: '/',
-  domain: process.env.NODE_ENV === 'production' ? 'clienti.qualityhair.it' : undefined
-},
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        path: '/',
+        domain: process.env.NODE_ENV === 'production' ? 'clienti.qualityhair.it' : undefined
+    },
     store: new pgSession({
         pool: db,
-        tableName: 'app_sessions'
+        tableName: 'app_sessions',
+        createTableIfMissing: true
     })
 }));
 
-
-
-
+// Aggiungi IMMEDIATAMENTE DOPO:
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Aggiungi DOPO app.use(session(...)) e PRIMA di app.use(passport...)
+// Fix per req.isAuthenticated
 app.use((req, res, next) => {
-  console.log(`[MIDDLEWARE] Path: ${req.path}, Autenticato: ${req.isAuthenticated()}`);
-  next();
+    req.isAuthenticated = () => !!req.user;
+    next();
 });
 
 
@@ -266,17 +265,12 @@ app.get("/logout", (req, res) => {
     });
 });
 
-// Sostituisci la route esistente con questa versione migliorata
 app.get("/", (req, res) => {
-  console.log(`[ROOT] Utente autenticato: ${req.isAuthenticated()}`);
-  
-  if (req.isAuthenticated()) {
-    console.log(`Reindirizzamento a dashboard per ${req.user?.displayName}`);
-    return res.redirect("/dashboard.html");
-  }
-  
-  console.log("Mostro pagina di login");
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+    if (req.isAuthenticated()) {
+        console.log(`Utente ${req.user.displayName} reindirizzato a dashboard`);
+        return res.redirect("/dashboard.html");
+    }
+    res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // --- Rotte protette ---
