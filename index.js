@@ -195,6 +195,7 @@ app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+// SOSTITUISCI la configurazione di session con questa:
 app.use(session({
     secret: process.env.SESSION_SECRET || 'default_session_secret',
     resave: false,
@@ -202,16 +203,29 @@ app.use(session({
     rolling: true,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 30 * 24 * 60 * 60 * 1000
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 30 * 24 * 60 * 60 * 1000,
+        path: '/',
+        domain: process.env.NODE_ENV === 'production' ? 'clienti.qualityhair.it' : undefined
     },
     store: new pgSession({
         pool: db,
-        tableName: 'app_sessions'
+        tableName: 'app_sessions',
+        createTableIfMissing: true
     })
 }));
 
+// Aggiungi IMMEDIATAMENTE DOPO:
 app.use(passport.initialize());
 app.use(passport.session());
+
+// Fix per req.isAuthenticated
+app.use((req, res, next) => {
+    req.isAuthenticated = () => !!req.user;
+    next();
+});
+
 
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
@@ -252,7 +266,7 @@ app.get('/', (req, res) => {
         res.redirect('/dashboard.html');
     } else {
         res.sendFile(path.join(__dirname, 'public', 'index.html'));
-    }
+    } // <-- ECCO LA PARENTESI GRAFFA CHE MANCAVA
 });
 
 // LA ROTTA DI AUTENTICAZIONE GOOGLE
