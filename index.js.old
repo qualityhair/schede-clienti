@@ -200,9 +200,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // 2. Configurazione della SESSIONE
-
-const isProduction = process.env.NODE_ENV === 'production';
-
 app.use(session({
     name: 'qualityhair.session',
     secret: process.env.SESSION_SECRET || 'una_frase_segreta_molto_lunga',
@@ -216,13 +213,12 @@ app.use(session({
     cookie: {
         path: '/',
         httpOnly: true,
-        secure: isProduction, // true solo in produzione
+        secure: false, // true in produzione con HTTPS
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 giorni
-        sameSite: 'strict',
-        ...(isProduction ? {} : { domain: 'localhost' }) // solo in dev
+        sameSite: 'strict', // Cambiato da 'lax' a 'strict'
+        domain: 'localhost'
     }
 }));
-
 
 // 3. Inizializzazione di PASSPORT (DEVE venire dopo la sessione)
 app.use(passport.initialize());
