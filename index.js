@@ -101,7 +101,7 @@ fields: 'items(id,summary,description,location,start,end,creator,updated,colorId
         console.log(`Trovati ${events.length} eventi da Google Calendar:`);
 
         for (const event of events) {
-            console.log('EVENTO DA GOOGLE:', event.id, 'COLOR ID:', event.colorId);
+            //console.log('EVENTO DA GOOGLE:', event.id, 'COLOR ID:', event.colorId);
 
             const eventSummary = event.summary || 'Nessun titolo';
             const eventDescription = event.description || null;
@@ -113,7 +113,7 @@ fields: 'items(id,summary,description,location,start,end,creator,updated,colorId
             const isAllDay = !!event.start.date;
             const colorId = event.colorId || null;
 
-            console.log(`  - Evento: "${eventSummary}" (Inizio: ${new Date(eventStart).toLocaleString()}, Fine: ${new Date(eventEnd).toLocaleString()})`);
+            //console.log(`  - Evento: "${eventSummary}" (Inizio: ${new Date(eventStart).toLocaleString()}, Fine: ${new Date(eventEnd).toLocaleString()})`);
 
             const query = `
                 INSERT INTO calendar_events (google_event_id, summary, description, location, start_time, end_time, creator_email, last_modified, is_all_day, color_id)
@@ -191,59 +191,137 @@ db.connect()
     .then(() => console.log("✅ Connesso al DB PostgreSQL!"))
     .catch(err => console.error("Errore connessione DB:", err));
 
-app.use(express.static("public"));
+// ===================================================
+// === INIZIO BLOCCO MIDDLEWARE (ORDINE CORRETTO) ===
+// ===================================================
+
+// 1. Parser per i dati dei form e JSON
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// SOSTITUISCI la configurazione di session con questa:
+// 2. Configurazione della SESSIONE
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'default_session_secret',
+    name: 'qualityhair.session',
+    secret: process.env.SESSION_SECRET || 'una_frase_segreta_molto_lunga',
     resave: false,
     saveUninitialized: false,
-    rolling: true,
-    cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        httpOnly: true,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-        path: '/',
-        domain: process.env.NODE_ENV === 'production' ? 'clienti.qualityhair.it' : undefined
-    },
     store: new pgSession({
         pool: db,
         tableName: 'app_sessions',
         createTableIfMissing: true
-    })
+    }),
+    cookie: {
+        path: '/',
+        httpOnly: true,
+        secure: false, // true in produzione con HTTPS
+        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 giorni
+        sameSite: 'strict', // Cambiato da 'lax' a 'strict'
+        domain: 'localhost'
+    }
 }));
 
-// Aggiungi IMMEDIATAMENTE DOPO:
+// 3. Inizializzazione di PASSPORT (DEVE venire dopo la sessione)
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Fix per req.isAuthenticated
+// 4. Middleware di DEBUG per i Cookie (AGGIUNGI QUI)
 app.use((req, res, next) => {
-    req.isAuthenticated = () => !!req.user;
+    // Se la sessione è stata distrutta ma il cookie esiste ancora
+    if (req.session === null && req.cookies['qualityhair.session']) {
+        res.clearCookie('qualityhair.session', {
+            path: '/',
+            domain: 'localhost',
+            httpOnly: true,
+            secure: false
+        });
+    }
     next();
 });
 
+app.get("/", (req, res) => {
+  if (req.isAuthenticated()) {
+    res.redirect("/dashboard.html");
+  } else {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+  }
+});
 
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user, done) => done(null, user));
+
+// 4. File STATICI (DEVE venire dopo passport.session)
+app.use(express.static("public"));
+
+// 5. Middleware di ISPEZIONE (ora può vedere la sessione correttamente)
+app.use((req, res, next) => {
+    console.log('--- ISPEZIONE SESSIONE ---');
+    console.log('ID Sessione:', req.sessionID);
+    console.log('Contenuto Sessione (req.session):', req.session);
+    console.log('Utente nella sessione (req.user):', req.user);
+    console.log('req.isAuthenticated() risulta:', req.isAuthenticated());
+    console.log('--------------------------');
+    next();
+});
+
+// =================================================
+// === FINE BLOCCO MIDDLEWARE (ORDINE CORRETTO) ===
+// =================================================
+
+
+// Quando un utente si logga, salviamo solo il suo ID del nostro database nella sessione.
+passport.serializeUser(function(user, done) {
+    done(null, user.id); // <-- SALVIAMO L'ID, NON TUTTO L'OGGETTO
+});
+
+// Ad ogni richiesta, usiamo l'ID salvato nella sessione per recuperare
+// l'utente completo dal nostro database.
+passport.deserializeUser(async function(id, done) {
+    try {
+        const userResult = await db.query('SELECT * FROM users WHERE id = $1', [id]);
+        if (userResult.rows.length === 0) {
+            return done(null, false);
+        }
+        done(null, userResult.rows[0]);
+    } catch (err) {
+        return done(err);
+    }
+});
+
+
 
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL,
+    callbackURL: "/auth/google/callback" // Assicurati che corrisponda alla Google Console
 },
-    (accessToken, refreshToken, profile, done) => {
-        const email = profile.emails?.[0].value;
-        if (email === "qualityhairbolzano@gmail.com") {
-            return done(null, profile);
-        } else {
-            return done(null, false, { message: "Email non autorizzata" });
-        }
+async (accessToken, refreshToken, profile, done) => {
+    const googleEmail = profile.emails?.[0].value;
+    const googleDisplayName = profile.displayName;
+
+    // Controlla se l'email è autorizzata
+    if (googleEmail !== "qualityhairbolzano@gmail.com") {
+        return done(null, false, { message: "Email non autorizzata." });
     }
-));
+
+    try {
+        // Controlla se un utente con questa email esiste già nel nostro database
+        let userResult = await db.query('SELECT * FROM users WHERE email = $1', [googleEmail]);
+        let user = userResult.rows[0];
+
+        if (user) {
+            // Utente trovato, procedi con l'autenticazione
+            return done(null, user);
+        } else {
+            // Utente non trovato, creane uno nuovo
+            const newUserResult = await db.query(
+                'INSERT INTO users (username, email, google_id) VALUES ($1, $2, $3) RETURNING *',
+                [googleDisplayName, googleEmail, profile.id]
+            );
+            user = newUserResult.rows[0];
+            return done(null, user);
+        }
+    } catch (err) {
+        return done(err);
+    }
+}));
 
 // ===========================================
 // DEFINIZIONE DELLE FUNZIONI "GUARDIANO"
@@ -262,11 +340,15 @@ function ensureAuthenticated(req, res, next) {
 
 // LA ROTTA PRINCIPALE ("/")
 app.get('/', (req, res) => {
+    // Forza il browser a ignorare la cache quando viene da logout
+    if (req.query.logout) {
+        res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    }
+    
     if (req.isAuthenticated()) {
-        res.redirect('/dashboard.html');
-    } else {
-        res.sendFile(path.join(__dirname, 'public', 'index.html'));
-    } // <-- ECCO LA PARENTESI GRAFFA CHE MANCAVA
+        return res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+    }
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // LA ROTTA DI AUTENTICAZIONE GOOGLE
@@ -284,9 +366,29 @@ app.get('/auth/google/callback',
 
 // LA ROTTA DI LOGOUT
 app.get('/logout', (req, res, next) => {
+    // Salva il nome del cookie di sessione
+    const sessionCookieName = req.session.cookie.name || 'qualityhair.session';
+    
     req.logout(function(err) {
         if (err) { return next(err); }
-        res.redirect('/');
+        
+        // Distruggi la sessione nel database
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Errore nella distruzione della sessione:', err);
+            }
+            
+            // Cancella esplicitamente il cookie
+            res.clearCookie(sessionCookieName, {
+                path: '/',
+                domain: 'localhost',
+                httpOnly: true,
+                secure: false
+            });
+            
+            // Reindirizza alla home con forzatura del reload
+            res.redirect('/?logout=' + Date.now());
+        });
     });
 });
 

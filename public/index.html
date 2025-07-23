@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
   <title>Accedi - Quality Hair</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet"/>
@@ -75,11 +75,41 @@
   <div class="login-container">
     <h1>Quality Hair</h1>
     <p>Accedi con il tuo account autorizzato</p>
-    <a class="google-btn" href="/auth/google">
+    <a class="google-btn" href="/auth/google" aria-label="Accedi con Google" rel="noopener noreferrer">
       <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo">
       Accedi con Google
     </a>
     <div class="footer">Solo per uso interno Quality Hair</div>
   </div>
+
+  <script>
+  // Verifica col server prima di fare redirect automatico
+  async function checkAuthAndRedirect() {
+    const wasAuthenticated = localStorage.getItem('wasAuthenticated');
+
+    if (window.location.pathname === '/' && wasAuthenticated === 'true') {
+      try {
+        const res = await fetch('/check-auth'); // Nuova rotta che ti dico sotto
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated) {
+            window.location.href = '/dashboard.html';
+          } else {
+            localStorage.removeItem('wasAuthenticated');
+          }
+        } else {
+          localStorage.removeItem('wasAuthenticated');
+        }
+      } catch (e) {
+        localStorage.removeItem('wasAuthenticated');
+      }
+    }
+  }
+
+  checkAuthAndRedirect();
+  localStorage.setItem('wasAuthenticated', 'true');
+</script>
+
 </body>
 </html>
