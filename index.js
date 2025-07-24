@@ -11,25 +11,46 @@ const pgSession = require('connect-pg-simple')(session);
 
 // --- INIZIO: AGGIUNTE NECESSARIE PER GOOGLE CALENDAR ---
 const { google } = require('googleapis');
+const path = require('path');
 
 let authClient;
 let calendar;
 
-const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || 'primary';
-
 async function initGoogleCalendar() {
-  authClient = new google.auth.GoogleAuth({
-     keyFile: path.join(__dirname, 'config', 'google-credentials.json'), // il file JSON delle tue credenziali
-    scopes: ['https://www.googleapis.com/auth/calendar'],
-  });
+  let authOptions = {
+    scopes: [
+      'https://www.googleapis.com/auth/calendar.readonly',
+      'https://www.googleapis.com/auth/calendar.events.readonly'
+    ]
+  };
 
-  calendar = google.calendar({ version: 'v3', auth: await authClient.getClient() });
+  if (process.env.NODE_ENV === 'production' && process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
+    console.log('Autenticazione Google Calendar in modalità produzione...');
+    authOptions.credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+  } else {
+    console.log('Autenticazione Google Calendar in modalità locale...');
+    authOptions.keyFile = process.env.GOOGLE_CREDENTIALS_PATH || path.join(__dirname, 'config', 'google-credentials.json');
+  }
+
+  const auth = new google.auth.GoogleAuth(authOptions);
+
+  authClient = await auth.getClient();
+  calendar = google.calendar({ version: 'v3', auth: authClient });
+
+  console.log("Google Calendar inizializzato con successo.");
+
+  // Avvia la sincronizzazione
+  await syncGoogleCalendarEvents();
+
+  // Sincronizza ogni 15 minuti
+  setInterval(syncGoogleCalendarEvents, 15 * 60 * 1000);
 }
 
 initGoogleCalendar().catch(err => {
   console.error('Errore inizializzazione Google Calendar:', err);
   process.exit(1);
 });
+
 
 
 // ==============================================================================
