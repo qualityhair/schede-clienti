@@ -17,6 +17,21 @@ let calendar;
 
 const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || 'primary';
 
+async function initGoogleCalendar() {
+  authClient = new google.auth.GoogleAuth({
+     keyFile: path.join(__dirname, 'config', 'google-credentials.json'), // il file JSON delle tue credenziali
+    scopes: ['https://www.googleapis.com/auth/calendar'],
+  });
+
+  calendar = google.calendar({ version: 'v3', auth: await authClient.getClient() });
+}
+
+initGoogleCalendar().catch(err => {
+  console.error('Errore inizializzazione Google Calendar:', err);
+  process.exit(1);
+});
+
+
 // ==============================================================================
 // === INIZIO BLOCCO DI AUTENTICAZIONE GOOGLE CALENDAR (L'UNICA PARTE MODIFICATA) ===
 // ==============================================================================
@@ -88,9 +103,13 @@ async function syncGoogleCalendarEvents() {
             showDeleted: false,
             singleEvents: true,
             orderBy: 'startTime',
-fields: 'items(id,summary,description,location,start,end,creator,updated,colorId)' // <--- RIGA DA AGGIUNGERE
+			fields: 'items(id,summary,description,location,start,end,creator,updated,colorId)' 
         });
 
+
+		
+		
+		
         const events = res.data.items;
         if (!events || events.length === 0) {
             console.log('Nessun evento futuro trovato nel calendario specificato.');

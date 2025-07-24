@@ -161,72 +161,100 @@ eventClick: async function(info) {
 },
 
             events: function(fetchInfo, successCallback, failureCallback) {
-                fetch('/api/events')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-.then(data => {
-    // --- Definiamo i nostri 4 colori ---
-    const coloreTino = '#00796B';          // Pavone
-    const coloreSandro = '#81C784';        // Salvia
-    const coloreClienti = '#D4AC0D';       // Giallo Senape (per il lavoro)
-    const coloreGenerale = '#FF9800';      // Mandarino (Pausa, Personale, ecc.)
-
-    // Lista delle sigle che identificano un trattamento di un cliente
-    const sigleTrattamenti = [
-        'tg', 'tn', 'tratt', 'p', 'piega', 'perm', 
-        'balajage', 'schiariture', 'meches', 'barba', 'pul'
-    ];
-
-    const events = data.map(event => {
-        const titolo = event.summary.toLowerCase();
-        
-        let coloreDaUsare = coloreGenerale; // REGOLA DI DEFAULT: tutto è "Generale" (Mandarino)
-        let testoColore = 'white';
-
-        // È un appuntamento di un cliente?
-        if (sigleTrattamenti.some(sigla => titolo.endsWith(' ' + sigla) || titolo.endsWith(sigla) || titolo.includes(' ' + sigla + ' '))) {
-            coloreDaUsare = coloreClienti;
-            testoColore = '#000000'; // Testo nero sul giallo senape
-        }
-
-        // È di Sandro? Questo sovrascrive il resto.
-        if (titolo.includes('sandro')) {
-            coloreDaUsare = coloreSandro;
-            testoColore = 'white'; // Ripristina a bianco per il salvia se preferisci
-        }
-        
-        // È di Tino? Questo ha la priorità massima.
-        if (titolo.includes('tino')) {
-            coloreDaUsare = coloreTino;
-            testoColore = 'white';
-        }
-        
-        return {
-            id: event.google_event_id,
-            title: event.summary,
-            start: event.start_time,
-            end: event.end_time,
-            allDay: event.is_all_day,
-            color: coloreDaUsare,
-            textColor: testoColore,
-            extendedProps: {
-                description: event.description,
-                location: event.location,
-                creator_email: event.creator_email
+    fetch('/api/events')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        };
-    });
-    successCallback(events);
-})
-                    .catch(error => {
-                        console.error('Errore nel caricamento degli eventi:', error);
-                        failureCallback(error);
-                    });
-            }
+            return response.json();
+        })
+        .then(data => {
+            // --- Mappa colori Google Calendar ---
+            const googleColorMap = {
+                '1': '#a4bdfc', // Lavanda chiaro
+                '2': '#7ae7bf', // Verde acqua
+                '3': '#dbadff', // Viola
+                '4': '#ff887c', // Rosso chiaro
+                '5': '#fbd75b', // Giallo
+                '6': '#ffb878', // Arancio chiaro
+                '7': '#46d6db', // Pavone
+                '8': '#e1e1e1', // Grigio chiaro
+                '9': '#5484ed', // Blu acceso
+                '10': '#51b749', // Verde scuro
+                '11': '#dc2127'  // Rosso scuro
+            };
+
+            // --- Colori personalizzati ---
+            const coloreTino = '#46d6db';          // Pavone 
+            const coloreSandro = '#81C784';        // Salvia
+            const coloreClienti = '#81C784';       // Salvia
+            const coloreGenerale = '#FF9800';      // Mandarino
+
+            // Sigle per identificare trattamenti clienti
+            const sigleTrattamenti = [
+                'tg', 'tn', 'tratt', 'p', 'piega', 'perm', 
+                'balajage', 'schiariture', 'meches', 'barba', 'pul'
+            ];
+
+            const events = data.map(event => {
+                let coloreDaUsare = null;
+                let testoColore = 'white';
+
+                // Usa colore da Google Calendar se esiste
+                if (event.color_id && googleColorMap[event.color_id]) {
+                    coloreDaUsare = googleColorMap[event.color_id];
+                    // Se il colore è chiaro, usa testo nero, altrimenti bianco
+                    testoColore = ['#fbd75b', '#ffb878', '#e1e1e1'].includes(coloreDaUsare.toLowerCase()) ? '#000000' : 'white';
+                } else {
+                    // Altrimenti usa la logica personalizzata
+                    const titolo = event.summary ? event.summary.toLowerCase() : '';
+
+                    coloreDaUsare = coloreGenerale;
+                    testoColore = 'white';
+
+                    if (sigleTrattamenti.some(sigla => titolo.endsWith(' ' + sigla) || titolo.endsWith(sigla) || titolo.includes(' ' + sigla + ' '))) {
+                        coloreDaUsare = coloreClienti;
+                        testoColore = '#000000';
+                    }
+
+                    if (titolo.includes('sandro')) {
+                        coloreDaUsare = coloreSandro;
+                        testoColore = 'white';
+                    }
+
+                    if (titolo.includes('tino')) {
+                        coloreDaUsare = coloreTino;
+                        testoColore = 'white';
+                    }
+                }
+
+                // DEBUG: puoi togliere il console.log dopo aver verificato
+                // console.log('color_id:', event.color_id, 'colore scelto:', coloreDaUsare);
+
+                return {
+                    id: event.google_event_id,
+                    title: event.summary,
+                    start: event.start_time,
+                    end: event.end_time,
+                    allDay: event.is_all_day,
+                    color: coloreDaUsare,
+                    textColor: testoColore,
+                    extendedProps: {
+                        description: event.description,
+                        location: event.location,
+                        creator_email: event.creator_email
+                    }
+                };
+            });
+
+            successCallback(events);
+        })
+        .catch(error => {
+            console.error('Errore nel caricamento degli eventi:', error);
+            failureCallback(error);
+        });
+},
+
         });
         calendar.render();
     });
