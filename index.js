@@ -11,7 +11,7 @@ const pgSession = require('connect-pg-simple')(session);
 
 // --- INIZIO: AGGIUNTE NECESSARIE PER GOOGLE CALENDAR ---
 const { google } = require('googleapis');
-const path = require('path');
+
 
 let authClient;
 let calendar;
@@ -109,6 +109,10 @@ async function syncGoogleCalendarEvents() {
         console.error("ERRORE: Il client Google Calendar non è stato inizializzato correttamente prima di tentare la sincronizzazione.");
         return;
     }
+
+//vediamo se va
+const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
+//fine
 
     try {
         const now = new Date();
