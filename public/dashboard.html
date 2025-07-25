@@ -33,19 +33,41 @@
                 <button id="add-new-client-button" class="btn btn-primary">Aggiungi Cliente</button>
             </div>
 
-            <div class="panel-group dashboard-panel"> <div class="panel compact-panel" id="music-panel">
-                    <h2 class="panel-title">Musica</h2>
-                    <p class="panel-subtitle">Gestisci la musica d'ambiente.</p>
-                    <button onclick="window.open('https://open.spotify.com/', '_blank')" class="btn btn-nav">Apri Spotify</button>
-                    <button onclick="window.open('http://79.6.136.236:32400/web/index.html#!/server/6ebfb71d58fed1206d2c273ca1b96e2e9c3ead61/playlist?key=%2Fplaylists%2F19976&context=source%3Acontent.playlists~0~5', '_blank')" class="btn btn-nav">Apri Player Musica</button>
-                </div>
+ <div class="panel-group dashboard-panel" style="display: flex; gap: 20px;">
 
-<div class="panel compact-panel">
+  <div class="panel compact-panel" id="music-panel" style="flex: 1;">
+    <h2 class="panel-title">Musica</h2>
+    <p class="panel-subtitle">Gestisci la musica d'ambiente.</p>
+    <button onclick="window.open('https://open.spotify.com/', '_blank')" class="btn btn-nav">Apri Spotify</button>
+    <button onclick="window.open('http://79.6.136.236:32400/web/index.html#!/server/6ebfb71d58fed1206d2c273ca1b96e2e9c3ead61/playlist?key=%2Fplaylists%2F19976&context=source%3Acontent.playlists~0~5', '_blank')" class="btn btn-nav">Apri Player Musica</button>
+  </div>
+
+  <div class="panel compact-panel" style="flex: 1;">
     <h2 class="panel-title">Agenda</h2>
     <p class="panel-subtitle">Visualizza e gestisci i tuoi appuntamenti interni.</p>
     <a href="/calendario" class="btn btn-nav">Visualizza Appuntamenti</a>
     <button onclick="window.open('https://calendar.google.com/calendar/u/0/r/week', '_blank')" class="btn btn-nav btn-secondary mt-2">Apri Google Calendar Esterno</button>
+  </div>
+
+  <div class="panel compact-panel" style="flex: 1; display: flex; justify-content: flex-end; align-items: flex-end;">
+    <a href="/logout" 
+       style="
+         color: white; 
+         background-color: #dc3545; 
+         padding: 8px 16px; 
+         border-radius: 5px; 
+         text-decoration: none; 
+         font-weight: bold;
+         user-select: none;
+       ">
+      Esci da Schede Clienti
+    </a>
+  </div>
+
 </div>
+
+
+
             </div>
         </div>
     </main>

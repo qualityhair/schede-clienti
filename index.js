@@ -492,14 +492,18 @@ app.get("/api/clienti/cerca", async (req, res) => {
     const term = `%${req.query.term}%`;
     try {
         const result = await db.query(
-            "SELECT * FROM clienti WHERE nome ILIKE $1 OR cognome ILIKE $2",
-            [term, term]
+            `SELECT * FROM clienti
+             WHERE nome ILIKE $1
+                OR cognome ILIKE $2
+                OR CONCAT(nome, ' ', cognome) ILIKE $3`,
+            [term, term, term]
         );
         res.json(result.rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 app.get("/api/clienti/:id", async (req, res) => {
     try {
