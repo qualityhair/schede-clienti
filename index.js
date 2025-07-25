@@ -110,9 +110,9 @@ async function syncGoogleCalendarEvents() {
         return;
     }
 
-//vediamo se va
+
 const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
-//fine
+
 
     try {
         const now = new Date();
@@ -299,19 +299,18 @@ app.get("/", (req, res) => {
 app.use(express.static("public"));
 
 // 5. Middleware di ISPEZIONE (ora può vedere la sessione correttamente)
-app.use((req, res, next) => {
-    console.log('--- ISPEZIONE SESSIONE ---');
-    console.log('ID Sessione:', req.sessionID);
-    console.log('Contenuto Sessione (req.session):', req.session);
-    console.log('Utente nella sessione (req.user):', req.user);
-    console.log('req.isAuthenticated() risulta:', req.isAuthenticated());
-    console.log('--------------------------');
-    next();
-});
+//app.use((req, res, next) => {
+  //  console.log('--- ISPEZIONE SESSIONE ---');
+    //console.log('ID Sessione:', req.sessionID);
+    //console.log('Contenuto Sessione (req.session):', req.session);
+    //console.log('Utente nella sessione (req.user):', req.user);
+    //console.log('req.isAuthenticated() risulta:', req.isAuthenticated());
+    //console.log('--------------------------');
+    //next();
+//});
 
-// =================================================
-// === FINE BLOCCO MIDDLEWARE (ORDINE CORRETTO) ===
-// =================================================
+//FINE BLOCCO MIDDLEWARE
+
 
 
 // Quando un utente si logga, salviamo solo il suo ID del nostro database nella sessione.
