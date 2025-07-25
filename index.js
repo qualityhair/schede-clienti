@@ -52,57 +52,6 @@ initGoogleCalendar().catch(err => {
 });
 
 
-
-// ==============================================================================
-// === INIZIO BLOCCO DI AUTENTICAZIONE GOOGLE CALENDAR (L'UNICA PARTE MODIFICATA) ===
-// ==============================================================================
-try {
-    let authOptions = {
-        scopes: [
-            'https://www.googleapis.com/auth/calendar.readonly',
-            'https://www.googleapis.com/auth/calendar.events.readonly'
-        ]
-    };
-
-    if (process.env.NODE_ENV === 'production' && process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
-        // In produzione, usiamo le credenziali dalla variabile d'ambiente
-        console.log('Autenticazione Google Calendar in modalità produzione...');
-        authOptions.credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
-    } else if (process.env.GOOGLE_CREDENTIALS_PATH) {
-        // In locale, usiamo il file specificato in .env
-        console.log('Autenticazione Google Calendar in modalità locale...');
-        authOptions.keyFile = process.env.GOOGLE_CREDENTIALS_PATH;
-    } else {
-        // Se nessuna configurazione è presente, lanciamo un errore chiaro
-        throw new Error('Credenziali Google Calendar non configurate. Imposta GOOGLE_SERVICE_ACCOUNT_KEY (produzione) o GOOGLE_CREDENTIALS_PATH (locale).');
-    }
-
-    const auth = new google.auth.GoogleAuth(authOptions);
-
-    auth.getClient().then(client => {
-        authClient = client;
-        calendar = google.calendar({ version: 'v3', auth: client });
-        console.log("Google Calendar inizializzato con successo.");
-        
-        // Avvia la sincronizzazione una volta che è tutto pronto
-        syncGoogleCalendarEvents();
-        
-        // Se vuoi sincronizzare periodicamente, puoi de-commentare questa riga
-        setInterval(syncGoogleCalendarEvents, 900000); 
-    }).catch(err => {
-        console.error("ERRORE CRITICO: Impossibile ottenere il client di autenticazione Google:", err.message);
-        process.exit(1);
-    });
-
-} catch (error) {
-    console.error('ERRORE CRITICO in fase di setup autenticazione Google:', error.message);
-    process.exit(1);
-}
-// ============================================================================
-// === FINE BLOCCO DI AUTENTICAZIONE GOOGLE CALENDAR (L'UNICA PARTE MODIFICATA) ===
-// ============================================================================
-
-
 async function syncGoogleCalendarEvents() {
     console.log("Avvio sincronizzazione eventi Google Calendar...");
     if (!calendar) {
