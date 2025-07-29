@@ -52,104 +52,124 @@ initGoogleCalendar().catch(err => {
 });
 
 
+
+// VERSIONE FINALE DELLA FUNZIONE DI SINCRONIZZAZIONE (CON PAGINAZIONE)
 async function syncGoogleCalendarEvents() {
-    console.log("Avvio sincronizzazione eventi Google Calendar...");
+    console.log("Avvio sincronizzazione con Google Calendar (versione con paginazione)...");
     if (!calendar) {
-        console.error("ERRORE: Il client Google Calendar non è stato inizializzato correttamente prima di tentare la sincronizzazione.");
+        console.error("ERRORE: Il client Google Calendar non è inizializzato.");
         return;
     }
 
-
-const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
-
+    const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
 
     try {
-        const now = new Date();
-        const maxTime = new Date();
-        maxTime.setDate(now.getDate() + 90);
+        // 1. Recuperiamo il syncToken dal nostro database
+        const tokenRow = await db.query("SELECT valore FROM impostazioni WHERE chiave = 'google_sync_token'");
+        let syncToken = tokenRow.rows.length > 0 ? tokenRow.rows[0].valore : null;
 
-        console.log(`Ricerca eventi dal ${now.toLocaleString()} al ${maxTime.toLocaleString()} nel calendario ID: ${CALENDAR_ID}`);
-
-        const res = await calendar.events.list({
+        let requestParams = {
             calendarId: CALENDAR_ID,
-            timeMin: now.toISOString(),
-            timeMax: maxTime.toISOString(),
-            showDeleted: false,
             singleEvents: true,
-            orderBy: 'startTime',
-			fields: 'items(id,summary,description,location,start,end,creator,updated,colorId)' 
-        });
+            fields: 'items(id,summary,description,location,start,end,creator,updated,colorId,status),nextPageToken,nextSyncToken' // Chiediamo anche nextPageToken
+        };
 
-
-		
-		
-		
-        const events = res.data.items;
-        if (!events || events.length === 0) {
-            console.log('Nessun evento futuro trovato nel calendario specificato.');
-            console.log("Sincronizzazione eventi Google Calendar completata.");
-            return;
+        if (syncToken) {
+            console.log("Trovato Sync Token. Eseguo sincronizzazione incrementale.");
+            requestParams.syncToken = syncToken;
+        } else {
+            console.log("Nessun Sync Token. Eseguo una sincronizzazione completa iniziale.");
+            const timeMin = new Date();
+            timeMin.setDate(timeMin.getDate() - 30); // Prendi gli eventi degli ultimi 30 giorni
+            requestParams.timeMin = timeMin.toISOString();
         }
 
-        console.log(`Trovati ${events.length} eventi da Google Calendar:`);
+        let allEvents = [];
+        let pageToken = null;
+        let finalSyncToken = null;
 
-        for (const event of events) {
-            //console.log('EVENTO DA GOOGLE:', event.id, 'COLOR ID:', event.colorId);
+        // 2. CICLO DI PAGINAZIONE: Continua a chiedere finché Google ci dà un "biglietto" per la pagina dopo
+        do {
+            const res = await calendar.events.list({
+                ...requestParams,
+                pageToken: pageToken // Aggiungi il biglietto della pagina (la prima volta è null)
+            });
 
-            const eventSummary = event.summary || 'Nessun titolo';
-            const eventDescription = event.description || null;
-            const eventLocation = event.location || null;
-            const eventStart = event.start.dateTime || event.start.date;
-            const eventEnd = event.end.dateTime || event.end.date;
-            const eventCreatorEmail = event.creator ? event.creator.email : null;
-            const eventLastModified = event.updated || new Date().toISOString();
-            const isAllDay = !!event.start.date;
-            const colorId = event.colorId || null;
-
-            //console.log(`  - Evento: "${eventSummary}" (Inizio: ${new Date(eventStart).toLocaleString()}, Fine: ${new Date(eventEnd).toLocaleString()})`);
-
-            const query = `
-                INSERT INTO calendar_events (google_event_id, summary, description, location, start_time, end_time, creator_email, last_modified, is_all_day, color_id)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-                ON CONFLICT (google_event_id) DO UPDATE SET
-                    summary = EXCLUDED.summary,
-                    description = EXCLUDED.description,
-                    location = EXCLUDED.location,
-                    start_time = EXCLUDED.start_time,
-                    end_time = EXCLUDED.end_time,
-                    creator_email = EXCLUDED.creator_email,
-                    last_modified = EXCLUDED.last_modified,
-                    is_all_day = EXCLUDED.is_all_day,
-                    color_id = EXCLUDED.color_id,
-                    updated_at = CURRENT_TIMESTAMP;
-            `;
-            const values = [
-                event.id,
-                eventSummary,
-                eventDescription,
-                eventLocation,
-                eventStart,
-                eventEnd,
-                eventCreatorEmail,
-                eventLastModified,
-                isAllDay,
-                colorId
-            ];
-
-            try {
-                await db.query(query, values);
-            } catch (dbError) {
-                console.error(`Errore nel salvare l'evento "${eventSummary}" (ID: ${event.id}) nel DB:`, dbError.message);
+            const eventsOnPage = res.data.items;
+            if (eventsOnPage && eventsOnPage.length > 0) {
+                allEvents.push(...eventsOnPage); // Aggiungi gli eventi di questa pagina alla lista totale
+                console.log(`Ricevuti ${eventsOnPage.length} eventi da questa pagina. Totale finora: ${allEvents.length}`);
             }
+
+            pageToken = res.data.nextPageToken; // Prendi il biglietto per la prossima pagina
+            finalSyncToken = res.data.nextSyncToken; // Il sync token finale arriva solo con l'ultima pagina
+
+        } while (pageToken); // Se c'è un biglietto, il ciclo continua
+
+        console.log(`Paginazione completata. Totale eventi da elaborare: ${allEvents.length}`);
+
+        // 3. Elaboriamo TUTTI gli eventi raccolti
+        for (const event of allEvents) {
+            if (event.status === 'cancelled') {
+                console.log(`Rilevato evento CANCELLATO: "${event.summary}" (ID: ${event.id}). Eliminazione.`);
+                await db.query("DELETE FROM calendar_events WHERE google_event_id = $1", [event.id]);
+            } // --- INCOLLA QUESTO AL POSTO DEL VECCHIO 'ELSE' ---
+else {
+    // Inserimento o aggiornamento
+    const eventSummary = event.summary || 'Nessun titolo';
+    const eventDescription = event.description || null;
+    const eventLocation = event.location || null;
+    const eventStart = event.start.dateTime || event.start.date;
+    const eventEnd = event.end.dateTime || event.end.date;
+    const eventCreatorEmail = event.creator ? event.creator.email : null;
+    const eventLastModified = event.updated || new Date().toISOString(); // <-- Variabile definita qui
+    const isAllDay = !!event.start.date;
+    const colorId = event.colorId || null;
+
+    const query = `
+        INSERT INTO calendar_events (google_event_id, summary, description, location, start_time, end_time, creator_email, last_modified, is_all_day, color_id)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        ON CONFLICT (google_event_id) DO UPDATE SET
+            summary = EXCLUDED.summary,
+            description = EXCLUDED.description,
+            location = EXCLUDED.location,
+            start_time = EXCLUDED.start_time,
+            end_time = EXCLUDED.end_time,
+            creator_email = EXCLUDED.creator_email,
+            last_modified = EXCLUDED.last_modified,
+            is_all_day = EXCLUDED.is_all_day,
+            color_id = EXCLUDED.color_id,
+            updated_at = CURRENT_TIMESTAMP;
+    `;
+    const values = [
+        event.id,
+        eventSummary,
+        eventDescription,
+        eventLocation,
+        eventStart,
+        eventEnd,
+        eventCreatorEmail,
+        eventLastModified, // <-- Ora la variabile esiste
+        isAllDay,
+        colorId
+    ];
+    await db.query(query, values);
+}
         }
-        console.log("Sincronizzazione eventi Google Calendar completata.");
+
+        // 4. Salviamo il NUOVO syncToken finale per la prossima volta
+        if (finalSyncToken) {
+            console.log("Salvataggio Sync Token finale per la prossima sincronizzazione.");
+            await db.query("UPDATE impostazioni SET valore = $1 WHERE chiave = 'google_sync_token'", [finalSyncToken]);
+        }
+        console.log("Sincronizzazione eventi Google Calendar completata con successo.");
 
     } catch (error) {
-        console.error('Errore durante la sincronizzazione del calendario:', error.message);
-        if (error.code === 404) {
-            console.error('Potrebbe essere un problema di ID Calendario errato o permessi insufficienti.');
-        } else if (error.response && error.response.data && error.response.data.error) {
-            console.error('Dettagli errore Google API:', error.response.data.error);
+        if (error.code === 410) {
+            console.warn("ATTENZIONE: Sync Token non valido o scaduto. Svuoto il token. La prossima sarà una sincronizzazione completa.");
+            await db.query("UPDATE impostazioni SET valore = NULL WHERE chiave = 'google_sync_token'");
+        } else {
+            console.error('Errore durante la sincronizzazione del calendario:', error.message);
         }
     }
 }
