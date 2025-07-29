@@ -49,8 +49,17 @@
     <button onclick="window.open('https://calendar.google.com/calendar/u/0/r/week', '_blank')" class="btn btn-nav btn-secondary mt-2">Apri Google Calendar Esterno</button>
   </div>
 
-  <div class="panel compact-panel" style="flex: 1; display: flex; justify-content: flex-end; align-items: flex-end;">
-    <a href="/logout" 
+  <div class="panel compact-panel" style="
+    flex: 1;
+    display: flex;
+    flex-direction: column;  <!-- Imposta la direzione verticale -->
+    justify-content: space-between;  <!-- Spazio tra titolo e bottoni -->
+    height: 100%;  <!-- Assicura che occupi tutta l'altezza disponibile -->
+">
+    <h2 class="panel-title">Gestione</h2>
+	<a href="/lista-clienti.html" class="btn btn-nav">Lista Clienti</a>
+	
+	<a href="/logout" 
        style="
          color: white; 
          background-color: #dc3545; 

@@ -145,6 +145,13 @@
     </select>
   </div>
   
+<div class="paginazione-superiore client-navigation-controls">
+  <button id="btnPrecedenteTop" class="btn-nav" disabled>⬅️ Indietro</button>
+  <p id="info-paginazione-top" class="pagination-info">Pagina 1 di 1</p>
+  <button id="btnSuccessivoTop" class="btn-nav">Avanti ➡️</button>
+</div>
+
+
 
   <div id="lista-clienti">
     <!-- Clienti caricati qui -->
@@ -188,7 +195,7 @@
       }
     }
 
-    // Aggiorna la lista clienti (MANTIENI STILE ORIGINALE)
+    // Aggiorna la lista clienti
     function updateClientList() {
       const start = (currentPage - 1) * itemsPerPage;
       const end = start + itemsPerPage;
@@ -208,22 +215,42 @@
     }
 
     // Aggiorna i controlli
-   // SOSTITUISCI solo la funzione updatePagination nell'esistente script:
-function updatePagination() {
-  const totalPages = Math.ceil(allClienti.length / itemsPerPage);
-  
-  // Aggiorna il conteggio totale clienti
-  totale.textContent = `(${allClienti.length})`;
-  
-  // Modifica questa linea per mostrare "Pagina X di Y"
-  pageInfo.textContent = `Pagina ${currentPage} di ${totalPages}`;
-  
-  // Disabilita pulsanti se necessario
-  btnPrev.disabled = currentPage === 1;
-  btnNext.disabled = currentPage >= totalPages;
-}
+    function updatePagination() {
+      const totalPages = Math.ceil(allClienti.length / itemsPerPage);
+      
+      totale.textContent = `(${allClienti.length})`;
+      
+      // Aggiorna entrambi i display
+      document.querySelectorAll('.pagination-info').forEach(el => {
+        el.textContent = `Pagina ${currentPage} di ${totalPages}`;
+      });
+      
+      // Disabilita pulsanti in entrambe le posizioni
+      document.querySelectorAll('#btnPrecedente, #btnPrecedenteTop').forEach(btn => {
+        btn.disabled = currentPage === 1;
+      });
+      
+      document.querySelectorAll('#btnSuccessivo, #btnSuccessivoTop').forEach(btn => {
+        btn.disabled = currentPage >= totalPages;
+      });
+    }
 
-    // Cambio elementi per pagina
+    // Funzioni di navigazione
+    function nextPage() {
+      currentPage++;
+      updateClientList();
+      updatePagination();
+    }
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        updateClientList();
+        updatePagination();
+      }
+    }
+
+    // Event listeners
     itemsPerPageSelect.addEventListener('change', (e) => {
       itemsPerPage = parseInt(e.target.value);
       currentPage = 1;
@@ -231,22 +258,12 @@ function updatePagination() {
       updatePagination();
     });
 
-    // Navigazione
-    btnNext.addEventListener('click', () => {
-      currentPage++;
-      updateClientList();
-      updatePagination();
-    });
+    btnNext.addEventListener('click', nextPage);
+    document.getElementById('btnSuccessivoTop').addEventListener('click', nextPage);
+    btnPrev.addEventListener('click', prevPage);
+    document.getElementById('btnPrecedenteTop').addEventListener('click', prevPage);
 
-    btnPrev.addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        updateClientList();
-        updatePagination();
-      }
-    });
-
-    // Funzioni globali (originali)
+    // Funzioni globali
     window.modificaCliente = function(id) {
       window.location.href = `/scheda-cliente.html?id=${id}`;
     };
@@ -254,7 +271,13 @@ function updatePagination() {
     window.eliminaCliente = function(id) {
       if (confirm('Sei sicuro di voler eliminare questo cliente?')) {
         fetch(`/api/clienti/${id}`, { method: 'DELETE' })
-          .then(response => response.ok ? loadAllClienti() : alert('Errore durante l\'eliminazione'));
+          .then(response => {
+            if (response.ok) {
+              loadAllClienti();
+            } else {
+              alert('Errore durante l\'eliminazione');
+            }
+          });
       }
     };
 
