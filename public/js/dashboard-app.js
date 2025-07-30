@@ -1,134 +1,83 @@
+// ===================================================================
+// == FILE /public/js/dashboard-app.js - VERSIONE FINALE UNIFICATA ==
+// ===================================================================
+
 document.addEventListener("DOMContentLoaded", () => {
-    // Riferimenti agli elementi DOM
+    
+    // --- RIFERIMENTI AGLI ELEMENTI DOM ---
     const searchInput = document.getElementById("search-input");
     const searchButton = document.getElementById("search-button");
-
     const newClientNameInput = document.getElementById("new-client-name");
     const newClientSurnameInput = document.getElementById("new-client-surname");
     const newClientEmailInput = document.getElementById("new-client-email");
     const newClientPhoneInput = document.getElementById("new-client-phone");
     const addNewClientButton = document.getElementById("add-new-client-button");
+    const appointmentsListContainer = document.getElementById('lista-appuntamenti');
 
-    // RIMOSSO: clientListContainer e viewAllClientsButton non sono più necessari
-    // const clientListContainer = document.getElementById("client-list-container");
-    // const viewAllClientsButton = document.getElementById("view-all-clients-button");
 
-    // Funzione per mostrare un messaggio temporaneo
+    // --- FUNZIONI DI UTILITÀ ---
+
+    // Funzione per mostrare un messaggio temporaneo all'utente
     function showMessage(message, type = 'info') {
         const messageDiv = document.createElement('div');
         messageDiv.textContent = message;
-        messageDiv.style.padding = '10px';
-        messageDiv.style.borderRadius = '5px';
-        messageDiv.style.fontWeight = 'bold';
-        messageDiv.style.color = '#1a1a1a'; // Testo scuro
-
-        if (type === 'success') {
-            messageDiv.style.backgroundColor = '#d4edda'; // Verde chiaro
-            messageDiv.style.borderColor = '#28a745'; // Verde scuro
-        } else if (type === 'error') {
-            messageDiv.style.backgroundColor = '#f8d7da'; // Rosso chiaro
-            messageDiv.style.borderColor = '#dc3545'; // Rosso scuro
-        } else {
-            messageDiv.style.backgroundColor = '#fff3cd'; // Giallo chiaro
-            messageDiv.style.borderColor = '#ffc107'; // Giallo scuro
-        }
-        messageDiv.style.border = '1px solid';
-        messageDiv.style.textAlign = 'center';
-
-        messageDiv.style.position = 'fixed';
-        messageDiv.style.top = '50%';
-        messageDiv.style.left = '50%';
-        messageDiv.style.transform = 'translate(-50%, -50%)';
-        messageDiv.style.zIndex = '1000';
-        messageDiv.style.minWidth = '280px';
-        messageDiv.style.maxWidth = '90%';
-        messageDiv.style.boxShadow = '0 4px 15px rgba(0,0,0,0.3)';
-
+        messageDiv.className = `custom-message message-${type}`;
         document.body.insertBefore(messageDiv, document.body.firstChild);
-
-        setTimeout(() => {
-            messageDiv.remove();
-        }, 3000);
+        setTimeout(() => messageDiv.remove(), 3000);
     }
 
-    // --- Gestione generica delle risposte API ---
-async function handleApiResponse(response) {
-    // Se la risposta è un reindirizzamento (gestito dal guardiano del server)
-    // il browser lo seguirà automaticamente. Qui, intercettiamo il caso
-    // in cui il reindirizzamento è "manuale" o fallisce.
-    if (response.redirected) {
-        window.location.href = response.url; // Segui il reindirizzamento del server
+    // Gestione generica delle risposte API (dal tuo codice originale)
+    async function handleApiResponse(response) {
+        if (response.redirected) {
+            window.location.href = response.url;
+            return null;
+        }
+        if (response.status === 401 || response.status === 403) {
+            showMessage('Sessione scaduta o non autorizzato. Verrai reindirizzato al login.', 'error');
+            setTimeout(() => { window.location.href = '/'; }, 1500);
+            return null;
+        }
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            return await response.json();
+        }
+        console.error("Risposta API non valida:", response);
+        showMessage('Errore imprevisto nella comunicazione con il server.', 'error');
         return null;
     }
 
-    // Se il server risponde con un 401 o 403 (Non autorizzato)
-    if (response.status === 401 || response.status === 403) {
-        showMessage('Sessione scaduta o non autorizzato. Verrai reindirizzato al login.', 'error');
-        setTimeout(() => {
-            window.location.href = '/'; // Vai alla home, che gestirà il login
-        }, 1500);
-        return null;
-    }
 
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        return await response.json();
-    }
-    
-    // Se la risposta non è JSON e non è un errore gestito,
-    // potrebbe essere un altro problema. Evitiamo il loop.
-    console.error("Risposta API non valida:", response);
-    showMessage('Errore imprevisto nella comunicazione con il server.', 'error');
-    return null; // Non fare nulla, evita il loop
-}
-
-    // --- Funzioni per la Gestione Clienti ---
-
-    // RIMOSSO: fetchAndDisplayClients non è più usata sulla dashboard
-    // async function fetchAndDisplayClients() { /* ... */ }
+    // --- LOGICA PANNELLO "CERCA CLIENTE" ---
 
     async function handleSearchClient() {
         const searchTerm = searchInput.value.trim();
         if (!searchTerm) {
-            showMessage("Per favore, inserisci un nome o cognome per la ricerca.", 'info');
+            showMessage("Per favore, inserisci un nome o cognome.", 'info');
             return;
         }
-
         try {
             const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
             const data = await handleApiResponse(response);
-            if (data === null) return;
+            if (!data) return;
 
-            if (!response.ok) {
-                const errorDetails = data.error || "Errore sconosciuto";
-                throw new Error(`Errore nella ricerca clienti: ${errorDetails}`);
-            }
-
-            const clients = data; // I dati JSON sono già stati parsati da handleApiResponse
-
-            if (clients.length > 0) {
-                // Estrai solo gli ID dei clienti trovati
-                const clientIds = clients.map(client => client.id);
-                // Converti l'array di ID in una stringa JSON e URL-encodala
+            if (data.length > 0) {
+                const clientIds = data.map(client => client.id);
                 const encodedClientIds = encodeURIComponent(JSON.stringify(clientIds));
-
-                showMessage(`Trovati ${clients.length} clienti per "${searchTerm}". Reindirizzamento alla scheda del primo risultato...`, 'success');
-
+                showMessage(`Trovati ${data.length} clienti. Reindirizzamento...`, 'success');
                 setTimeout(() => {
-                    // Reindirizza alla scheda del PRIMO cliente trovato
-                    // e passa tutti gli ID e l'indice corrente (0 per il primo)
-                    window.location.href = `/scheda-cliente.html?id=${clients[0].id}&searchIds=${encodedClientIds}&index=0`;
+                    window.location.href = `/scheda-cliente.html?id=${data[0].id}&searchIds=${encodedClientIds}&index=0`;
                 }, 1500);
-
             } else {
-                // Se non trova nessun cliente
                 showMessage(`Nessun cliente trovato per "${searchTerm}".`, 'info');
             }
         } catch (error) {
-            console.error("Errore handleSearchClient:", error);
-            showMessage('Errore critico durante la ricerca dei clienti. Controlla la console per dettagli.', 'error');
+            console.error("Errore ricerca cliente:", error);
+            showMessage('Errore critico durante la ricerca.', 'error');
         }
     }
+
+
+    // --- LOGICA PANNELLO "NUOVO CLIENTE" ---
 
     async function handleAddNewClient() {
         const nome = newClientNameInput.value.trim();
@@ -137,84 +86,170 @@ async function handleApiResponse(response) {
         const telefono = newClientPhoneInput.value.trim();
 
         if (!nome || !cognome) {
-            showMessage("Nome e Cognome sono obbligatori per aggiungere un cliente.", 'error');
+            showMessage("Nome e Cognome sono obbligatori.", 'error');
             return;
         }
-
-        const newClientData = { nome, cognome, email, telefono };
-
         try {
             const response = await fetch("/api/clienti", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newClientData),
+                body: JSON.stringify({ nome, cognome, email, telefono }),
             });
-
             const data = await handleApiResponse(response);
-            if (data === null) return;
+            if (!data) return;
 
-            if (!response.ok) {
-                const errorDetail = data.error || "Errore sconosciuto";
-                throw new Error(`Errore durante l'aggiunta del cliente: ${errorDetail}`);
-            }
-
-            // Cliente aggiunto con successo, reindirizza direttamente alla sua scheda
             if (data.id) {
-                showMessage(`Cliente ${nome} ${cognome} aggiunto con successo! Reindirizzamento alla scheda cliente...`, 'success');
-                // Pulisci i campi del form dopo l'aggiunta riuscita e prima del reindirizzamento
-                newClientNameInput.value = "";
-                newClientSurnameInput.value = "";
-                newClientEmailInput.value = "";
-                newClientPhoneInput.value = "";
+                showMessage(`Cliente ${nome} ${cognome} aggiunto!`, 'success');
+                newClientNameInput.value = ""; newClientSurnameInput.value = "";
+                newClientEmailInput.value = ""; newClientPhoneInput.value = "";
                 setTimeout(() => {
                     window.location.href = `/scheda-cliente.html?id=${data.id}`;
                 }, 1500);
             } else {
-                // Fallback: se per qualche motivo l'ID non viene restituito
-                showMessage(`Cliente ${nome} ${cognome} aggiunto con successo!`, 'success');
-                // Pulisci i campi del form
-                newClientNameInput.value = "";
-                newClientSurnameInput.value = "";
-                newClientEmailInput.value = "";
-                newClientPhoneInput.value = "";
-                // Poiché non visualizziamo più la lista, un redirect alla dashboard o lista clienti può essere un fallback sensato
-                setTimeout(() => {
-                    window.location.href = '/dashboard.html'; // Torna alla dashboard "vuota" o a lista-clienti
-                }, 1500);
+                throw new Error(data.error || "ID non restituito dal server.");
             }
-
         } catch (error) {
-            console.error("Errore handleAddNewClient:", error);
-            showMessage(`Errore durante l'aggiunta del cliente: ${error.message}`, 'error');
+            console.error("Errore aggiunta cliente:", error);
+            showMessage(`Errore durante l'aggiunta: ${error.message}`, 'error');
         }
     }
 
 
-    // --- Event Listeners ---
+// ==========================================================
+// === LOGICA DI COLORAZIONE (COPIATA DA CALENDARIO.HTML) ===
+// ==========================================================
+// Sostituisci la vecchia getAppointmentColor con questa
+function getAppointmentColor(app) {
+    const googleColorMap = {
+        '1': '#a4bdfc', '2': '#7ae7bf', '3': '#dbadff', '4': '#ff887c',
+        '5': '#fbd75b', '6': '#ffb878', '7': '#46d6db', '8': '#e1e1e1',
+        '9': '#5484ed', '10': '#51b749', '11': '#dc2127'
+    };
+    
+    // Colori di default
+    let backgroundColor = '#FF9800'; // Mandarino (Generale)
+    let textColor = '#FFFFFF';       // Bianco
 
-    // RIMOSSO: Caricamento iniziale della lista clienti
-    // fetchAndDisplayClients();
-
-    // Event listener per il bottone "Cerca"
-    if (searchButton) {
-        searchButton.addEventListener("click", handleSearchClient);
+    // Logica Google Calendar
+    if (app.color_id && googleColorMap[app.color_id]) {
+        backgroundColor = googleColorMap[app.color_id];
+        // Se il colore è chiaro, usa testo nero, altrimenti bianco (la tua logica!)
+        const coloriChiari = ['#fbd75b', '#ffb878', '#e1e1e1', '#a4bdfc', '#7ae7bf'];
+        if (coloriChiari.includes(backgroundColor.toLowerCase())) {
+            textColor = '#000000';
+        }
+    } else {
+        // Logica personalizzata
+        const titolo = app.summary ? app.summary.toLowerCase() : '';
+        const sigleTrattamenti = ['tg', 'tn', 'tratt', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul'];
+        
+        if (titolo.includes('tino')) {
+            backgroundColor = '#46d6db'; // Pavone
+            textColor = '#FFFFFF';
+        } else if (titolo.includes('sandro')) {
+            backgroundColor = '#81C784'; // Salvia
+            textColor = '#FFFFFF';
+        } else if (sigleTrattamenti.some(sigla => titolo.endsWith(' ' + sigla) || titolo.endsWith(sigla) || titolo.includes(' ' + sigla + ' '))) {
+            backgroundColor = '#81C784'; // Salvia
+            textColor = '#000000';
+        }
     }
-    // Permetti la ricerca anche premendo Invio nel campo input
-    if (searchInput) {
-        searchInput.addEventListener("keypress", (event) => {
-            if (event.key === "Enter") {
-                handleSearchClient();
+
+    return { backgroundColor, textColor };
+}
+
+
+
+    // --- LOGICA PANNELLO "APPUNTAMENTI DI OGGI" ---
+
+    // Funzione per cercare un cliente dal titolo di un evento
+    async function searchClientFromEvent(rawTitle) {
+        const title = (rawTitle || '').trim();
+        if (!title) { showMessage('Titolo evento non valido.', 'error'); return; }
+
+        let parole = title.replace(/[^a-zA-ZÀ-ÿ\s]/g, ' ').toLowerCase().split(/\s+/).filter(p => p);
+        const isSignificativa = (p) => p.length > 3;
+        let risultato = [];
+        if (parole.length > 0) risultato.push(parole[0]);
+        for (let i = 1; i < parole.length; i++) {
+            if (isSignificativa(parole[i])) {
+                risultato.push(parole[i]);
+                break;
             }
-        });
+        }
+        const searchTerm = risultato.join(' ').trim();
+        if (!searchTerm) { showMessage('Nessun nome valido trovato nel titolo.', 'error'); return; }
+        
+        try {
+            const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
+            const data = await handleApiResponse(response);
+            if (!data) return;
+
+            if (data.length > 0) {
+                window.location.href = `/scheda-cliente.html?id=${data[0].id}`;
+            } else {
+                showMessage(`Nessun cliente trovato per "${searchTerm}".`, 'info');
+            }
+        } catch (error) {
+            console.error("Errore ricerca da evento:", error);
+            showMessage('Errore critico durante la ricerca da evento.', 'error');
+        }
     }
 
-    // Event listener per il bottone "Aggiungi Cliente"
-    if (addNewClientButton) {
-        addNewClientButton.addEventListener("click", handleAddNewClient);
-    }
+    // Funzione per caricare e mostrare gli appuntamenti
+    async function fetchAndDisplayAppointments() {
+    const listElement = document.getElementById('lista-appuntamenti');
+    try {
+        const response = await fetch('/api/appuntamenti/oggi');
+        const appointments = await handleApiResponse(response);
+        if (!appointments) return;
 
-    // RIMOSSO: Event listener per il bottone "Ricarica Lista"
-    // if (viewAllClientsButton) {
-    //      viewAllClientsButton.addEventListener("click", fetchAndDisplayClients);
-    // }
+        listElement.innerHTML = '';
+        if (appointments.length === 0) {
+            listElement.innerHTML = '<li class="appointment-item info">Nessun appuntamento per oggi.</li>';
+            return;
+        }
+
+        // Sostituisci il forEach esistente con questo
+appointments.forEach(app => {
+    const appointmentTime = new Date(app.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    
+    // Ottieni entrambi i colori
+    const { backgroundColor, textColor } = getAppointmentColor(app);
+
+    const listItem = document.createElement('li');
+    listItem.className = 'appointment-item clickable';
+    
+    // Applica entrambi gli stili
+    listItem.style.backgroundColor = backgroundColor;
+    listItem.style.color = textColor;
+    
+    // Selezioniamo gli span interni per applicare il colore del testo anche a loro
+    listItem.innerHTML = `
+        <span class="appointment-time">${appointmentTime}</span>
+        <span class="appointment-summary">${app.summary}</span>
+    `;
+
+    // Applica il colore del testo anche ai figli per specificità
+    listItem.querySelectorAll('span').forEach(span => {
+        span.style.color = textColor;
+    });
+
+    listItem.addEventListener('click', () => searchClientFromEvent(app.summary));
+    listElement.appendChild(listItem);
+});
+    } catch (error) {
+        console.error('Errore caricamento appuntamenti:', error);
+        listElement.innerHTML = '<li class="appointment-item error">Errore nel caricamento.</li>';
+    }
+}
+
+
+    // --- INIZIALIZZAZIONE DEGLI EVENT LISTENERS ---
+
+    if (searchButton) searchButton.addEventListener("click", handleSearchClient);
+    if (searchInput) searchInput.addEventListener("keypress", e => { if (e.key === "Enter") handleSearchClient(); });
+    if (addNewClientButton) addNewClientButton.addEventListener("click", handleAddNewClient);
+    if (appointmentsListContainer) fetchAndDisplayAppointments();
+
 });

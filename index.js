@@ -530,6 +530,38 @@ app.get("/api/events", ensureAuthenticated, async (req, res) => {
     }
 });
 
+// API PER GLI APPUNTAMENTI DI OGGI (PER LA DASHBOARD)
+app.get("/api/appuntamenti/oggi", ensureAuthenticated, async (req, res) => {
+    console.log("Richiesta per gli appuntamenti di oggi ricevuta.");
+    try {
+const query = `
+    SELECT 
+        summary, 
+        start_time,
+        color_id 
+    FROM 
+                calendar_events 
+            WHERE 
+                start_time::date = CURRENT_DATE 
+            ORDER BY 
+                start_time ASC;
+        `;
+        
+        const result = await db.query(query);
+        res.json(result.rows);
+
+    } catch (err) {
+        console.error("Errore nel recupero degli appuntamenti di oggi:", err.message);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+
+
+
+
+
+
 // --- API TRATTAMENTI ---
 app.get("/api/trattamenti/:id", async (req, res) => {
     try {

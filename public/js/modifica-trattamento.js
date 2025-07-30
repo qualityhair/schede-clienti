@@ -123,17 +123,17 @@ async function fetchTrattamentoDetails(id) {
                     } else {
                         // Fallback per il titolo se il nome del cliente non è disponibile
                         pageTitle.textContent = `Modifica Servizio`;
-                        backToSchedaBtn.textContent = `Annulla e Torna alla Lista Clienti`;
+                        backToSchedaBtn.textContent = `Annulla e Torna alla Scheda Cliente`;
                     }
                 } else {
                     // Fallback per il titolo se la chiamata al cliente fallisce
                     pageTitle.textContent = `Modifica Servizio`;
-                    backToSchedaBtn.textContent = `Annulla e Torna alla Lista Clienti`;
+                    backToSchedaBtn.textContent = `Annulla e Torna alla Scheda Cliente`;
                 }
             } else {
                 // Fallback per il titolo se clienteId non è disponibile
                 pageTitle.textContent = `Modifica Servizio`;
-                backToSchedaBtn.textContent = `Annulla e Torna alla Lista Clienti`;
+                backToSchedaBtn.textContent = `Annulla e Torna alla Scheda Cliente`;
             }
 
 

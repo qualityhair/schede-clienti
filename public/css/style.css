@@ -277,7 +277,8 @@ body {
 
 .dashboard-grid-container { /* Nuovo per dashboard */
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* 300px minimo per colonna */
+    /* La tua richiesta: 2 colonne */
+    grid-template-columns: 1fr 1fr;
     gap: 25px;
     margin-bottom: 30px;
 }
@@ -568,9 +569,7 @@ p strong { /* Usato per scheda-cliente */
 
 /* RESPONSIVITÀ */
 @media (min-width: 769px) { /* Applica queste regole solo su schermi più grandi di 768px */
-    .dashboard-grid-container {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    }
+  
 
     .panel-group {
         grid-template-columns: repeat(2, 1fr);
@@ -883,4 +882,108 @@ p strong { /* Usato per scheda-cliente */
     border-color: #FFD700;
     box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.25);
     outline: none;
+}
+
+
+
+/* Stili per la funzione showMessage */
+.custom-message {
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    color: #1a1a1a;
+    border: 1px solid;
+    text-align: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    min-width: 280px;
+    max-width: 90%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+.message-success {
+    background-color: #d4edda;
+    border-color: #28a745;
+}
+.message-error {
+    background-color: #f8d7da;
+    border-color: #dc3545;
+}
+.message-info {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+}```
+
+/* Sostituisci la vecchia .appointment-item */
+.appointment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid #444;
+    font-size: 0.95em;
+    border-radius: 5px; /* Aggiungiamo bordi arrotondati per un look "a pillola" */
+    margin-bottom: 5px; /* Un po' di spazio tra gli appuntamenti */
+}
+
+
+/* =============================================== */
+/* === STILI PER IL PANNELLO APPUNTAMENTI DI OGGI === */
+/* =============================================== */
+
+.appointments-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+    max-height: 250px; /* Limita l'altezza per non allungare troppo il pannello */
+    overflow-y: auto;  /* Aggiunge la barra di scorrimento se gli appuntamenti sono tanti */
+    border-top: 1px solid #444; /* Separa la lista dal sottotitolo */
+}
+
+.appointment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Allinea l'orario e il testo verticalmente */
+    padding: 12px 8px 12px 15px;
+    border-bottom: 1px solid #444;
+    font-size: 0.95em;
+    
+    /* Regole per il bordo colorato a sinistra */
+    border-left-width: 5px;
+    border-left-style: solid;
+    /* Il colore verrà impostato dal JavaScript */
+}
+
+/* Regola per quando non ci sono appuntamenti o c'è un errore */
+.appointment-item.info,
+.appointment-item.error,
+.appointment-item.loading {
+    justify-content: center;
+    color: #888;
+    font-style: italic;
+    border-left-width: 0; /* Nasconde il bordo colorato per questi messaggi */
+}
+
+.appointment-item.error {
+    color: #dc3545; /* Colore rosso per il messaggio di errore */
+}
+
+/* Regola per l'effetto "cliccabile" */
+.appointment-item.clickable:hover {
+    background-color: #3a3a3a; /* Sfondo leggermente più scuro al passaggio */
+    cursor: pointer;
+}
+
+/* Stili specifici per l'orario e il titolo dell'appuntamento */
+/* Modifica la vecchia .appointment-summary */
+.appointment-summary {
+    text-align: right;
+    /* Rimosso: color: #e0e0e0; */
+}
+
+.appointment-summary {
+    text-align: right;
+    color: #e0e0e0;
 }
