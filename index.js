@@ -485,6 +485,251 @@ app.get("/api/clienti/:id", async (req, res) => {
     }
 });
 
+
+// --- NUOVA API PER IL RIEPILOGO DELL'ULTIMA ANALISI TRICOLOGICA ---
+app.get("/api/clienti/:id/analisi/riepilogo", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const query = `
+			SELECT id, data_analisi, esigenza_cliente, diagnosi_primaria
+            FROM 
+                analisi_tricologiche
+            WHERE 
+                cliente_id = $1
+            ORDER BY 
+                data_analisi DESC
+            LIMIT 1;
+        `;
+        // Spiegazione Query:
+        // - Seleziona solo i 3 campi che ci servono per il riepilogo.
+        // - Cerca solo le analisi per il cliente specifico (cliente_id = $1).
+        // - Le ordina dalla più recente alla più vecchia (ORDER BY data_analisi DESC).
+        // - Prende solo la prima riga del risultato (LIMIT 1), che è la più recente.
+
+        const result = await db.query(query, [id]);
+
+        // Se la query restituisce una riga, la inviamo.
+        // Se non restituisce nulla (nessuna analisi trovata), inviamo un oggetto vuoto.
+        const riepilogo = result.rows.length > 0 ? result.rows[0] : null;
+
+        res.json(riepilogo);
+
+    } catch (err) {
+        console.error(`Errore nel recupero del riepilogo analisi per cliente ${id}:`, err.message);
+        res.status(500).json({ error: "Errore del server durante il recupero del riepilogo dell'analisi." });
+    }
+});
+
+// --- NUOVA API PER SALVARE UNA NUOVA ANALISI TRICOLOGICA ---
+app.post("/api/analisi", ensureAuthenticated, async (req, res) => {
+    // Estraiamo tutti i dati inviati dal form
+    const {
+        clienteId,
+        dataNascitaCliente,
+        esigenzaCliente,
+        patologieDichiarate,
+        frequenzaLavaggi,
+        presenzaPrurito,
+        tappoCheratosico,
+        statoCute,
+        statoCapello,
+        tipologiaEffluvio,
+        tipologiaAlopecia,
+        estensioneAlopecia,
+        diagnosiRiepilogo,
+        diagnosiPrimaria,
+        pianoTrattamenti,
+        pianoProdotti
+    } = req.body;
+
+    // Validazione di base: assicuriamoci che l'ID del cliente sia presente
+    if (!clienteId) {
+        return res.status(400).json({ error: "ID Cliente mancante." });
+    }
+
+    try {
+        // --- Logica per aggiornare la data di nascita del cliente ---
+        if (dataNascitaCliente) {
+            await db.query(
+                `UPDATE clienti SET data_nascita = $1 WHERE id = $2`,
+                [dataNascitaCliente, clienteId]
+            );
+            console.log(`Data di nascita aggiornata per il cliente ${clienteId}.`);
+        }
+
+        // --- Logica per inserire la nuova analisi nel database ---
+        const queryAnalisi = `
+            INSERT INTO analisi_tricologiche (
+                cliente_id, esigenza_cliente, patologie_dichiarate, frequenza_lavaggi, 
+                presenza_prurito, tappo_cheratosico, stato_cute, stato_capello, tipologia_effluvio, 
+                tipologia_alopecia, estensione_alopecia, diagnosi_riepilogo, diagnosi_primaria, 
+                piano_trattamenti, piano_prodotti
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+            ) RETURNING id;
+        `;
+        
+        const values = [
+            clienteId, esigenzaCliente, patologieDichiarate, frequenzaLavaggi,
+            presenzaPrurito, tappoCheratosico, statoCute, statoCapello, tipologiaEffluvio,
+            tipologiaAlopecia, estensioneAlopecia, diagnosiRiepilogo, diagnosiPrimaria,
+            pianoTrattamenti, pianoProdotti
+        ];
+
+        const result = await db.query(queryAnalisi, values);
+        const nuovaAnalisiId = result.rows[0].id;
+
+        console.log(`Nuova analisi con ID ${nuovaAnalisiId} creata per il cliente ${clienteId}.`);
+        
+        // Invia una risposta di successo con l'ID della nuova analisi
+        res.status(201).json({ 
+            message: "Analisi salvata con successo!", 
+            analisiId: nuovaAnalisiId 
+        });
+
+    } catch (err) {
+        console.error("Errore durante il salvataggio dell'analisi:", err.message);
+        res.status(500).json({ error: "Errore del server durante il salvataggio dell'analisi." });
+    }
+});
+
+// --- NUOVA API PER RECUPERARE I DETTAGLI DI UNA SINGOLA ANALISI ---
+// Sostituisci la vecchia app.get("/api/analisi/:id", ...) con questa
+app.get("/api/analisi/:id", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const query = `
+            SELECT 
+                a.*, -- Seleziona tutti i campi dalla tabella analisi (alias 'a')
+                c.data_nascita -- E in più, seleziona la data_nascita dalla tabella clienti (alias 'c')
+            FROM 
+                analisi_tricologiche a
+            JOIN 
+                clienti c ON a.cliente_id = c.id
+            WHERE 
+                a.id = $1;
+        `;
+        const result = await db.query(query, [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Analisi non trovata." });
+        }
+        
+        res.json(result.rows[0]);
+
+    } catch (err) {
+        console.error(`Errore nel recupero dell'analisi con ID ${id}:`, err.message);
+        res.status(500).json({ error: "Errore del server durante il recupero dell'analisi." });
+    }
+});
+
+
+// --- NUOVA API PER LO STORICO COMPLETO DELLE ANALISI DI UN CLIENTE ---
+app.get("/api/clienti/:id/analisi", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params; // Questo è l'ID del cliente
+
+    try {
+        // Selezioniamo i campi principali di tutte le analisi per quel cliente
+        const query = `
+            SELECT 
+                id, 
+                data_analisi,
+                esigenza_cliente,
+                diagnosi_primaria
+            FROM 
+                analisi_tricologiche
+            WHERE 
+                cliente_id = $1
+            ORDER BY 
+                data_analisi DESC; -- Ordiniamo dalla più recente
+        `;
+        const result = await db.query(query, [id]);
+
+        // Invia la lista di analisi
+        res.json(result.rows);
+
+    } catch (err)
+    {
+        console.error(`Errore nel recupero dello storico analisi per cliente ${id}:`, err.message);
+        res.status(500).json({ error: "Errore del server durante il recupero dello storico." });
+    }
+});
+
+
+// --- NUOVA API PER ELIMINARE UNA SINGOLA ANALISI ---
+app.delete("/api/analisi/:id", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params; // Questo è l'ID dell'analisi da eliminare
+
+    try {
+        const query = `DELETE FROM analisi_tricologiche WHERE id = $1`;
+        const result = await db.query(query, [id]);
+
+        // rowCount ci dice quante righe sono state eliminate. 
+        // Se è 0, significa che l'analisi con quell'ID non è stata trovata.
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Analisi non trovata, impossibile eliminare." });
+        }
+
+        console.log(`Analisi con ID ${id} eliminata con successo.`);
+        
+        // Invia una risposta di successo senza contenuto (status 204)
+        res.status(204).send();
+
+    } catch (err) {
+        console.error(`Errore durante l'eliminazione dell'analisi con ID ${id}:`, err.message);
+        res.status(500).json({ error: "Errore del server durante l'eliminazione." });
+    }
+});
+
+
+// --- NUOVA API PER MODIFICARE (AGGIORNARE) UNA SINGOLA ANALISI ---
+app.put("/api/analisi/:id", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params; // ID dell'analisi da modificare
+    const dati = req.body; // Tutti i dati aggiornati dal form
+
+    try {
+        // Aggiorniamo la data di nascita del cliente, se fornita
+        if (dati.dataNascitaCliente && dati.clienteId) {
+            await db.query(
+                `UPDATE clienti SET data_nascita = $1 WHERE id = $2`,
+                [dati.dataNascitaCliente, dati.clienteId]
+            );
+        }
+
+        // Costruiamo la query di UPDATE per l'analisi
+        const queryAnalisi = `
+            UPDATE analisi_tricologiche SET
+                esigenza_cliente = $1, patologie_dichiarate = $2, frequenza_lavaggi = $3,
+                presenza_prurito = $4, tappo_cheratosico = $5, stato_cute = $6, stato_capello = $7,
+                tipologia_effluvio = $8, tipologia_alopecia = $9, estensione_alopecia = $10,
+                diagnosi_riepilogo = $11, diagnosi_primaria = $12, piano_trattamenti = $13,
+                piano_prodotti = $14, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $15;
+        `;
+        
+        const values = [
+            dati.esigenzaCliente, dati.patologieDichiarate, dati.frequenzaLavaggi,
+            dati.presenzaPrurito, dati.tappoCheratosico, dati.statoCute, dati.statoCapello,
+            dati.tipologiaEffluvio, dati.tipologiaAlopecia, dati.estensioneAlopecia,
+            dati.diagnosiRiepilogo, dati.diagnosiPrimaria, dati.pianoTrattamenti,
+            dati.pianoProdotti, id
+        ];
+
+        await db.query(queryAnalisi, values);
+        
+        console.log(`Analisi con ID ${id} aggiornata con successo.`);
+        res.status(200).json({ message: "Analisi aggiornata con successo!" });
+
+    } catch (err) {
+        console.error(`Errore durante l'aggiornamento dell'analisi con ID ${id}:`, err.message);
+        res.status(500).json({ error: "Errore del server durante l'aggiornamento." });
+    }
+});
+
+
+// ---  API CLIENTI ---
 app.put("/api/clienti/:id/note", async (req, res) => {
     const { preferenze_note } = req.body;
     if (preferenze_note === undefined) return res.status(400).json({ error: 'Campo note mancante' });

@@ -987,3 +987,134 @@ p strong { /* Usato per scheda-cliente */
     text-align: right;
     color: #e0e0e0;
 }
+
+
+/* =================================== */
+/* === STILI PANNELLO ANALISI TRICOLOGICA === */
+/* =================================== */
+
+#analisi-riepilogo-content .loading-message,
+#analisi-riepilogo-content .error-message {
+    font-style: italic;
+    color: #888;
+    text-align: center;
+    padding: 20px 0;
+}
+
+#analisi-riepilogo-content .error-message {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.riepilogo-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #444;
+}
+
+.riepilogo-item:last-child {
+    border-bottom: none;
+}
+
+.riepilogo-item strong {
+    color: #FFD700; /* Giallo per le etichette, coerente col tema */
+    margin-right: 15px;
+}
+
+.riepilogo-item span {
+    text-align: right;
+}
+
+
+/* =================================== */
+/* === STILI PER IL FORM DI ANALISI === */
+/* =================================== */
+
+.analisi-header-info {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px;
+    background-color: #333;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    flex-wrap: wrap; /* Va a capo su schermi piccoli */
+    gap: 15px;
+}
+
+.form-section {
+    background-color: #2a2a2a;
+    border: 1px solid #444;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+}
+
+.form-section legend {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #FFD700;
+    padding: 0 10px;
+    margin-left: 10px;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.form-row .form-group {
+    flex: 1; /* Fa in modo che i gruppi in una riga occupino lo stesso spazio */
+}
+
+.radio-group label {
+    margin-right: 20px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+
+/* =================================== */
+/* === STILI PAGINA VISUALIZZA ANALISI === */
+/* =================================== */
+.page-title-subtitle {
+    display: block;
+    font-size: 0.8em;
+    color: #FFD700;
+}
+.analisi-dettaglio-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+.panel-full-width {
+    grid-column: 1 / -1; /* Fa sì che il pannello occupi tutta la larghezza */
+}
+.detail-group {
+    margin-bottom: 20px;
+}
+.detail-group label {
+    display: block;
+    font-weight: bold;
+    color: #FFD700;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+    text-transform: uppercase;
+}
+.detail-group p, .detail-group span {
+    color: #e0e0e0;
+    white-space: pre-wrap; /* Mantiene gli "a capo" nei campi di testo */
+}
+.detail-group h3 {
+    color: #ffffff;
+}
+@media (max-width: 800px) {
+    .analisi-dettaglio-grid {
+        grid-template-columns: 1fr;
+    }
+}

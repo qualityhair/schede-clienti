@@ -29,17 +29,41 @@
                 <div class="panel-actions">
                     <button class="btn btn-primary" id="modificaDettagliBtn">✏️ Modifica Dettagli</button>
                 </div>
-            </div>
+				
+				<!-- SEPARATORE VISIVO -->
+				<hr style="border-color: #444; margin: 20px 0;">
 
-<div class="panel notes-panel">
-    <h2 class="panel-title">Note e Preferenze</h2>
-    <div class="panel-content">
-        <textarea id="cliente-note" placeholder="Inserisci note, preferenze, allergie..."></textarea>
-        <div class="note-actions"> 
-            <button class="btn btn-primary" id="salva-note-btn">Salva Note</button>
-        </div>
-    </div>
+				<!-- NUOVA SEZIONE NOTE INTEGRATA -->
+				<div class="detail-group">
+				<label for="cliente-note" class="form-label" style="font-size: 1.2em; color: #FFD700;">Note e Preferenze:</label>
+				<textarea id="cliente-note" class="textarea-field" rows="5" placeholder="Aggiungi note su tagli, prodotti preferiti, allergie, conversazioni..."></textarea>
+				<div class="panel-actions" style="margin-top: 15px;">
+				<button id="salva-note-btn" class="btn btn-primary">Salva Note</button>
+				</div>
 </div>
+				
+				
+            </div>
+			
+			<!-- Pannello Riepilogo Analisi Tricologica -->
+<div class="panel" id="analisi-tricologica-panel">
+    <h2 class="panel-title">
+    <span>Analisi Tricologica</span>
+    <!-- Usiamo il tuo modello esatto -->
+    <button class="btn btn-icon" id="nuova-analisi-btn" title="Aggiungi Nuova Analisi">➕</button>
+</h2>
+    
+    <!-- Questo contenitore verrà riempito dinamicamente dal JavaScript -->
+    <div id="analisi-riepilogo-content">
+        <p class="loading-message">Caricamento riepilogo analisi...</p>
+    </div>
+    
+    <!-- Pulsanti di azione -->
+<div class="panel-actions">
+    <a href="#" id="storico-analisi-btn" class="btn btn-nav" style="display: none;">Vedi Storico Completo</a>
+</div>
+</div>
+			
 
             <div class="two-column-stack"> 
 
