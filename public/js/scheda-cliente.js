@@ -213,10 +213,11 @@ document.addEventListener("DOMContentLoaded", () => {
             if (riepilogo) {
                 const dataFormattata = new Date(riepilogo.data_analisi).toLocaleDateString('it-IT');
                 contentDiv.innerHTML = `
-                    <div class="riepilogo-item"><strong>Data Ultima Analisi:</strong><span>${dataFormattata}</span></div>
-                    <div class="riepilogo-item"><strong>Esigenza Cliente:</strong><span>"${riepilogo.esigenza_cliente || 'N/D'}"</span></div>
-                    <div class="riepilogo-item"><strong>Diagnosi Primaria:</strong><span>${riepilogo.diagnosi_primaria || 'N/D'}</span></div>
-                `;
+    <div class="riepilogo-item"><strong>Data Ultima Analisi:</strong><span>${dataFormattata}</span></div>
+    <div class="riepilogo-item"><strong>Esigenza Cliente:</strong><span>"${riepilogo.esigenza_cliente || 'N/D'}"</span></div>
+    <div class="riepilogo-item"><strong>Diagnosi Primaria:</strong><span>${riepilogo.diagnosi_primaria || 'N/D'}</span></div>
+    <div class="riepilogo-item"><strong>Quadro Riepilogativo:</strong><span>${riepilogo.diagnosi_riepilogo || 'N/D'}</span></div>
+`;
                 storicoBtn.style.display = 'inline-flex';
                 storicoBtn.href = `/storico-analisi.html?clienteId=${clienteId}`;
                 contentDiv.style.cursor = 'pointer';

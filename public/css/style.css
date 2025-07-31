@@ -1087,6 +1087,34 @@ p strong { /* Usato per scheda-cliente */
     font-size: 0.8em;
     color: #FFD700;
 }
+
+	/* Stili per la nuova "carta intestata" */
+.print-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #FFD700;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+}
+.print-header-logo img {
+    max-width: 100px; /* Riduciamo un po' il logo per l'header */
+    border-radius: 50%;
+    border: 1px solid #FFD700;
+}
+.shop-details {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8em;
+    color: #cccccc;
+    margin-top: 5px;
+}
+.print-header-title {
+    text-align: right;
+}
+
+
+
 .analisi-dettaglio-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1117,4 +1145,84 @@ p strong { /* Usato per scheda-cliente */
     .analisi-dettaglio-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* =================================== */
+/* === REGOLE CSS PER LA STAMPA (@media print) === */
+/* =================================== */
+
+/* SOSTITUISCI LA VECCHIA @media print CON QUESTA */
+@media print {
+    /* Nascondi elementi inutili */
+    body > *:not(main), main > *:not(.print-header):not(.analisi-dettaglio-grid):not(.analisi-header-info) {
+        display: none !important;
+    }
+    #navbar, .form-actions {
+        display: none !important;
+    }
+
+    /* Stili base per il foglio di stampa */
+    body, main.container {
+        background: #ffffff !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100%;
+        font-size: 10pt; /* Dimensione carattere adatta alla stampa */
+    }
+    
+    /* Stili per la nuova carta intestata in stampa */
+    .print-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important; /* Allinea in alto */
+        border-bottom: 2px solid #000000 !important; /* Bordo nero per la stampa */
+        padding-bottom: 10px !important;
+        margin-bottom: 20px !important;
+    }
+    .print-header-logo img {
+        max-width: 80px !important; /* Logo più piccolo per il foglio */
+        border: none !important;
+    }
+    .shop-details, .shop-details span {
+        color: #333333 !important;
+        font-size: 8pt !important;
+        margin-top: 5px !important;
+    }
+    .print-header-title {
+        text-align: right !important;
+    }
+    .page-title {
+        font-family: Arial, sans-serif !important; /* Un font standard per la stampa */
+        font-size: 18pt !important;
+        color: #000000 !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .page-title-subtitle {
+         font-family: Arial, sans-serif !important;
+         font-size: 12pt !important;
+         color: #333333 !important;
+    }
+
+    /* Stili per il resto del report */
+    .panel {
+        box-shadow: none !important;
+        border: 1px solid #cccccc !important;
+        background: none !important;
+        page-break-inside: avoid;
+        margin-top: 15px !important;
+    }
+    .panel-title {
+        font-family: Arial, sans-serif !important;
+        font-size: 12pt !important;
+        color: #000000 !important;
+        border-bottom: 1px solid #cccccc !important;
+    }
+    .analisi-dettaglio-grid { display: block !important; }
+    .detail-group label { color: #555555 !important; }
+    .detail-group h3, .detail-group p, .detail-group span { color: #000000 !important; }
 }

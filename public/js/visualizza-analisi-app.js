@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const analisiId = urlParams.get('analisiId');
+	const stampaBtn = document.getElementById('stampa-analisi-btn');
 	const modificaAnalisiBtn = document.getElementById('modifica-analisi-btn'); 
     
     if (!analisiId) {
@@ -69,4 +70,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error(error);
         alert(error.message);
     }
+	
+	// Logica per il pulsante di stampa
+stampaBtn.addEventListener('click', () => {
+    window.print(); // Questo comando magico apre la finestra di dialogo di stampa del browser
+});
+	
 });

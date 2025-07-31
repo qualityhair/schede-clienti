@@ -492,7 +492,7 @@ app.get("/api/clienti/:id/analisi/riepilogo", ensureAuthenticated, async (req, r
 
     try {
         const query = `
-			SELECT id, data_analisi, esigenza_cliente, diagnosi_primaria
+			SELECT id, data_analisi, esigenza_cliente, diagnosi_primaria, diagnosi_riepilogo
             FROM 
                 analisi_tricologiche
             WHERE 
