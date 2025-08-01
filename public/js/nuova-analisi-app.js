@@ -74,11 +74,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    const opzioniStatoCute = ["Seleziona...", "Desquamazione", "Ortocheratosi", "Ipercheratosi", "Paracheratosi", "Discheratosi", "Pityriasis Simplex", "Pityriasis Steatoides", "Follicolite", "Seborrea", "Iperidrosi", "Bromidrosi", "Altro"];
+    const opzioniStatoCute = ["Seleziona...", "Eudermica","Desquamazione", "Ortocheratosi", "Ipercheratosi", "Paracheratosi", "Discheratosi", "Pityriasis Simplex", "Pityriasis Steatoides", "Follicolite", "Seborrea", "Iperidrosi", "Bromidrosi", "Altro"];
     const opzioniStatoCapello = ["Seleziona...", "Sano", "Unto", "Secco", "Trattato Chimicamente", "Tricoptilosi", "Triconodosi", "Altro"];
     const opzioniEffluvio = ["Seleziona...", "Nessuno", "Sindrome da Stress", "Shock Chirurgico", "Malattia Febbrile", "Stress Emotivo", "Trattamenti Farmacologici", "Post-Partum", "Post-Menopausale", "Altro"];
     const opzioniAlopecia = ["Seleziona...", "Nessuna", "Areata", "Androgenetica", "Cicatriziale", "Universale", "Altro"];
-    const opzioniDiagnosi = ["Seleziona...", "Stato Fisiologico / Nessuna Patologia Rilevata", "Anomalie del Cuoio Capelluto", "Anomalie della Secrezione Sebacea", "Anomalie della Cheratinizzazione (Forfora)", "Anomalie del Fusto (Danneggiamento Capello)", "Forme di Caduta Non ", "Forme di Caduta Cicatriziale", "Altro (da specificare nel riepilogo)"];
+    const opzioniDiagnosi = ["Seleziona...", "Stato Fisiologico / Nessuna Patologia Rilevata", "Anomalie del Cuoio Capelluto", "Anomalie della Secrezione Sebacea", "Anomalie della Cheratinizzazione (Forfora)", "Anomalie del Fusto (Danneggiamento Capello)", "Forme di Caduta non Cicatriziale ", "Forme di Caduta Cicatriziale", "Altro (da specificare nel riepilogo)"];
 
     popolaSelect(document.getElementById('stato-cute'), opzioniStatoCute);
     popolaSelect(document.getElementById('stato-capello'), opzioniStatoCapello);
