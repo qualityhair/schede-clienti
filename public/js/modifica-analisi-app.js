@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Le tue opzioni per i menu a tendina
-    const opzioniStatoCute = ["Seleziona...", "Desquamazione", "Ortocheratosi", "Ipercheratosi", "Paracheratosi", "Discheratosi", "Pityriasis Simplex", "Pityriasis Steatoides", "Follicolite", "Seborrea", "Iperidrosi", "Bromidrosi", "Altro"];
+    const opzioniStatoCute = ["Seleziona...", "Eudermica", "Desquamazione", "Ortocheratosi", "Ipercheratosi", "Paracheratosi", "Discheratosi", "Pityriasis Simplex", "Pityriasis Steatoides", "Follicolite", "Seborrea", "Iperidrosi", "Bromidrosi", "Altro"];
     const opzioniStatoCapello = ["Seleziona...", "Sano", "Unto", "Secco", "Trattato Chimicamente", "Tricoptilosi", "Triconodosi", "Altro"];
     const opzioniEffluvio = ["Seleziona...", "Nessuno", "Sindrome da Stress", "Shock Chirurgico", "Malattia Febbrile", "Stress Emotivo", "Trattamenti Farmacologici", "Post-Partum", "Post-Menopausale", "Altro"];
     const opzioniAlopecia = ["Seleziona...", "Nessuna", "Areata", "Androgenetica", "Cicatriziale", "Universale", "Altro"];
