@@ -11,7 +11,7 @@
 <body>
     <div id="navbar"></div>
     <main class="container">
-        <h1 class="page-title">Scheda Cliente: <span id="nome-completo"></span></h1>
+        <h1 class="page-title">Scheda Cliente</h1>
 
         <div class="client-navigation-controls">
             <button id="btnPrecedente" class="btn btn-nav">⬅️ Indietro</button>
@@ -21,13 +21,14 @@
         
         <div class="panel-grid">
             <div class="panel client-details-panel">
-                <h2 class="panel-title">Dettagli Cliente</h2>
+                <h2 class="panel-title">Profilo di <span id="nome-completo" style="color: #FFD700;"></span></h2>
                 <div class="panel-content">
-                    <p><strong>Email:</strong> <span id="email"></span></p>
-                    <p><strong>Telefono:</strong> <span id="telefono"></span></p>
-                </div>
+				<p><strong>Soprannome:</strong> <span id="soprannome-cliente">N/A</span></p>
+				<p><strong>Email:</strong> <span id="email"></span></p>
+				<p><strong>Telefono:</strong> <span id="telefono"></span></p>
+				</div>
                 <div class="panel-actions">
-                    <button class="btn btn-primary" id="modificaDettagliBtn">✏️ Modifica Dettagli</button>
+                    <button class="btn btn-primary" id="modificaDettagliBtn">✏️ Modifica Profilo</button>
                 </div>
 				
 				<!-- SEPARATORE VISIVO -->
@@ -212,6 +213,12 @@
                     <label for="modifica-cognome">Cognome:</label>
                     <input type="text" id="modifica-cognome" required class="input-field">
                 </div>
+				
+				<div class="form-group">
+				<label for="modifica-soprannome" class="form-label">Soprannome:</label>
+				<input type="text" id="modifica-soprannome" class="input-field">
+				</div>
+				
                 <div class="form-group">
                     <label for="modifica-email">Email:</label>
                     <input type="email" id="modifica-email" class="input-field">

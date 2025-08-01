@@ -80,10 +80,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- LOGICA PANNELLO "NUOVO CLIENTE" ---
 
     async function handleAddNewClient() {
-        const nome = newClientNameInput.value.trim();
-        const cognome = newClientSurnameInput.value.trim();
-        const email = newClientEmailInput.value.trim();
-        const telefono = newClientPhoneInput.value.trim();
+		const nome = document.getElementById('new-client-name').value.trim();
+		const cognome = document.getElementById('new-client-surname').value.trim();
+		const soprannome = document.getElementById('new-client-nickname').value.trim();
+		const email = document.getElementById('new-client-email').value.trim();
+		const telefono = document.getElementById('new-client-phone').value.trim();
 
         if (!nome || !cognome) {
             showMessage("Nome e Cognome sono obbligatori.", 'error');
@@ -93,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const response = await fetch("/api/clienti", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nome, cognome, email, telefono }),
+                body: JSON.stringify({ nome, cognome, soprannome, email, telefono })
             });
             const data = await handleApiResponse(response);
             if (!data) return;

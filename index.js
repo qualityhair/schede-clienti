@@ -435,10 +435,10 @@ app.get("/calendario", ensureAuthenticated, (req, res) => {
 });
 
 app.post("/api/clienti", async (req, res) => {
-    const { nome, cognome, email, telefono } = req.body;
+    const { nome, cognome, soprannome, email, telefono } = req.body; // 1. Aggiunto 'soprannome'
     try {
-        const sql = "INSERT INTO clienti (nome, cognome, email, telefono) VALUES ($1, $2, $3, $4) RETURNING id";
-        const result = await db.query(sql, [nome, cognome, email, telefono]);
+        const sql = "INSERT INTO clienti (nome, cognome, soprannome, email, telefono) VALUES ($1, $2, $3, $4, $5) RETURNING id"; // 2. Aggiunto in query
+        const result = await db.query(sql, [nome, cognome, soprannome, email, telefono]); // 3. Aggiunto nei valori
         res.status(201).json({ id: result.rows[0].id });
     } catch (err) {
         res.status(err.code === '23505' ? 409 : 500).json({ error: err.message });
@@ -447,10 +447,10 @@ app.post("/api/clienti", async (req, res) => {
 
 app.put("/api/clienti/:id", async (req, res) => {
     const { id } = req.params;
-    const { nome, cognome, email, telefono } = req.body;
+    const { nome, cognome, soprannome, email, telefono } = req.body; // 1. Aggiunto 'soprannome'
     try {
-        await db.query("UPDATE clienti SET nome=$1, cognome=$2, telefono=$3, email=$4 WHERE id=$5",
-            [nome, cognome, telefono, email, id]);
+        await db.query("UPDATE clienti SET nome=$1, cognome=$2, soprannome=$3, telefono=$4, email=$5 WHERE id=$6", // 2. Query aggiornata
+            [nome, cognome, soprannome, telefono, email, id]); // 3. Valori aggiornati
         res.json({ message: "Aggiornato" });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -464,8 +464,9 @@ app.get("/api/clienti/cerca", async (req, res) => {
             `SELECT * FROM clienti
              WHERE nome ILIKE $1
                 OR cognome ILIKE $2
-                OR CONCAT(nome, ' ', cognome) ILIKE $3`,
-            [term, term, term]
+                OR CONCAT(nome, ' ', cognome) ILIKE $3
+                OR soprannome ILIKE $4`, // <-- 1. Aggiunta la condizione per il soprannome
+            [term, term, term, term] // <-- 2. Aggiunto il quarto parametro
         );
         res.json(result.rows);
     } catch (err) {
@@ -476,7 +477,7 @@ app.get("/api/clienti/cerca", async (req, res) => {
 
 app.get("/api/clienti/:id", async (req, res) => {
     try {
-        const c = await db.query("SELECT id, nome, cognome, email, telefono, preferenze_note, storico_acquisti FROM clienti WHERE id=$1", [req.params.id]);
+        const c = await db.query("SELECT id, nome, cognome, soprannome, email, telefono, preferenze_note, storico_acquisti FROM clienti WHERE id=$1", [req.params.id]); // <-- Aggiunto 'soprannome' qui
         if (c.rows.length === 0) return res.status(404).json({ error: "Non trovato" });
         const t = await db.query("SELECT * FROM trattamenti WHERE cliente_id=$1 ORDER BY data_trattamento DESC", [req.params.id]);
         res.json({ client: c.rows[0], trattamenti: t.rows });

@@ -42,6 +42,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const modificaEmailInput = document.getElementById('modifica-email');
     const modificaTelefonoInput = document.getElementById('modifica-telefono');
     const annullaModificaClienteBtn = document.getElementById('annullaModificaClienteBtn');
+	
+	// --- NUOVI RIFERIMENTI PER IL SOPRANNOME ---
+const soprannomeSpan = document.getElementById("soprannome-cliente");
+const modificaSoprannomeInput = document.getElementById('modifica-soprannome');
+// --- FINE NUOVI RIFERIMENTI ---
 
     // Variabili di stato
     let currentClientId = null;
@@ -125,6 +130,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (client) {
                 currentClienteData = client;
                 nomeCompletoSpan.textContent = `${client.nome} ${client.cognome}`;
+				soprannomeSpan.textContent = client.soprannome || "N/A"; // <-- AGGIUNGI QUESTA RIGA
                 emailSpan.textContent = client.email || "N/A";
                 telefonoSpan.textContent = client.telefono || "N/A";
                 clienteNoteTextarea.value = client.preferenze_note || '';
@@ -401,6 +407,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const updatedCliente = {
             nome: modificaNomeInput.value.trim(),
             cognome: modificaCognomeInput.value.trim(),
+			soprannome: modificaSoprannomeInput.value.trim(), // <-- AGGIUNGI QUESTA RIGA
             email: modificaEmailInput.value.trim(),
             telefono: modificaTelefonoInput.value.trim()
         };
@@ -513,6 +520,7 @@ document.addEventListener("DOMContentLoaded", () => {
             modificaClienteIdInput.value = currentClienteData.id;
             modificaNomeInput.value = currentClienteData.nome;
             modificaCognomeInput.value = currentClienteData.cognome;
+			modificaSoprannomeInput.value = currentClienteData.soprannome || ''; // <-- AGGIUNGI QUESTA RIGA
             modificaEmailInput.value = currentClienteData.email || '';
             modificaTelefonoInput.value = currentClienteData.telefono || '';
             openModal(modificaClienteModal);
