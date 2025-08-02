@@ -659,15 +659,25 @@ p strong { /* Usato per scheda-cliente */
     border-radius: 8px; /* Bordi leggermente arrotondati */
 }
 
-.main-navbar .navbar-brand h1 { /* Assicurati che l'h1 abbia questo stile */
-    font-family: 'Great Vibes', cursive;
-    color: #FFD700; /* Giallo acceso per il brand */
-    font-size: 2.2em;
-    text-decoration: none;
-    transition: color 0.3s ease;
-    margin: 0; /* Rimuovi margini predefiniti dell'h1 */
-    padding: 0; /* Rimuovi padding predefiniti dell'h1 */
+/* =================================================== */
+/* === STILI PER LOGO IN NAVBAR (INCOLLA QUI!) === */
+/* =================================================== */
+#navbar-logo {
+    max-height: 45px; 
+    width: auto;      
+    display: block; 
+border-radius: 10px; /* <<< AGGIUNGI QUESTA RIGA */	
 }
+
+.main-navbar .navbar-brand {
+    padding: 0; 
+}
+/* =================================================== */
+
+
+
+
+
 
 .main-navbar .navbar-links {
     list-style: none;
