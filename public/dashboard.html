@@ -19,55 +19,59 @@
 <!-- ============================================= -->
 <div class="dashboard-grid-container">
 
-    <!-- RIGA 1: Cerca e Nuovo Cliente -->
-    <div class="panel dashboard-panel">
-        <h2 class="panel-title">Cerca Cliente</h2>
-        <p class="panel-subtitle">Trova rapidamente i dettagli di un cliente.</p>
-        <input type="text" id="search-input" placeholder="Nome o Cognome Cliente" class="input-field" />
-        <button id="search-button" class="btn btn-primary">Cerca</button>
-    </div>
-
-    <div class="panel dashboard-panel">
-        <h2 class="panel-title">Nuovo Cliente</h2>
-        <p class="panel-subtitle">Aggiungi un nuovo cliente al database.</p>
-        <input type="text" id="new-client-name" placeholder="Nome" required class="input-field" />
-        <input type="text" id="new-client-surname" placeholder="Cognome" required class="input-field" />
-		<!-- NUOVO CAMPO SOPRANNOME -->
-		<input type="text" id="new-client-nickname" placeholder="Soprannome (opzionale)" class="input-field" />
-        <input type="email" id="new-client-email" placeholder="Email (opzionale)" class="input-field" />
-        <input type="tel" id="new-client-phone" placeholder="Telefono (opzionale)" class="input-field" />
-        <button id="add-new-client-button" class="btn btn-primary">Aggiungi Cliente</button>
-    </div>
-
-    <!-- RIGA 2: Appuntamenti e Agenda -->
+    <!-- RIGA 1 -->
+    <!-- PANNELLO APPUNTAMENTI (Appuntamenti di Oggi + Agenda) -->
     <div class="panel dashboard-panel">
         <h2 class="panel-title">Appuntamenti di Oggi</h2>
         <p class="panel-subtitle">Riepilogo della giornata.</p>
         <ul class="appointments-list" id="lista-appuntamenti">
             <li class="appointment-item loading">Caricamento in corso...</li>
         </ul>
-    </div>
+        
+        <hr class="panel-divider">
 
-    <div class="panel dashboard-panel compact-panel">
         <h2 class="panel-title">Agenda Settimanale</h2>
-        <p class="panel-subtitle">Visualizza e gestisci i tuoi appuntamenti.</p>
         <a href="/calendario" class="btn btn-nav">Visualizza Appuntamenti</a>
         <button onclick="window.open('https://calendar.google.com/calendar/u/0/r/week', '_blank')" class="btn btn-nav btn-secondary mt-2">Apri Google Calendar</button>
     </div>
 
-    <!-- RIGA 3: Musica e Gestione -->
-    <div class="panel dashboard-panel compact-panel">
-        <h2 class="panel-title">Musica</h2>
-        <p class="panel-subtitle">Gestisci la musica d'ambiente.</p>
-        <button onclick="window.open('https://open.spotify.com/', '_blank')" class="btn btn-nav">Apri Spotify</button>
-        <button onclick="window.open('http://79.6.136.236:32400/web/index.html#!/server/6ebfb71d58fed1206d2c273ca1b96e2e9c3ead61/playlist?key=%2Fplaylists%2F19976&context=source%3Acontent.playlists~0~5', '_blank')" class="btn btn-nav">Apri Player Musica</button>
+    <!-- PANNELLO CLIENTI (Cerca + Nuovo) -->
+    <div class="panel dashboard-panel">
+        <h2 class="panel-title">Cerca Cliente</h2>
+        <p class="panel-subtitle">Trova rapidamente i dettagli di un cliente.</p>
+        <input type="text" id="search-input" placeholder="Nome, Cognome o Soprannome" class="input-field" />
+        <button id="search-button" class="btn btn-primary">Cerca</button>
+
+        <hr class="panel-divider">
+
+        <h2 class="panel-title">Nuovo Cliente</h2>
+        <input type="text" id="new-client-name" placeholder="Nome" required class="input-field" />
+        <input type="text" id="new-client-surname" placeholder="Cognome" required class="input-field" />
+		<input type="text" id="new-client-nickname" placeholder="Soprannome (opzionale)" class="input-field" />
+        <input type="email" id="new-client-email" placeholder="Email (opzionale)" class="input-field" />
+        <input type="tel" id="new-client-phone" placeholder="Telefono (opzionale)" class="input-field" />
+        <button id="add-new-client-button" class="btn btn-primary">Aggiungi Cliente</button>
     </div>
 
-    <div class="panel dashboard-panel compact-panel">
+    <!-- RIGA 2 -->
+    <!-- PANNELLO MUSICA -->
+    <div class="panel dashboard-panel">
+        <h2 class="panel-title">Musica</h2>
+        <p class="panel-subtitle">Gestisci la musica d'ambiente.</p>
+        <div class="panel-actions-bottom">
+            <button onclick="window.open('https://open.spotify.com/', '_blank')" class="btn btn-nav">Apri Spotify</button>
+            <button onclick="window.open('http://79.6.136.236:32400/web/index.html#!/server/6ebfb71d58fed1206d2c273ca1b96e2e9c3ead61/playlist?key=%2Fplaylists%2F19976&context=source%3Acontent.playlists~0~5', '_blank')" class="btn btn-nav">Apri Player Musica</button>
+        </div>
+    </div>
+
+    <!-- PANNELLO GESTIONE -->
+    <div class="panel dashboard-panel">
         <h2 class="panel-title">Gestione</h2>
-		        <p class="panel-subtitle">Gestisci il programma.</p>
-        <a href="/lista-clienti.html" class="btn btn-nav">Lista Clienti</a>
-        <a href="/logout" class="btn btn-danger">Esci</a>
+		<p class="panel-subtitle">Gestisci il programma.</p>
+        <div class="panel-actions-bottom">
+            <a href="/lista-clienti.html" class="btn btn-nav">Lista Clienti</a>
+            <a href="/logout" class="btn btn-danger">Esci</a>
+        </div>
     </div>
 
 </div>

@@ -937,9 +937,11 @@ p strong { /* Usato per scheda-cliente */
     list-style: none;
     padding: 0;
     margin-top: 15px;
-    max-height: 250px; /* Limita l'altezza per non allungare troppo il pannello */
-    overflow-y: auto;  /* Aggiunge la barra di scorrimento se gli appuntamenti sono tanti */
-    border-top: 1px solid #444; /* Separa la lista dal sottotitolo */
+    /* Rimuoviamo max-height e aggiungiamo flex-grow per l'espansione */
+    flex-grow: 1; 
+    min-height: 120px; /* Manteniamo un'altezza minima decorosa */
+    overflow-y: auto;  /* La scrollbar apparirà solo se il contenuto supera lo spazio disponibile */
+    border-top: 1px solid #444;
 }
 
 .appointment-item {
@@ -1146,6 +1148,154 @@ p strong { /* Usato per scheda-cliente */
         grid-template-columns: 1fr;
     }
 }
+
+
+/* =================================================== */
+/* === UNIFORMITÀ STILI DASHBOARD (SOLUZIONE) === */
+/* =================================================== */
+
+/* Verranno applicate solo agli elementi dentro la griglia della dashboard */
+
+/* ... (le regole per .panel-title e .panel-subtitle che abbiamo già messo restano qui sopra) ... */
+
+
+/* 3. NUOVA REGOLA PER UNIFORMARE TUTTI I PULSANTI DELLA DASHBOARD */
+.dashboard-grid-container .btn {
+    /* --- Layout e Dimensioni --- */
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+    width: 100%; 
+    padding: 12px 15px; 
+    margin-top: 10px;
+    
+    /* --- Aspetto del Testo (LA PARTE CHE SISTEMA IL PROBLEMA) --- */
+    font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif; /* Forza lo stesso font del body */
+    font-size: 0.95rem;      /* Dimensione del font uniforme */
+    font-weight: 600 !important; /* FORZA il grassetto su TUTTI i bottoni (<a> e <button>) */
+    text-decoration: none;   /* Rimuove la sottolineatura dai link <a> */
+    
+    /* --- Stile del Pulsante --- */
+    border: 1px solid transparent; 
+    border-radius: 6px; 
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Rimuoviamo il margine superiore per il primo bottone in ogni "gruppo" */
+.dashboard-grid-container .btn:first-of-type,
+.panel-actions-bottom > .btn:first-child,
+.panel-divider + .panel-section-title + .btn {
+    margin-top: 0;
+}
+
+/* Stili specifici per colore, ereditando tutte le dimensioni sopra */
+.dashboard-grid-container .btn-primary {
+    background-color: #FFD700; /* Giallo acceso */
+    color: #1a1a1a; /* Testo nero scuro */
+    border-color: #E6C200;
+}
+
+.dashboard-grid-container .btn-danger {
+    background-color: #DC3545; /* Rosso */
+    color: #FFFFFF;
+    border-color: #C82333;
+}
+
+.dashboard-grid-container .btn-nav {
+    background-color: #444444; /* Grigio scuro */
+    color: #FFFFFF;
+    border-color: #333333;
+}
+
+/* Gestiamo i colori anche per la classe .btn-secondary se presente */
+.dashboard-grid-container .btn-secondary {
+    background-color: #555;
+    color: #fff;
+    border-color: #444;
+}
+
+/* Effetti Hover uniformi */
+.dashboard-grid-container .btn:hover {
+    filter: brightness(1.15); /* Rende il colore di sfondo più luminoso */
+}
+
+/* =================================================== */
+/* === STILI PER NUOVO LAYOUT DASHBOARD A 4 PANNELLI === */
+/* =================================================== */
+
+/* Assicura che i pannelli in una riga si allunghino per avere la stessa altezza */
+.dashboard-grid-container {
+    align-items: stretch;
+}
+
+/* Applichiamo display:flex a tutti i pannelli della dashboard per il trucco dell'allineamento */
+.dashboard-grid-container .panel {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Stile per il divisore <hr> dentro i pannelli */
+.panel-divider {
+    border: none;
+    border-top: 1px solid #444;
+    margin: 25px 0; /* Spazio sopra e sotto il divisore */
+}
+
+/* Stile per i nuovi "sottotitoli di sezione" (es. "Agenda Settimanale") */
+.panel-section-title {
+    font-size: 1.2rem;   /* Aumentiamo leggermente la dimensione per più importanza */
+    font-weight: 600;      /* Assicuriamoci che sia un bel grassetto (semibold) */
+    color: #e0e0e0;
+    margin-top: 10px;      /* Aggiungiamo un po' di spazio sopra, dopo il divisore */
+    margin-bottom: 15px;
+}
+
+/* 
+  Questo trucco spinge i bottoni dei pannelli "Musica" e "Gestione" 
+  verso il basso, così da bilanciare visivamente la loro altezza
+  con quella dei pannelli più pieni della prima riga.
+*/
+.panel-actions-bottom {
+    margin-top: auto; /* La magia sta tutta qui! */
+}
+
+/*
+  Questa è la regola chiave per bilanciare l'altezza 
+  del pannello Appuntamenti con quello Clienti.
+*/
+
+
+
+/* =================================================== */
+/* === STILE PER SFONDO DASHBOARD PERSONALIZZATO === */
+/* =================================================== */
+
+/* Applichiamo la foto come sfondo "fantasma" */
+body::before {
+    content: '';
+    position: fixed; /* Rimane fisso durante lo scroll */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Lo mettiamo DIETRO a tutto il contenuto */
+
+    /* --- QUESTA È LA PARTE DA PERSONALIZZARE --- */
+    background-image: url('/img/sedia-salone.jpg'); /* <-- IL NOME DELLA TUA FOTO */
+    background-size: cover;      /* L'immagine copre tutto lo schermo senza deformarsi */
+    background-position: center center; /* Centra l'immagine */
+
+    /* --- IL TRUCCO PER RENDERLA "ECCEZIONALE" --- */
+    filter: grayscale(50%);     /* Togliamo un po' di colore, ma non tutto, per far risaltare l'ocra */
+    opacity: 0.3;               /* La rendiamo appena visibile. Questo è il valore più importante! */
+}
+
+/* Assicuriamoci che il body sia un contenitore di riferimento per l'overlay */
+body {
+    position: relative; /* Non cancellare le altre regole, aggiungi solo questa se non c'è */
+}
+
 
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
