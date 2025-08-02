@@ -44,9 +44,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const annullaModificaClienteBtn = document.getElementById('annullaModificaClienteBtn');
 	
 	// --- NUOVI RIFERIMENTI PER IL SOPRANNOME ---
-const soprannomeSpan = document.getElementById("soprannome-cliente");
-const modificaSoprannomeInput = document.getElementById('modifica-soprannome');
-// --- FINE NUOVI RIFERIMENTI ---
+	const soprannomeSpan = document.getElementById("soprannome-cliente");
+	const modificaSoprannomeInput = document.getElementById('modifica-soprannome');
+	// --- FINE NUOVI RIFERIMENTI ---
+	// Sotto la riga di 'modificaSoprannomeInput'
+	const modificaTagsInput = document.getElementById('modifica-tags'); 
+
 
     // Variabili di stato
     let currentClientId = null;
@@ -114,7 +117,35 @@ const modificaSoprannomeInput = document.getElementById('modifica-soprannome');
         }
     }
 
-    // --- 3. FUNZIONI DI CARICAMENTO E VISUALIZZAZIONE DATI ---
+  // --- 3. FUNZIONI DI CARICAMENTO E VISUALIZZAZIONE DATI ---
+
+// <--- AGGIUNGI QUESTA INTERA NUOVA FUNZIONE QUI ---
+function displayClientTags(tags = []) {
+    let tagsContainer = document.getElementById('client-tags-container');
+    if (!tagsContainer) {
+        tagsContainer = document.createElement('div');
+        tagsContainer.id = 'client-tags-container';
+        tagsContainer.className = 'tags-container';
+        const panelTitle = document.querySelector('.client-details-panel .panel-title');
+        if (panelTitle) {
+            panelTitle.parentNode.insertBefore(tagsContainer, panelTitle.nextSibling);
+        }
+    }
+
+    tagsContainer.innerHTML = ''; 
+
+    if (tags && tags.length > 0) {
+        tags.forEach(tag => {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'client-tag';
+            tagElement.textContent = tag;
+            tagElement.dataset.tag = tag.toLowerCase().trim().replace(/\s+/g, '-');
+            tagsContainer.appendChild(tagElement);
+        });
+    }
+}
+
+
 
     async function loadClientData(clientId) {
         if (!clientId) {
@@ -134,6 +165,7 @@ const modificaSoprannomeInput = document.getElementById('modifica-soprannome');
                 emailSpan.textContent = client.email || "N/A";
                 telefonoSpan.textContent = client.telefono || "N/A";
                 clienteNoteTextarea.value = client.preferenze_note || '';
+				displayClientTags(client.tags); // <--- AGGIUNGI QUESTA RIGA
                 displayAcquisti(client.storico_acquisti);
             } else {
                 showMessage("Cliente non trovato.", 'error');
@@ -402,32 +434,40 @@ const modificaSoprannomeInput = document.getElementById('modifica-soprannome');
     }
 
     async function handleModificaCliente(event) {
-        event.preventDefault();
-        const clienteId = modificaClienteIdInput.value;
-        const updatedCliente = {
-            nome: modificaNomeInput.value.trim(),
-            cognome: modificaCognomeInput.value.trim(),
-			soprannome: modificaSoprannomeInput.value.trim(), // <-- AGGIUNGI QUESTA RIGA
-            email: modificaEmailInput.value.trim(),
-            telefono: modificaTelefonoInput.value.trim()
-        };
-        try {
-            const response = await fetch(`/api/clienti/${clienteId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedCliente)
-            });
-            const data = await handleApiResponse(response);
-            if (!data) return;
-            if (!response.ok) throw new Error(data.error || 'Errore salvataggio modifiche.');
-            showMessage('Dettagli cliente aggiornati!', 'success');
-            closeModal(modificaClienteModal, formModificaCliente);
-            loadClientData(currentClientId);
-        } catch (error) {
-            console.error('Errore aggiornamento cliente:', error);
-            showMessage('Errore: ' + error.message, 'error');
-        }
+    event.preventDefault();
+    const clienteId = modificaClienteIdInput.value;
+
+    // --- Logica per gestire i tag ---
+    const tagsString = modificaTagsInput.value.trim();
+    const tagsArray = tagsString ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+    // --------------------------------
+
+    const updatedCliente = {
+        nome: modificaNomeInput.value.trim(),
+        cognome: modificaCognomeInput.value.trim(),
+        soprannome: modificaSoprannomeInput.value.trim(),
+        email: modificaEmailInput.value.trim(),
+        telefono: modificaTelefonoInput.value.trim(),
+        tags: tagsArray // <--- Aggiungiamo l'array di tag all'oggetto da inviare
+    };
+
+    try {
+        const response = await fetch(`/api/clienti/${clienteId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedCliente)
+        });
+        const data = await handleApiResponse(response);
+        if (!data) return;
+        if (!response.ok) throw new Error(data.error || 'Errore salvataggio modifiche.');
+        showMessage('Dettagli cliente aggiornati!', 'success');
+        closeModal(modificaClienteModal, formModificaCliente);
+        loadClientData(currentClientId); // Questo ricaricherà i dati e mostrerà i nuovi tag
+    } catch (error) {
+        console.error('Errore aggiornamento cliente:', error);
+        showMessage('Errore: ' + error.message, 'error');
     }
+}
 
     // --- 5. GESTIONE PAGINAZIONE E AVVIO ---
 
@@ -523,6 +563,7 @@ const modificaSoprannomeInput = document.getElementById('modifica-soprannome');
 			modificaSoprannomeInput.value = currentClienteData.soprannome || ''; // <-- AGGIUNGI QUESTA RIGA
             modificaEmailInput.value = currentClienteData.email || '';
             modificaTelefonoInput.value = currentClienteData.telefono || '';
+			modificaTagsInput.value = (currentClienteData.tags || []).join(', '); // <--- AGGIUNGI QUESTA RIGA
             openModal(modificaClienteModal);
         } else {
             showMessage("Dati cliente non disponibili per la modifica.", 'info');

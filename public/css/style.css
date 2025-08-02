@@ -46,7 +46,7 @@ body {
     height: auto; /* Mantiene le proporzioni dell'immagine */
 
     /* --- NUOVE PROPRIETÀ PER L'EFFETTO OVALE E BORDO --- */
-    border-radius: 30%; /* Rende l'immagine ovale se rettangolare, circolare se quadrata */
+    border-radius: 10px; /* Rende l'immagine ovale se rettangolare, circolare se quadrata */
     border: 2px solid #FFD700; /* Bordo giallo sottile (regola 2px se vuoi più spesso/sottile) */
     object-fit: cover; /* Assicura che l'immagine copra l'intera area ovale/circolare senza distorsioni */
     overflow: hidden; /* Nasconde le parti dell'immagine che escono dal bordo ovale/circolare */
@@ -566,6 +566,52 @@ p strong { /* Usato per scheda-cliente */
         transform: scale(1);
     }
 }
+
+/* =================================================== */
+/* === STILI PER I TAG CLIENTE === */
+/* =================================================== */
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap; /* Permette ai tag di andare a capo se sono tanti */
+    gap: 8px; /* Spazio tra i tag */
+    justify-content: center; /* Centra i tag orizzontalmente */
+    margin-top: -10px; /* Li "tira su" un po' per avvicinarli al titolo */
+    margin-bottom: 25px; /* Spazio prima dell'inizio dei pannelli */
+    min-height: 28px; /* Altezza minima per evitare "salti" del layout quando i tag appaiono/scompaiono */
+}
+
+.client-tag {
+    padding: 5px 12px;
+    font-size: 0.8rem; /* Testo piccolo e leggibile */
+    font-weight: 700; /* Grassetto per risaltare */
+    border-radius: 15px; /* Angoli arrotondati per un look a "pillola" */
+    color: #1a1a1a; /* Testo scuro */
+    background-color: #FFD700; /* Giallo di default, il tuo colore primario */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    text-transform: uppercase; /* Testo maiuscolo per un look più pulito */
+    letter-spacing: 0.5px; /* Leggera spaziatura tra le lettere */
+}
+
+/* 
+  Colori condizionali basati sul contenuto del tag. 
+  La regola [data-tag*="..."] cerca una sottostringa,
+  quindi "allergia tinta" attiverà la regola "allergia".
+*/
+.client-tag[data-tag*="allergia"] {
+    background-color: #DC3545; /* Rosso */
+    color: #ffffff;
+}
+.client-tag[data-tag*="vip"] {
+    background-color: #17a2b8; /* Azzurro */
+    color: #ffffff;
+}
+.client-tag[data-tag*="silenzioso"] {
+    background-color: #6c757d; /* Grigio */
+    color: #ffffff;
+}
+
+
 
 /* RESPONSIVITÀ */
 @media (min-width: 769px) { /* Applica queste regole solo su schermi più grandi di 768px */
@@ -1307,11 +1353,51 @@ body {
 }
 
 
+/* =================================================== */
+/* === STILI PER I TAG CLIENTE === */
+/* =================================================== */
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap; 
+    gap: 8px;
+    justify-content: center; 
+    margin-top: -10px; 
+    margin-bottom: 25px;
+    min-height: 28px;
+}
+
+.client-tag {
+    padding: 5px 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 15px;
+    color: #1a1a1a;
+    background-color: #FFD700;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Colori condizionali */
+.client-tag[data-tag*="allergia"] {
+    background-color: #DC3545; /* Rosso */
+    color: #ffffff;
+}
+.client-tag[data-tag*="vip"] {
+    background-color: #17a2b8; /* Azzurro */
+    color: #ffffff;
+}
+.client-tag[data-tag*="silenzioso"] {
+    background-color: #6c757d; /* Grigio */
+    color: #ffffff;
+}
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */
 
-/* SOSTITUISCI LA VECCHIA @media print CON QUESTA */
+
 @media print {
     /* Nascondi elementi inutili */
     body > *:not(main), main > *:not(.print-header):not(.analisi-dettaglio-grid):not(.analisi-header-info) {

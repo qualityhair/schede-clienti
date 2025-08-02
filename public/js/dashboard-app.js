@@ -164,33 +164,52 @@ function getAppointmentColor(app) {
     // --- LOGICA PANNELLO "APPUNTAMENTI DI OGGI" ---
 
     // Funzione per cercare un cliente dal titolo di un evento
-    async function searchClientFromEvent(rawTitle) {
+        async function searchClientFromEvent(rawTitle) {
         const title = (rawTitle || '').trim();
-        if (!title) { showMessage('Titolo evento non valido.', 'error'); return; }
-
-        let parole = title.replace(/[^a-zA-ZÀ-ÿ\s]/g, ' ').toLowerCase().split(/\s+/).filter(p => p);
-        const isSignificativa = (p) => p.length > 3;
-        let risultato = [];
-        if (parole.length > 0) risultato.push(parole[0]);
-        for (let i = 1; i < parole.length; i++) {
-            if (isSignificativa(parole[i])) {
-                risultato.push(parole[i]);
-                break;
-            }
+        if (!title) {
+            showMessage('Titolo evento non valido.', 'error');
+            return;
         }
-        const searchTerm = risultato.join(' ').trim();
-        if (!searchTerm) { showMessage('Nessun nome valido trovato nel titolo.', 'error'); return; }
+
+        // --- Tentativo #1: Ricerca per Nome e Cognome esatti ---
+        const parole = title.split(' ');
+        const nomeCompleto = (parole.length > 1) ? `${parole[0]} ${parole[1]}` : parole[0];
         
         try {
-            const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
-            const data = await handleApiResponse(response);
-            if (!data) return;
+            let response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(nomeCompleto)}&exact=true`);
+            let data = await handleApiResponse(response);
 
-            if (data.length > 0) {
-                window.location.href = `/scheda-cliente.html?id=${data[0].id}`;
-            } else {
-                showMessage(`Nessun cliente trovato per "${searchTerm}".`, 'info');
+            if (data && data.length === 1) {
+                // SUCCESSO AL PRIMO TENTATIVO! Trovato un unico cliente per nome e cognome.
+                showMessage(`Trovata corrispondenza esatta per "${nomeCompleto}".`, 'success');
+                setTimeout(() => {
+                    window.location.href = `/scheda-cliente.html?id=${data[0].id}`;
+                }, 1000);
+                return; // Esce dalla funzione
             }
+
+            // --- Tentativo #2: Ricerca per Soprannome esatto (solo se il primo fallisce) ---
+            const soloPrimaParola = parole[0];
+            
+            response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(soloPrimaParola)}&exact=true`);
+            data = await handleApiResponse(response);
+
+            if (data && data.length === 1) {
+                // SUCCESSO AL SECONDO TENTATIVO! Trovato un unico cliente per soprannome.
+                showMessage(`Trovata corrispondenza esatta per il soprannome "${soloPrimaParola}".`, 'success');
+                setTimeout(() => {
+                    window.location.href = `/scheda-cliente.html?id=${data[0].id}`;
+                }, 1000);
+                return; // Esce dalla funzione
+            }
+
+            // --- Se entrambi i tentativi falliscono ---
+            if (data && data.length > 1) {
+                showMessage(`Trovate troppe corrispondenze per "${title}". Usa la ricerca manuale.`, 'info');
+            } else {
+                showMessage(`Nessuna corrispondenza trovata per "${title}".`, 'info');
+            }
+
         } catch (error) {
             console.error("Errore ricerca da evento:", error);
             showMessage('Errore critico durante la ricerca da evento.', 'error');

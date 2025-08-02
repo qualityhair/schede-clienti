@@ -447,29 +447,84 @@ app.post("/api/clienti", async (req, res) => {
 
 app.put("/api/clienti/:id", async (req, res) => {
     const { id } = req.params;
-    const { nome, cognome, soprannome, email, telefono } = req.body; // 1. Aggiunto 'soprannome'
+    const { nome, cognome, soprannome, email, telefono, tags } = req.body;
+    const tagsToSave = Array.isArray(tags) ? tags : [];
+
     try {
-        await db.query("UPDATE clienti SET nome=$1, cognome=$2, soprannome=$3, telefono=$4, email=$5 WHERE id=$6", // 2. Query aggiornata
-            [nome, cognome, soprannome, telefono, email, id]); // 3. Valori aggiornati
-        res.json({ message: "Aggiornato" });
+        const query = `
+            UPDATE clienti 
+            SET 
+                nome = $1, 
+                cognome = $2, 
+                soprannome = $3, 
+                telefono = $4, 
+                email = $5,
+                tags = $6 
+            WHERE 
+                id = $7
+        `;
+        
+        const values = [nome, cognome, soprannome, telefono, email, tagsToSave, id];
+        await db.query(query, values);
+        
+        res.json({ message: "Cliente aggiornato con successo" });
+
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        console.error(`Errore durante l'aggiornamento del cliente ${id}:`, err);
+        res.status(500).json({ error: "Errore del server durante l'aggiornamento." });
     }
 });
 
 app.get("/api/clienti/cerca", async (req, res) => {
-    const term = `%${req.query.term}%`;
+    const term = req.query.term;
+    const isExactSearch = req.query.exact === 'true';
+
     try {
-        const result = await db.query(
-            `SELECT * FROM clienti
-             WHERE nome ILIKE $1
-                OR cognome ILIKE $2
-                OR CONCAT(nome, ' ', cognome) ILIKE $3
-                OR soprannome ILIKE $4`, // <-- 1. Aggiunta la condizione per il soprannome
-            [term, term, term, term] // <-- 2. Aggiunto il quarto parametro
-        );
+        let query;
+        let values;
+
+        if (isExactSearch) {
+            // --- NUOVA LOGICA PER LA RICERCA ESATTA ---
+            // Cerca un cliente il cui NOME CONCATENATO è ESATTAMENTE il termine pulito
+            query = `
+                SELECT * FROM clienti
+                WHERE 
+                    CONCAT(nome, ' ', cognome) ILIKE $1 
+                    OR soprannome ILIKE $1;
+            `;
+            values = [term]; // Cerca il termine esatto, senza '%'
+
+        } else {
+            // --- LOGICA DI RICERCA GENERICA (quella che avevamo prima) ---
+            const termWithWildcard = `%${term}%`;
+            query = `
+                SELECT *,
+                    CASE
+                        WHEN soprannome ILIKE $1 THEN 1
+                        WHEN nome ILIKE $1 THEN 2
+                        WHEN cognome ILIKE $1 THEN 2
+                        WHEN COALESCE(soprannome, '') ILIKE $2 THEN 3
+                        WHEN nome ILIKE $2 THEN 4
+                        WHEN cognome ILIKE $2 THEN 4
+                        ELSE 5
+                    END as relevance
+                FROM clienti
+                WHERE 
+                    nome ILIKE $3
+                    OR cognome ILIKE $3
+                    OR CONCAT(nome, ' ', cognome) ILIKE $3
+                    OR COALESCE(soprannome, '') ILIKE $3
+                ORDER BY 
+                    relevance ASC, cognome ASC, nome ASC;
+            `;
+            values = [term, `${term}%`, termWithWildcard];
+        }
+        
+        const result = await db.query(query, values);
         res.json(result.rows);
+
     } catch (err) {
+        console.error(`ERRORE nella ricerca con termine '${term}':`, err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -477,7 +532,7 @@ app.get("/api/clienti/cerca", async (req, res) => {
 
 app.get("/api/clienti/:id", async (req, res) => {
     try {
-        const c = await db.query("SELECT id, nome, cognome, soprannome, email, telefono, preferenze_note, storico_acquisti FROM clienti WHERE id=$1", [req.params.id]); // <-- Aggiunto 'soprannome' qui
+        const c = await db.query("SELECT id, nome, cognome, soprannome, email, telefono, preferenze_note, storico_acquisti, tags FROM clienti WHERE id=$1", [req.params.id]); // <-- Aggiunto 'soprannome' qui
         if (c.rows.length === 0) return res.status(404).json({ error: "Non trovato" });
         const t = await db.query("SELECT * FROM trattamenti WHERE cliente_id=$1 ORDER BY data_trattamento DESC", [req.params.id]);
         res.json({ client: c.rows[0], trattamenti: t.rows });

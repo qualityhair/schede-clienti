@@ -200,7 +200,7 @@
         </div>
     </div>
 
-    <div id="modificaClienteModal" class="modal">
+        <div id="modificaClienteModal" class="modal">
         <div class="modal-content">
             <h3>Modifica Dettagli Cliente</h3>
             <form id="formModificaCliente">
@@ -227,6 +227,16 @@
                     <label for="modifica-telefono">Telefono:</label>
                     <input type="tel" id="modifica-telefono" class="input-field">
                 </div>
+
+                <!-- ======================================================= -->
+                <!-- === ECCO IL NUOVO BLOCCO, INSERITO NEL POSTO GIUSTO === -->
+                <!-- ======================================================= -->
+                <div class="form-group">
+                    <label for="modifica-tags">Tag (separati da virgola):</label>
+                    <input type="text" id="modifica-tags" class="input-field" placeholder="Es: Cliente VIP, Allergia Tinta, Caffè Amaro">
+                </div>
+                <!-- ======================================================= -->
+
                 <div class="modal-buttons">
                     <button type="submit" class="modal-button ok">Salva Modifiche</button>
                     <button type="button" class="modal-button cancel" id="annullaModificaClienteBtn">Annulla</button>
