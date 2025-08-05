@@ -9,6 +9,37 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const session = require("express-session");
 const pgSession = require('connect-pg-simple')(session);
 
+// In cima al file, insieme agli altri 'require'
+const multer = require('multer');
+const crypto = require('crypto');
+
+// --- CONFIGURAZIONE PER L'UPLOAD DELLE IMMAGINI ---
+const UPLOAD_PATH = process.env.NODE_ENV === 'production' ? '/app/uploads' : path.join(__dirname, 'public', 'uploads');
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, UPLOAD_PATH);
+    },
+    filename: (req, file, cb) => {
+        const randomName = crypto.randomBytes(16).toString('hex');
+        const extension = path.extname(file.originalname);
+        cb(null, `${randomName}${extension}`);
+    }
+});
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // Limite di 5MB per file
+    fileFilter: (req, file, cb) => {
+        const filetypes = /jpeg|jpg|png|gif|webp/;
+        const mimetype = filetypes.test(file.mimetype);
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        if (mimetype && extname) {
+            return cb(null, true);
+        }
+        cb(new Error("Errore: Il file deve essere un'immagine valida (jpg, png, gif, webp)."));
+    }
+});
+
+
 // --- INIZIO: AGGIUNTE NECESSARIE PER GOOGLE CALENDAR ---
 const { google } = require('googleapis');
 
@@ -809,6 +840,80 @@ app.put("/api/clienti/:id/acquisti", async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+// --- API PER LA GALLERIA FOTOGRAFICA ---
+
+// Rotta per recuperare tutte le foto di un cliente
+// Rotta per recuperare tutte le foto di un cliente
+app.get("/api/clienti/:id/photos", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const query = "SELECT id, file_path, didascalia, created_at FROM client_photos WHERE cliente_id = $1 ORDER BY created_at DESC";
+        const result = await db.query(query, [id]);
+        
+        // --- MODIFICA CHIAVE QUI ---
+        // Ora il percorso nel DB è già corretto, lo rinominiamo solo in 'url' per chiarezza
+        const photos = result.rows.map(photo => ({
+            id: photo.id,
+            didascalia: photo.didascalia,
+            created_at: photo.created_at,
+            url: photo.file_path 
+        }));
+        // ----------------------------
+
+        res.json(photos);
+    } catch (err) {
+        console.error(`Errore nel recupero foto per cliente ${id}:`, err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// Rotta per caricare una nuova foto per un cliente
+// Rotta per caricare una nuova foto per un cliente
+app.post("/api/clienti/:id/photos", ensureAuthenticated, upload.single('clientImage'), async (req, res) => {
+    const { id } = req.params;
+    const { didascalia } = req.body;
+    
+    if (!req.file) {
+        return res.status(400).json({ error: "Nessun file immagine caricato." });
+    }
+
+    // --- MODIFICA CHIAVE QUI ---
+    // Creiamo un percorso relativo al web, che inizia con /uploads/
+    const webPath = `/uploads/${req.file.filename}`;
+    // ----------------------------
+
+    try {
+        const query = "INSERT INTO client_photos (cliente_id, file_path, didascalia) VALUES ($1, $2, $3) RETURNING *";
+        // Salviamo nel DB il percorso web, non il percorso completo del disco
+        await db.query(query, [id, webPath, didascalia]); 
+        
+        res.status(201).json({ message: "Foto caricata con successo!" });
+    } catch (err) {
+        console.error(`Errore caricamento foto per cliente ${id}:`, err);
+        res.status(500).json({ error: "Errore del server durante il salvataggio della foto." });
+    }
+});
+
+// Rotta per eliminare una foto
+app.delete("/api/photos/:photoId", ensureAuthenticated, async (req, res) => {
+    // Aggiungeremo la logica per eliminare il file fisico qui in futuro
+    // Per ora, eliminiamo solo il record dal DB
+    const { photoId } = req.params;
+    try {
+        const result = await db.query("DELETE FROM client_photos WHERE id = $1", [photoId]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Foto non trovata." });
+        }
+        res.status(200).json({ message: "Foto eliminata con successo." });
+    } catch (err) {
+        console.error(`Errore eliminazione foto ${photoId}:`, err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+
+
 
 app.delete("/api/clienti/:id", async (req, res) => {
     try {

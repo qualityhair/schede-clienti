@@ -8,3 +8,4 @@ build/
 dist/
 .vscode/
 temp_google_secret.json
+/public/uploads/

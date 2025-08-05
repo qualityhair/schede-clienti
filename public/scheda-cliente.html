@@ -64,6 +64,56 @@
     <a href="#" id="storico-analisi-btn" class="btn btn-nav" style="display: none;">Vedi Storico Completo</a>
 </div>
 </div>
+
+
+<!-- ======================================================= -->
+<!-- === NUOVO PANNELLO STORICO FOTOGRAFICO === -->
+<!-- ======================================================= -->
+<div class="panel" id="photo-gallery-panel">
+    <h2 class="panel-title">
+        <span>Storico Fotografico</span>
+        <button class="btn btn-icon" id="add-photo-btn" title="Aggiungi Nuova Foto">➕</button>
+    </h2>
+    <div class="panel-content" id="photo-gallery-content">
+        <!-- Le miniature delle foto verranno inserite qui dal JavaScript -->
+        <p class="loading-message">Caricamento foto in corso...</p>
+    </div>
+</div>
+<!-- ======================================================= -->
+
+
+<!-- ======================================================= -->
+<!-- === NUOVA MODALE PER L'UPLOAD DELLE FOTO === -->
+<!-- ======================================================= -->
+<div id="addPhotoModal" class="modal">
+    <div class="modal-content">
+        <h3>Aggiungi Nuova Foto</h3>
+        <form id="formAddPhoto">
+            <div class="form-group">
+                <label for="photo-file" class="form-label">Seleziona Immagine:</label>
+                <input type="file" id="photo-file" name="clientImage" accept="image/*" required class="input-field">
+            </div>
+            <div class="form-group">
+                <label for="photo-didascalia" class="form-label">Didascalia (Opzionale):</label>
+                <input type="text" id="photo-didascalia" class="input-field" placeholder="Es: Balayage biondo freddo, Luglio 2025">
+            </div>
+            <div class="modal-buttons">
+                <button type="submit" class="modal-button ok">Carica Foto</button>
+                <button type="button" class="modal-button cancel" id="cancel-photo-btn">Annulla</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- NUOVA MODALE PER VISUALIZZARE L'IMMAGINE IN GRANDE -->
+<div id="viewPhotoModal" class="modal" style="--bg-color: rgba(0,0,0,0.9);">
+    <div class="modal-content" style="background: none; box-shadow: none; padding: 0;">
+        <img id="fullscreen-photo" src="" alt="Foto Cliente" style="max-width: 90vw; max-height: 90vh; object-fit: contain;">
+        <button id="close-view-photo-btn" style="position: absolute; top: 15px; right: 25px; font-size: 2rem; color: white; background: none; border: none; cursor: pointer;">×</button>
+    </div>
+</div>
+
+
 			
 
             <div class="two-column-stack"> 

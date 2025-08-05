@@ -4,6 +4,20 @@
 
 document.addEventListener("DOMContentLoaded", () => {
     // --- 1. RIFERIMENTI AGLI ELEMENTI DOM ---
+	
+
+// Insieme agli altri riferimenti DOM per galleria fotografica
+const addPhotoBtn = document.getElementById('add-photo-btn');
+const addPhotoModal = document.getElementById('addPhotoModal');
+const formAddPhoto = document.getElementById('formAddPhoto');
+const cancelPhotoBtn = document.getElementById('cancel-photo-btn');
+const photoGalleryContent = document.getElementById('photo-gallery-content');
+const viewPhotoModal = document.getElementById('viewPhotoModal');
+const fullscreenPhoto = document.getElementById('fullscreen-photo');
+const closeViewPhotoBtn = document.getElementById('close-view-photo-btn');
+	
+	
+	
     const nomeCompletoSpan = document.getElementById("nome-completo");
     const emailSpan = document.getElementById("email");
     const telefonoSpan = document.getElementById("telefono");
@@ -167,6 +181,7 @@ function displayClientTags(tags = []) {
                 clienteNoteTextarea.value = client.preferenze_note || '';
 				displayClientTags(client.tags); // <--- AGGIUNGI QUESTA RIGA
                 displayAcquisti(client.storico_acquisti);
+				loadClientPhotos(clientId); // <--- AGGIUNGI QUESTA CHIAMATA
             } else {
                 showMessage("Cliente non trovato.", 'error');
             }
@@ -235,6 +250,63 @@ function displayClientTags(tags = []) {
             actionCell.appendChild(deleteButton);
         });
     }
+	
+	async function loadClientPhotos(clientId) {
+    photoGalleryContent.innerHTML = '<p class="loading-message">Caricamento foto...</p>';
+    try {
+        const response = await fetch(`/api/clienti/${clientId}/photos`);
+        const photos = await handleApiResponse(response);
+        photoGalleryContent.innerHTML = ''; // Pulisce il messaggio di caricamento
+        if (photos && photos.length > 0) {
+            photos.forEach(photo => {
+                const thumbDiv = document.createElement('div');
+                thumbDiv.className = 'photo-thumbnail';
+                
+                const img = document.createElement('img');
+                img.src = photo.url; // Usiamo l'URL corretto fornito dal server
+                img.alt = photo.didascalia || 'Foto cliente';
+                img.onclick = () => {
+                    fullscreenPhoto.src = photo.url;
+                    openModal(viewPhotoModal);
+                };
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'photo-delete-btn';
+                deleteBtn.innerHTML = '×'; // Simbolo X
+                deleteBtn.title = 'Elimina Foto';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation(); // Evita che si apra l'immagine quando si clicca elimina
+                    if (confirm('Sei sicuro di voler eliminare questa foto?')) {
+                        deletePhoto(photo.id);
+                    }
+                };
+
+                thumbDiv.appendChild(img);
+                thumbDiv.appendChild(deleteBtn);
+                photoGalleryContent.appendChild(thumbDiv);
+            });
+        } else {
+            photoGalleryContent.innerHTML = '<p>Nessuna foto presente.</p>';
+        }
+    } catch (error) {
+        console.error('Errore nel caricamento delle foto:', error);
+        photoGalleryContent.innerHTML = '<p class="error-message">Impossibile caricare le foto.</p>';
+    }
+}
+
+async function deletePhoto(photoId) {
+    try {
+        const response = await fetch(`/api/photos/${photoId}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Errore server');
+        showMessage('Foto eliminata con successo.', 'success');
+        loadClientPhotos(currentClientId); // Ricarica la galleria
+    } catch (error) {
+        console.error('Errore eliminazione foto:', error);
+        showMessage('Errore durante l\'eliminazione della foto.', 'error');
+    }
+}
+	
+	
     
     async function caricaRiepilogoAnalisi(clienteId) {
         const contentDiv = document.getElementById('analisi-riepilogo-content');
@@ -571,6 +643,58 @@ function displayClientTags(tags = []) {
     });
     annullaModificaClienteBtn.addEventListener('click', () => closeModal(modificaClienteModal, formModificaCliente));
     formModificaCliente.addEventListener('submit', handleModificaCliente);
+	
+	    // =======================================================
+    // === NUOVI EVENT LISTENERS PER LA GALLERIA FOTOGRAFICA (INCOLLA QUI) ===
+    // =======================================================
+    addPhotoBtn.addEventListener('click', () => openModal(addPhotoModal));
+    cancelPhotoBtn.addEventListener('click', () => closeModal(addPhotoModal, formAddPhoto));
+    closeViewPhotoBtn.addEventListener('click', () => closeModal(viewPhotoModal));
+    
+    // Chiude la modale a schermo intero se si clicca sullo sfondo scuro
+    viewPhotoModal.addEventListener('click', (e) => { 
+        if (e.target === viewPhotoModal) {
+            closeModal(viewPhotoModal);
+        }
+    });
+
+    // Gestisce l'invio del form per caricare una nuova foto
+    formAddPhoto.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(formAddPhoto);
+        
+        // Aggiungiamo la didascalia manualmente al formData
+        formData.append('didascalia', document.getElementById('photo-didascalia').value);
+
+        // Mostra un messaggio di caricamento (opzionale ma consigliato)
+        showMessage('Caricamento foto in corso...', 'info');
+
+        try {
+            const response = await fetch(`/api/clienti/${currentClientId}/photos`, {
+                method: 'POST',
+                body: formData // Lascia che il browser imposti l'header Content-Type
+            });
+            
+            const data = await handleApiResponse(response); // Usa la tua funzione helper
+            
+            if (!response.ok) {
+                // Se c'è un messaggio di errore specifico dal server, mostralo
+                throw new Error(data.error || 'Errore durante l\'upload.');
+            }
+            
+            showMessage('Foto caricata con successo!', 'success');
+            closeModal(addPhotoModal, formAddPhoto);
+            loadClientPhotos(currentClientId); // Ricarica la galleria per mostrare la nuova foto
+            
+        } catch (error) {
+            console.error("Errore durante l'upload della foto:", error);
+            showMessage(`Errore: ${error.message}`, 'error');
+        }
+    });
+    // =======================================================
+    // === FINE NUOVI EVENT LISTENERS ===
+    // =======================================================
+
 
     // --- 7. AVVIO ---
     getClientIdsFromSearch();
