@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const newClientPhoneInput = document.getElementById("new-client-phone");
     const addNewClientButton = document.getElementById("add-new-client-button");
     const appointmentsListContainer = document.getElementById('lista-appuntamenti');
+	const newClientTagsInput = document.getElementById("new-client-tags");
 
 
     // --- FUNZIONI DI UTILITÀ ---
@@ -80,41 +81,57 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- LOGICA PANNELLO "NUOVO CLIENTE" ---
 
     async function handleAddNewClient() {
-		const nome = document.getElementById('new-client-name').value.trim();
-		const cognome = document.getElementById('new-client-surname').value.trim();
-		const soprannome = document.getElementById('new-client-nickname').value.trim();
-		const email = document.getElementById('new-client-email').value.trim();
-		const telefono = document.getElementById('new-client-phone').value.trim();
+    const nome = newClientNameInput.value.trim();
+    const cognome = newClientSurnameInput.value.trim();
+    
+    // Aggiungiamo la lettura anche dei campi opzionali
+    const soprannome = document.getElementById('new-client-nickname').value.trim();
+    const email = newClientEmailInput.value.trim();
+    const telefono = newClientPhoneInput.value.trim();
 
-        if (!nome || !cognome) {
-            showMessage("Nome e Cognome sono obbligatori.", 'error');
-            return;
-        }
-        try {
-            const response = await fetch("/api/clienti", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ nome, cognome, soprannome, email, telefono })
-            });
-            const data = await handleApiResponse(response);
-            if (!data) return;
+    // --- NUOVA PARTE: Leggiamo e prepariamo i tag ---
+    const tagsInput = newClientTagsInput.value.trim();
+    const tagsArray = tagsInput ? tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+    // ---------------------------------------------
 
-            if (data.id) {
-                showMessage(`Cliente ${nome} ${cognome} aggiunto!`, 'success');
-                newClientNameInput.value = ""; newClientSurnameInput.value = "";
-                newClientEmailInput.value = ""; newClientPhoneInput.value = "";
-                setTimeout(() => {
-                    window.location.href = `/scheda-cliente.html?id=${data.id}`;
-                }, 1500);
-            } else {
-                throw new Error(data.error || "ID non restituito dal server.");
-            }
-        } catch (error) {
-            console.error("Errore aggiunta cliente:", error);
-            showMessage(`Errore durante l'aggiunta: ${error.message}`, 'error');
-        }
+    if (!nome || !cognome) {
+        showMessage("Nome e Cognome sono obbligatori.", 'error');
+        return;
     }
 
+    // Creiamo l'oggetto cliente completo, inclusi i tag
+    const newClientData = { nome, cognome, soprannome, email, telefono, tags: tagsArray };
+
+    try {
+        const response = await fetch("/api/clienti", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newClientData) // Inviamo il nuovo oggetto completo
+        });
+        const data = await handleApiResponse(response);
+        if (!data) return;
+
+        if (data.id) {
+            showMessage(`Cliente ${nome} ${cognome} aggiunto!`, 'success');
+            // Puliamo tutti i campi, incluso quello dei tag
+            newClientNameInput.value = ""; 
+            newClientSurnameInput.value = "";
+            document.getElementById('new-client-nickname').value = "";
+            newClientEmailInput.value = ""; 
+            newClientPhoneInput.value = "";
+            newClientTagsInput.value = ""; // Puliamo anche il campo dei tag
+
+            setTimeout(() => {
+                window.location.href = `/scheda-cliente.html?id=${data.id}`;
+            }, 1500);
+        } else {
+            throw new Error(data.error || "ID non restituito dal server.");
+        }
+    } catch (error) {
+        console.error("Errore aggiunta cliente:", error);
+        showMessage(`Errore durante l'aggiunta: ${error.message}`, 'error');
+    }
+}
 
 // ==========================================================
 // === LOGICA DI COLORAZIONE (COPIATA DA CALENDARIO.HTML) ===

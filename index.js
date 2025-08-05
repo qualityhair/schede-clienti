@@ -464,13 +464,24 @@ app.get("/calendario", ensureAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, "public", "calendario.html"));
 });
 
+// Sostituisci la vecchia rotta POST con questa versione aggiornata
 app.post("/api/clienti", async (req, res) => {
-    const { nome, cognome, soprannome, email, telefono } = req.body; // 1. Aggiunto 'soprannome'
+    // 1. Leggiamo anche il campo 'tags' dal corpo della richiesta
+    const { nome, cognome, soprannome, email, telefono, tags } = req.body; 
+    
+    // 2. Sicurezza: ci assicuriamo che 'tags' sia sempre un array
+    const tagsToSave = Array.isArray(tags) ? tags : [];
+
     try {
-        const sql = "INSERT INTO clienti (nome, cognome, soprannome, email, telefono) VALUES ($1, $2, $3, $4, $5) RETURNING id"; // 2. Aggiunto in query
-        const result = await db.query(sql, [nome, cognome, soprannome, email, telefono]); // 3. Aggiunto nei valori
+        // 3. Modifichiamo la query SQL per includere la colonna 'tags'
+        const sql = "INSERT INTO clienti (nome, cognome, soprannome, email, telefono, tags) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id";
+        
+        // 4. Aggiungiamo 'tagsToSave' all'array dei valori da salvare
+        const result = await db.query(sql, [nome, cognome, soprannome, email, telefono, tagsToSave]);
+        
         res.status(201).json({ id: result.rows[0].id });
     } catch (err) {
+        console.error("Errore durante la creazione del cliente:", err); // Log più specifico
         res.status(err.code === '23505' ? 409 : 500).json({ error: err.message });
     }
 });
