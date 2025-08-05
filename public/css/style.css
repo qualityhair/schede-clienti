@@ -1470,6 +1470,41 @@ body {
     grid-column: 1 / -1;
 }
 
+
+
+/* Stili per i filtri della galleria fotografica */
+.tags-filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px; /* Spazio prima della griglia di foto */
+    padding-bottom: 10px;
+    border-bottom: 1px solid #444;
+}
+
+.tag-filter-btn {
+    background-color: #555;
+    color: #fff;
+    border: 1px solid #666;
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tag-filter-btn:hover {
+    background-color: #666;
+    border-color: #777;
+}
+
+.tag-filter-btn.active {
+    background-color: #FFD700; /* Il tuo giallo primario */
+    color: #1a1a1a;
+    border-color: #E6C200;
+}
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */

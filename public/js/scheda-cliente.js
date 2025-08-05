@@ -251,61 +251,122 @@ function displayClientTags(tags = []) {
         });
     }
 	
-	async function loadClientPhotos(clientId) {
-    photoGalleryContent.innerHTML = '<p class="loading-message">Caricamento foto...</p>';
+	// SOSTITUISCI LA TUA VECCHIA FUNZIONE 'loadClientPhotos' CON QUESTA
+async function loadClientPhotos(clientId) {
+    const galleryContent = document.getElementById('photo-gallery-content');
+    const filterContainer = document.getElementById('photo-tags-filter-container');
+
+    galleryContent.innerHTML = '<p class="loading-message">Caricamento foto...</p>';
+    filterContainer.innerHTML = ''; // Pulisce i filtri vecchi
+
     try {
         const response = await fetch(`/api/clienti/${clientId}/photos`);
         const photos = await handleApiResponse(response);
-        photoGalleryContent.innerHTML = '';
-        if (photos && photos.length > 0) {
-            photos.forEach(photo => {
-                const thumbDiv = document.createElement('div');
-                thumbDiv.className = 'photo-thumbnail';
-                
-                const img = document.createElement('img');
-                img.src = photo.url;
-                img.alt = photo.didascalia || 'Foto cliente';
-                img.onclick = () => {
-                    fullscreenPhoto.src = photo.url;
-                    openModal(viewPhotoModal);
-                };
+        galleryContent.innerHTML = '';
 
-                const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'photo-delete-btn';
-                deleteBtn.innerHTML = '×';
-                deleteBtn.title = 'Elimina Foto';
-                deleteBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    if (confirm('Sei sicuro di voler eliminare questa foto?')) {
-                        deletePhoto(photo.id);
-                    }
-                };
-
-                thumbDiv.appendChild(img);
-                thumbDiv.appendChild(deleteBtn);
-                
-                // --- NUOVA PARTE PER VISUALIZZARE I TAG ---
-                if (photo.tags && photo.tags.length > 0) {
-                    const tagsContainer = document.createElement('div');
-                    tagsContainer.className = 'photo-tags-container';
-                    photo.tags.forEach(tagText => {
-                        const tagEl = document.createElement('span');
-                        tagEl.className = 'photo-tag';
-                        tagEl.textContent = tagText;
-                        tagsContainer.appendChild(tagEl);
-                    });
-                    thumbDiv.appendChild(tagsContainer);
-                }
-                // --- FINE NUOVA PARTE ---
-                
-                photoGalleryContent.appendChild(thumbDiv);
-            });
-        } else {
-            photoGalleryContent.innerHTML = '<p>Nessuna foto presente.</p>';
+        if (!photos || photos.length === 0) {
+            galleryContent.innerHTML = '<p>Nessuna foto presente.</p>';
+            return; // Esce dalla funzione se non ci sono foto
         }
+
+        // --- 1. CREAZIONE DELLE MINIATURE DELLE FOTO ---
+        photos.forEach(photo => {
+            const thumbDiv = document.createElement('div');
+            thumbDiv.className = 'photo-thumbnail';
+            // Aggiungiamo i tag della foto come attributo dati per il filtraggio
+            thumbDiv.dataset.tags = (photo.tags || []).join(',').toLowerCase();
+
+            const img = document.createElement('img');
+            img.src = photo.url;
+            img.alt = photo.didascalia || 'Foto cliente';
+            img.onclick = () => {
+                fullscreenPhoto.src = photo.url;
+                openModal(viewPhotoModal);
+            };
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'photo-delete-btn';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.title = 'Elimina Foto';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                if (confirm('Sei sicuro di voler eliminare questa foto?')) {
+                    deletePhoto(photo.id);
+                }
+            };
+
+            thumbDiv.appendChild(img);
+            thumbDiv.appendChild(deleteBtn);
+            
+            if (photo.tags && photo.tags.length > 0) {
+                const tagsContainer = document.createElement('div');
+                tagsContainer.className = 'photo-tags-container';
+                photo.tags.forEach(tagText => {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'photo-tag';
+                    tagEl.textContent = tagText;
+                    tagsContainer.appendChild(tagEl);
+                });
+                thumbDiv.appendChild(tagsContainer);
+            }
+            
+            galleryContent.appendChild(thumbDiv);
+        });
+
+        // --- 2. CREAZIONE DEI BOTTONI-FILTRO ---
+        // Raccogliamo tutti i tag da tutte le foto in un unico posto
+        const allTags = photos.flatMap(p => p.tags || []);
+        // Creiamo una lista di tag unici (senza duplicati)
+        const uniqueTags = [...new Set(allTags)];
+        uniqueTags.sort(); // Ordiniamo alfabeticamente
+
+        // Funzione per filtrare le immagini
+        const filterPhotos = (tagToFilter) => {
+            const allThumbnails = galleryContent.querySelectorAll('.photo-thumbnail');
+            
+                        allThumbnails.forEach(thumb => {
+                // Trasformiamo la stringa di tag in un vero array
+                const thumbTagsArray = thumb.dataset.tags.split(',');
+                
+                // Controlliamo se l'array dei tag della foto include esattamente il tag che stiamo filtrando
+                if (!tagToFilter || thumbTagsArray.includes(tagToFilter.toLowerCase())) {
+                    thumb.style.display = 'block'; // Mostra
+                } else {
+                    thumb.style.display = 'none'; // Nascondi
+                }
+            });
+            
+            // Aggiorna lo stato attivo dei bottoni
+            filterContainer.querySelectorAll('.tag-filter-btn').forEach(btn => {
+                if (btn.dataset.tag === tagToFilter) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        };
+
+        // Creiamo il bottone "Mostra Tutti"
+        const allBtn = document.createElement('button');
+        allBtn.className = 'tag-filter-btn active'; // Attivo di default
+        allBtn.textContent = 'Mostra Tutti';
+        allBtn.dataset.tag = ''; // Tag vuoto per "tutti"
+        allBtn.onclick = () => filterPhotos('');
+        filterContainer.appendChild(allBtn);
+
+        // Creiamo un bottone per ogni tag unico
+        uniqueTags.forEach(tag => {
+            const filterBtn = document.createElement('button');
+            filterBtn.className = 'tag-filter-btn';
+            filterBtn.textContent = tag;
+            filterBtn.dataset.tag = tag;
+            filterBtn.onclick = () => filterPhotos(tag);
+            filterContainer.appendChild(filterBtn);
+        });
+
     } catch (error) {
         console.error('Errore nel caricamento delle foto:', error);
-        photoGalleryContent.innerHTML = '<p class="error-message">Impossibile caricare le foto.</p>';
+        galleryContent.innerHTML = '<p class="error-message">Impossibile caricare le foto.</p>';
     }
 }
 
