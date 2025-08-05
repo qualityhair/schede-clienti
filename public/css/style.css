@@ -1462,7 +1462,13 @@ body {
     border-radius: 4px;
 }
 
-
+/*
+  Questa regola fa in modo che il pannello della galleria fotografica
+  occupi l'intera larghezza della griglia dei pannelli.
+*/
+#photo-gallery-panel {
+    grid-column: 1 / -1;
+}
 
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
