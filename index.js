@@ -13,8 +13,15 @@ const pgSession = require('connect-pg-simple')(session);
 const multer = require('multer');
 const crypto = require('crypto');
 
-// --- CONFIGURAZIONE PER L'UPLOAD DELLE IMMAGINI ---
-const UPLOAD_PATH = process.env.NODE_ENV === 'production' ? '/app/uploads' : path.join(__dirname, 'public', 'uploads');
+// --- CONFIGURAZIONE PER L'UPLOAD DELLE IMMAGINI (VERSIONE CORRETTA) ---
+const UPLOAD_PATH = process.env.NODE_ENV === 'production' ? '/app/uploads' : 'public/uploads';
+
+// Assicuriamoci che la cartella esista
+const fs = require('fs');
+if (!fs.existsSync(UPLOAD_PATH)){
+    fs.mkdirSync(UPLOAD_PATH, { recursive: true });
+}
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, UPLOAD_PATH);
@@ -25,6 +32,7 @@ const storage = multer.diskStorage({
         cb(null, `${randomName}${extension}`);
     }
 });
+
 const upload = multer({ 
     storage: storage,
     limits: { fileSize: 5 * 1024 * 1024 }, // Limite di 5MB per file
@@ -296,20 +304,11 @@ app.get("/", (req, res) => {
 
 
 // 4. File STATICI (DEVE venire dopo passport.session)
+
+
 app.use(express.static("public"));
+app.use('/uploads', express.static(UPLOAD_PATH));
 
-// 5. Middleware di ISPEZIONE (ora può vedere la sessione correttamente)
-//app.use((req, res, next) => {
-  //  console.log('--- ISPEZIONE SESSIONE ---');
-    //console.log('ID Sessione:', req.sessionID);
-    //console.log('Contenuto Sessione (req.session):', req.session);
-    //console.log('Utente nella sessione (req.user):', req.user);
-    //console.log('req.isAuthenticated() risulta:', req.isAuthenticated());
-    //console.log('--------------------------');
-    //next();
-//});
-
-//FINE BLOCCO MIDDLEWARE
 
 
 
@@ -844,22 +843,21 @@ app.put("/api/clienti/:id/acquisti", async (req, res) => {
 // --- API PER LA GALLERIA FOTOGRAFICA ---
 
 // Rotta per recuperare tutte le foto di un cliente
-// Rotta per recuperare tutte le foto di un cliente
+
+// Rotta per recuperare tutte le foto di un cliente (VERSIONE CORRETTA)
 app.get("/api/clienti/:id/photos", ensureAuthenticated, async (req, res) => {
     const { id } = req.params;
     try {
         const query = "SELECT id, file_path, didascalia, created_at FROM client_photos WHERE cliente_id = $1 ORDER BY created_at DESC";
         const result = await db.query(query, [id]);
         
-        // --- MODIFICA CHIAVE QUI ---
-        // Ora il percorso nel DB è già corretto, lo rinominiamo solo in 'url' per chiarezza
+        // Il percorso nel DB è già un URL web, lo rinominiamo solo in 'url'
         const photos = result.rows.map(photo => ({
             id: photo.id,
             didascalia: photo.didascalia,
             created_at: photo.created_at,
             url: photo.file_path 
         }));
-        // ----------------------------
 
         res.json(photos);
     } catch (err) {
@@ -869,7 +867,7 @@ app.get("/api/clienti/:id/photos", ensureAuthenticated, async (req, res) => {
 });
 
 // Rotta per caricare una nuova foto per un cliente
-// Rotta per caricare una nuova foto per un cliente
+// Rotta per caricare una nuova foto per un cliente (VERSIONE CORRETTA)
 app.post("/api/clienti/:id/photos", ensureAuthenticated, upload.single('clientImage'), async (req, res) => {
     const { id } = req.params;
     const { didascalia } = req.body;
@@ -878,15 +876,13 @@ app.post("/api/clienti/:id/photos", ensureAuthenticated, upload.single('clientIm
         return res.status(400).json({ error: "Nessun file immagine caricato." });
     }
 
-    // --- MODIFICA CHIAVE QUI ---
-    // Creiamo un percorso relativo al web, che inizia con /uploads/
+    // Crea un percorso web relativo che funzionerà sempre, es: /uploads/nomefile.jpg
     const webPath = `/uploads/${req.file.filename}`;
-    // ----------------------------
 
     try {
         const query = "INSERT INTO client_photos (cliente_id, file_path, didascalia) VALUES ($1, $2, $3) RETURNING *";
         // Salviamo nel DB il percorso web, non il percorso completo del disco
-        await db.query(query, [id, webPath, didascalia]); 
+        await db.query(query, [id, webPath, didascalia]);
         
         res.status(201).json({ message: "Foto caricata con successo!" });
     } catch (err) {
