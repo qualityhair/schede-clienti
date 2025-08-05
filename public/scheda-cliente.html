@@ -83,7 +83,7 @@
 
 
 <!-- ======================================================= -->
-<!-- === NUOVA MODALE PER L'UPLOAD DELLE FOTO === -->
+<!-- === NUOVA MODALE PER L'UPLOAD DELLE FOTO (AGGIORNATA PER I TAG) === -->
 <!-- ======================================================= -->
 <div id="addPhotoModal" class="modal">
     <div class="modal-content">
@@ -97,6 +97,16 @@
                 <label for="photo-didascalia" class="form-label">Didascalia (Opzionale):</label>
                 <input type="text" id="photo-didascalia" class="input-field" placeholder="Es: Balayage biondo freddo, Luglio 2025">
             </div>
+
+            <!-- ======================================================= -->
+            <!-- === NUOVO CAMPO PER I TAG DELLA FOTO (AGGIUNGI QUESTO) === -->
+            <!-- ======================================================= -->
+            <div class="form-group">
+                <label for="photo-tags" class="form-label">Tag (separati da virgola):</label>
+                <input type="text" id="photo-tags" class="input-field" placeholder="Es: colore, meches, balayage">
+            </div>
+            <!-- ======================================================= -->
+
             <div class="modal-buttons">
                 <button type="submit" class="modal-button ok">Carica Foto</button>
                 <button type="button" class="modal-button cancel" id="cancel-photo-btn">Annulla</button>

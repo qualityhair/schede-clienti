@@ -256,14 +256,14 @@ function displayClientTags(tags = []) {
     try {
         const response = await fetch(`/api/clienti/${clientId}/photos`);
         const photos = await handleApiResponse(response);
-        photoGalleryContent.innerHTML = '';
+        photoGalleryContent.innerHTML = ''; // Pulisce il messaggio di caricamento
         if (photos && photos.length > 0) {
             photos.forEach(photo => {
                 const thumbDiv = document.createElement('div');
                 thumbDiv.className = 'photo-thumbnail';
                 
                 const img = document.createElement('img');
-                img.src = photo.url;
+                img.src = photo.url; // Usiamo l'URL corretto fornito dal server
                 img.alt = photo.didascalia || 'Foto cliente';
                 img.onclick = () => {
                     fullscreenPhoto.src = photo.url;
@@ -272,10 +272,10 @@ function displayClientTags(tags = []) {
 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'photo-delete-btn';
-                deleteBtn.innerHTML = '×';
+                deleteBtn.innerHTML = '×'; // Simbolo X
                 deleteBtn.title = 'Elimina Foto';
                 deleteBtn.onclick = (e) => {
-                    e.stopPropagation();
+                    e.stopPropagation(); // Evita che si apra l'immagine quando si clicca elimina
                     if (confirm('Sei sicuro di voler eliminare questa foto?')) {
                         deletePhoto(photo.id);
                     }
@@ -283,21 +283,6 @@ function displayClientTags(tags = []) {
 
                 thumbDiv.appendChild(img);
                 thumbDiv.appendChild(deleteBtn);
-                
-                // --- NUOVA PARTE PER VISUALIZZARE I TAG ---
-                if (photo.tags && photo.tags.length > 0) {
-                    const tagsContainer = document.createElement('div');
-                    tagsContainer.className = 'photo-tags-container';
-                    photo.tags.forEach(tagText => {
-                        const tagEl = document.createElement('span');
-                        tagEl.className = 'photo-tag';
-                        tagEl.textContent = tagText;
-                        tagsContainer.appendChild(tagEl);
-                    });
-                    thumbDiv.appendChild(tagsContainer);
-                }
-                // --- FINE NUOVA PARTE ---
-                
                 photoGalleryContent.appendChild(thumbDiv);
             });
         } else {
@@ -675,46 +660,37 @@ async function deletePhoto(photoId) {
 
     // Gestisce l'invio del form per caricare una nuova foto
     formAddPhoto.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(); // Creiamo un FormData vuoto
-
-    // Aggiungiamo i dati manualmente per un maggiore controllo
-    const photoFileInput = document.getElementById('photo-file');
-    
-    // Controlliamo che un file sia stato selezionato
-    if (photoFileInput.files.length === 0) {
-        showMessage('Per favore, seleziona un file immagine.', 'error');
-        return;
-    }
-
-    formData.append('clientImage', photoFileInput.files[0]);
-    formData.append('didascalia', document.getElementById('photo-didascalia').value);
-    // Aggiungiamo i nuovi tag al formData
-    formData.append('tags', document.getElementById('photo-tags').value);
-
-    showMessage('Caricamento foto in corso...', 'info');
-
-    try {
-        const response = await fetch(`/api/clienti/${currentClientId}/photos`, {
-            method: 'POST',
-            body: formData
-        });
+        e.preventDefault();
+        const formData = new FormData(formAddPhoto);
         
-        const data = await handleApiResponse(response);
-        
-        if (!response.ok) {
-            throw new Error(data.error || 'Errore durante l\'upload.');
+        // Aggiungiamo la didascalia manualmente al formData
+        formData.append('didascalia', document.getElementById('photo-didascalia').value);
+
+        // Mostra un messaggio di caricamento (opzionale ma consigliato)
+        showMessage('Caricamento foto in corso...', 'info');
+
+        try {
+            const response = await fetch(`/api/clienti/${currentClientId}/photos`, {
+                method: 'POST',
+                body: formData // Lascia che il browser imposti l'header Content-Type
+            });
+            
+            const data = await handleApiResponse(response); // Usa la tua funzione helper
+            
+            if (!response.ok) {
+                // Se c'è un messaggio di errore specifico dal server, mostralo
+                throw new Error(data.error || 'Errore durante l\'upload.');
+            }
+            
+            showMessage('Foto caricata con successo!', 'success');
+            closeModal(addPhotoModal, formAddPhoto);
+            loadClientPhotos(currentClientId); // Ricarica la galleria per mostrare la nuova foto
+            
+        } catch (error) {
+            console.error("Errore durante l'upload della foto:", error);
+            showMessage(`Errore: ${error.message}`, 'error');
         }
-        
-        showMessage('Foto caricata con successo!', 'success');
-        closeModal(addPhotoModal, formAddPhoto);
-        loadClientPhotos(currentClientId);
-        
-    } catch (error) {
-        console.error("Errore durante l'upload della foto:", error);
-        showMessage(`Errore: ${error.message}`, 'error');
-    }
-});
+    });
     // =======================================================
     // === FINE NUOVI EVENT LISTENERS ===
     // =======================================================

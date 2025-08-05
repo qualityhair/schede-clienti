@@ -1436,7 +1436,31 @@ body {
 .photo-thumbnail:hover .photo-delete-btn {
     opacity: 1;
 }
-
+/* Stili per i tag sotto le miniature delle foto */
+.photo-tags-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 5px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.photo-thumbnail:hover .photo-tags-container {
+    opacity: 1;
+}
+.photo-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    background-color: rgba(255, 215, 0, 0.9); /* Giallo traslucido */
+    color: #1a1a1a;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
 
 
 

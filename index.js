@@ -842,21 +842,20 @@ app.put("/api/clienti/:id/acquisti", async (req, res) => {
 
 // --- API PER LA GALLERIA FOTOGRAFICA ---
 
-// Rotta per recuperare tutte le foto di un cliente
-
-// Rotta per recuperare tutte le foto di un cliente (VERSIONE CORRETTA)
+// Rotta per recuperare tutte le foto di un cliente (AGGIORNATA PER I TAG)
 app.get("/api/clienti/:id/photos", ensureAuthenticated, async (req, res) => {
     const { id } = req.params;
     try {
-        const query = "SELECT id, file_path, didascalia, created_at FROM client_photos WHERE cliente_id = $1 ORDER BY created_at DESC";
+        // Selezioniamo anche la nuova colonna 'tags'
+        const query = "SELECT id, file_path, didascalia, created_at, tags FROM client_photos WHERE cliente_id = $1 ORDER BY created_at DESC";
         const result = await db.query(query, [id]);
         
-        // Il percorso nel DB è già un URL web, lo rinominiamo solo in 'url'
         const photos = result.rows.map(photo => ({
             id: photo.id,
             didascalia: photo.didascalia,
             created_at: photo.created_at,
-            url: photo.file_path 
+            url: photo.file_path,
+            tags: photo.tags || [] // <--- Aggiungiamo i tag all'oggetto inviato al frontend
         }));
 
         res.json(photos);
@@ -866,23 +865,25 @@ app.get("/api/clienti/:id/photos", ensureAuthenticated, async (req, res) => {
     }
 });
 
-// Rotta per caricare una nuova foto per un cliente
-// Rotta per caricare una nuova foto per un cliente (VERSIONE CORRETTA)
+// Rotta per caricare una nuova foto per un cliente (AGGIORNATA PER I TAG)
 app.post("/api/clienti/:id/photos", ensureAuthenticated, upload.single('clientImage'), async (req, res) => {
     const { id } = req.params;
-    const { didascalia } = req.body;
+    // Leggiamo anche 'didascalia' e i nuovi 'tags' dal corpo del form
+    const { didascalia, tags } = req.body; 
     
     if (!req.file) {
         return res.status(400).json({ error: "Nessun file immagine caricato." });
     }
 
-    // Crea un percorso web relativo che funzionerà sempre, es: /uploads/nomefile.jpg
     const webPath = `/uploads/${req.file.filename}`;
 
+    // Trasformiamo la stringa di tag (es. "colore, meches") in un array pulito
+    const tagsArray = tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+
     try {
-        const query = "INSERT INTO client_photos (cliente_id, file_path, didascalia) VALUES ($1, $2, $3) RETURNING *";
-        // Salviamo nel DB il percorso web, non il percorso completo del disco
-        await db.query(query, [id, webPath, didascalia]);
+        // Aggiungiamo la colonna 'tags' e il suo valore alla query
+        const query = "INSERT INTO client_photos (cliente_id, file_path, didascalia, tags) VALUES ($1, $2, $3, $4) RETURNING *";
+        await db.query(query, [id, webPath, didascalia, tagsArray]); // Passiamo l'array di tag
         
         res.status(201).json({ message: "Foto caricata con successo!" });
     } catch (err) {
