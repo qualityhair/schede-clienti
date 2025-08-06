@@ -1393,6 +1393,10 @@ body {
     color: #ffffff;
 }
 
+.client-tag[data-tag*="caffe"] {
+    background-color: #6F4E37; /* Un bel color caffè */
+    color: #ffffff; /* Testo bianco per un buon contrasto */
+}
 
 /* === STILI PER LA GALLERIA FOTOGRAFICA === */
 #photo-gallery-content {
