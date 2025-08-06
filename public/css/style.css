@@ -1384,6 +1384,10 @@ body {
     background-color: #DC3545; /* Rosso */
     color: #ffffff;
 }
+.client-tag[data-tag*="inaffidabile"] {
+    background-color: #DC3545; /* Rosso */
+    color: #ffffff;
+}
 .client-tag[data-tag*="vip"] {
     background-color: #17a2b8; /* Azzurro */
     color: #ffffff;
