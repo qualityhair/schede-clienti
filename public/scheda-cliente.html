@@ -94,33 +94,60 @@
 <!-- ======================================================= -->
 <!-- === NUOVA MODALE PER L'UPLOAD DELLE FOTO (AGGIORNATA PER I TAG) === -->
 <!-- ======================================================= -->
+<!-- ======================================================= -->
+<!-- === MODALE UPLOAD FOTO (AGGIORNATA CON FOTOCAMERA) === -->
+<!-- ======================================================= -->
 <div id="addPhotoModal" class="modal">
     <div class="modal-content">
         <h3>Aggiungi Nuova Foto</h3>
-        <form id="formAddPhoto">
-            <div class="form-group">
-                <label for="photo-file" class="form-label">Seleziona Immagine:</label>
-                <input type="file" id="photo-file" name="clientImage" accept="image/*" required class="input-field">
-            </div>
-            <div class="form-group">
-                <label for="photo-didascalia" class="form-label">Didascalia (Opzionale):</label>
-                <input type="text" id="photo-didascalia" class="input-field" placeholder="Es: Balayage biondo freddo, Luglio 2025">
-            </div>
+        
+        <!-- Vista 1: Scelta iniziale (Upload vs Scatta) -->
+        <div id="photo-choice-view">
+            <form id="formAddPhoto">
+                <div class="form-group">
+                    <label for="photo-file" class="form-label">Seleziona Immagine da File:</label>
+                    <input type="file" id="photo-file" name="clientImage" accept="image/*" class="input-field">
+                </div>
+                 <div class="form-group">
+                    <label for="photo-didascalia" class="form-label">Didascalia (Opzionale):</label>
+                    <input type="text" id="photo-didascalia" class="input-field" placeholder="Es: Balayage biondo freddo, Luglio 2025">
+                </div>
+                <div class="form-group">
+                    <label for="photo-tags" class="form-label">Tag (separati da virgola):</label>
+                    <input type="text" id="photo-tags" class="input-field" placeholder="Es: colore, meches, balayage">
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="modal-button ok">Carica Foto</button>
+                </div>
+            </form>
 
-            <!-- ======================================================= -->
-            <!-- === NUOVO CAMPO PER I TAG DELLA FOTO (AGGIUNGI QUESTO) === -->
-            <!-- ======================================================= -->
-            <div class="form-group">
-                <label for="photo-tags" class="form-label">Tag (separati da virgola):</label>
-                <input type="text" id="photo-tags" class="input-field" placeholder="Es: colore, meches, balayage">
-            </div>
-            <!-- ======================================================= -->
+            <hr class="panel-divider">
 
-            <div class="modal-buttons">
-                <button type="submit" class="modal-button ok">Carica Foto</button>
-                <button type="button" class="modal-button cancel" id="cancel-photo-btn">Annulla</button>
+            <div class="form-group" style="text-align: center;">
+                <label class="form-label">Oppure usa la fotocamera:</label>
+                <button type="button" id="start-camera-btn" class="modal-button ok" style="width: auto; padding: 12px 25px;">📷 Scatta Foto</button>
             </div>
-        </form>
+        </div>
+
+        <!-- Vista 2: Live-view della fotocamera -->
+        <div id="camera-view" style="display: none;">
+            <video id="camera-video" style="width: 100%; border-radius: 8px;" autoplay playsinline></video>
+            <canvas id="camera-canvas" style="display: none;"></canvas> <!-- Usato per scattare la foto -->
+            <div class="modal-buttons" style="margin-top: 15px;">
+                <button type="button" id="take-photo-btn" class="modal-button ok">Scatta</button>
+                <button type="button" id="cancel-camera-btn" class="modal-button cancel">Annulla</button>
+            </div>
+        </div>
+        
+        <!-- Vista 3: Anteprima della foto scattata -->
+        <div id="preview-view" style="display: none;">
+            <img id="photo-preview" src="" alt="Anteprima foto" style="width: 100%; border-radius: 8px;">
+            <div class="modal-buttons" style="margin-top: 15px;">
+                <button type="button" id="use-photo-btn" class="modal-button ok">Usa Questa Foto</button>
+                <button type="button" id="retake-photo-btn" class="modal-button cancel">Riprova</button>
+            </div>
+        </div>
+
     </div>
 </div>
 

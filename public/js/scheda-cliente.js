@@ -15,6 +15,23 @@ const photoGalleryContent = document.getElementById('photo-gallery-content');
 const viewPhotoModal = document.getElementById('viewPhotoModal');
 const fullscreenPhoto = document.getElementById('fullscreen-photo');
 const closeViewPhotoBtn = document.getElementById('close-view-photo-btn');
+
+// Viste della modale foto
+const photoChoiceView = document.getElementById('photo-choice-view');
+const cameraView = document.getElementById('camera-view');
+const previewView = document.getElementById('preview-view');
+
+// Elementi della fotocamera
+const startCameraBtn = document.getElementById('start-camera-btn');
+const cameraVideo = document.getElementById('camera-video');
+const cameraCanvas = document.getElementById('camera-canvas');
+const takePhotoBtn = document.getElementById('take-photo-btn');
+const cancelCameraBtn = document.getElementById('cancel-camera-btn');
+
+// Elementi dell'anteprima
+const photoPreview = document.getElementById('photo-preview');
+const usePhotoBtn = document.getElementById('use-photo-btn');
+const retakePhotoBtn = document.getElementById('retake-photo-btn');
 	
 	
 	
@@ -70,6 +87,9 @@ const closeViewPhotoBtn = document.getElementById('close-view-photo-btn');
     let searchResultsIds = [];
     let currentIndex = 0;
     let currentClienteData = null;
+	// Insieme alle altre variabili di stato
+	let stream = null; // Conterrà il flusso video della fotocamera
+	let capturedBlob = null; // Conterrà la foto scattata come oggetto Blob
 
     // --- 2. FUNZIONI DI UTILITÀ ---
 
@@ -381,6 +401,67 @@ async function deletePhoto(photoId) {
         showMessage('Errore durante l\'eliminazione della foto.', 'error');
     }
 }
+
+// =======================================================
+// === NUOVE FUNZIONI PER LA GESTIONE DELLA FOTOCAMERA ===
+// =======================================================
+
+// Funzione per avviare la fotocamera
+async function startCamera() {
+    try {
+        // Chiede al browser l'accesso alla fotocamera
+        stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } // Preferisce la fotocamera posteriore sui cellulari
+        });
+        cameraVideo.srcObject = stream;
+        // Passa alla vista della fotocamera
+        photoChoiceView.style.display = 'none';
+        cameraView.style.display = 'block';
+        previewView.style.display = 'none';
+    } catch (err) {
+        console.error("Errore nell'accesso alla fotocamera:", err);
+        showMessage("Impossibile accedere alla fotocamera. Assicurati di aver dato i permessi.", "error");
+    }
+}
+
+// Funzione per fermare lo stream video
+function stopCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+    }
+}
+
+// Funzione per scattare la foto
+function takePhoto() {
+    cameraCanvas.width = cameraVideo.videoWidth;
+    cameraCanvas.height = cameraVideo.videoHeight;
+    const context = cameraCanvas.getContext('2d');
+    context.drawImage(cameraVideo, 0, 0, cameraCanvas.width, cameraCanvas.height);
+    
+    // Converte l'immagine del canvas in un Blob (un "file" in memoria)
+    cameraCanvas.toBlob(blob => {
+        capturedBlob = blob;
+        photoPreview.src = URL.createObjectURL(blob);
+        // Ferma la fotocamera e passa alla vista di anteprima
+        stopCamera();
+        cameraView.style.display = 'none';
+        previewView.style.display = 'block';
+    }, 'image/jpeg', 0.9); // Salva come JPEG di alta qualità
+}
+
+// Funzione per tornare indietro alla scelta iniziale
+function resetPhotoModal() {
+    stopCamera();
+    capturedBlob = null;
+    // Ripristina la visibilità, mostrando solo la prima vista
+    photoChoiceView.style.display = 'block';
+    cameraView.style.display = 'none';
+    previewView.style.display = 'none';
+    // Pulisce il campo file per evitare confusioni
+    document.getElementById('photo-file').value = '';
+}
+
 	
 	
     
@@ -720,66 +801,104 @@ async function deletePhoto(photoId) {
     annullaModificaClienteBtn.addEventListener('click', () => closeModal(modificaClienteModal, formModificaCliente));
     formModificaCliente.addEventListener('submit', handleModificaCliente);
 	
-	    // =======================================================
-    // === NUOVI EVENT LISTENERS PER LA GALLERIA FOTOGRAFICA (INCOLLA QUI) ===
     // =======================================================
-    addPhotoBtn.addEventListener('click', () => openModal(addPhotoModal));
-    cancelPhotoBtn.addEventListener('click', () => closeModal(addPhotoModal, formAddPhoto));
-    closeViewPhotoBtn.addEventListener('click', () => closeModal(viewPhotoModal));
+    // === EVENT LISTENERS PER LA GALLERIA (VERSIONE SICURA) ===
+    // =======================================================
     
-    // Chiude la modale a schermo intero se si clicca sullo sfondo scuro
-    viewPhotoModal.addEventListener('click', (e) => { 
-        if (e.target === viewPhotoModal) {
-            closeModal(viewPhotoModal);
-        }
-    });
-
-    // Gestisce l'invio del form per caricare una nuova foto
-    formAddPhoto.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(); // Creiamo un FormData vuoto
-
-    // Aggiungiamo i dati manualmente per un maggiore controllo
-    const photoFileInput = document.getElementById('photo-file');
-    
-    // Controlliamo che un file sia stato selezionato
-    if (photoFileInput.files.length === 0) {
-        showMessage('Per favore, seleziona un file immagine.', 'error');
-        return;
-    }
-
-    formData.append('clientImage', photoFileInput.files[0]);
-    formData.append('didascalia', document.getElementById('photo-didascalia').value);
-    // Aggiungiamo i nuovi tag al formData
-    formData.append('tags', document.getElementById('photo-tags').value);
-
-    showMessage('Caricamento foto in corso...', 'info');
-
-    try {
-        const response = await fetch(`/api/clienti/${currentClientId}/photos`, {
-            method: 'POST',
-            body: formData
+    if(addPhotoBtn) {
+        addPhotoBtn.addEventListener('click', () => {
+            resetPhotoModal();
+            openModal(addPhotoModal);
         });
-        
-        const data = await handleApiResponse(response);
-        
-        if (!response.ok) {
-            throw new Error(data.error || 'Errore durante l\'upload.');
-        }
-        
-        showMessage('Foto caricata con successo!', 'success');
-        closeModal(addPhotoModal, formAddPhoto);
-        loadClientPhotos(currentClientId);
-        
-    } catch (error) {
-        console.error("Errore durante l'upload della foto:", error);
-        showMessage(`Errore: ${error.message}`, 'error');
     }
-});
-    // =======================================================
-    // === FINE NUOVI EVENT LISTENERS ===
-    // =======================================================
 
+    if(cancelPhotoBtn) {
+        cancelPhotoBtn.addEventListener('click', () => {
+            resetPhotoModal();
+            closeModal(addPhotoModal, formAddPhoto);
+        });
+    }
+    
+    if(startCameraBtn) {
+        startCameraBtn.addEventListener('click', startCamera);
+    }
+
+    if(cancelCameraBtn) {
+        cancelCameraBtn.addEventListener('click', () => {
+            stopCamera();
+            resetPhotoModal();
+        });
+    }
+
+    if(takePhotoBtn) {
+        takePhotoBtn.addEventListener('click', takePhoto);
+    }
+    
+    if(retakePhotoBtn) {
+        retakePhotoBtn.addEventListener('click', () => {
+            capturedBlob = null;
+            startCamera();
+        });
+    }
+
+    if(usePhotoBtn) {
+        usePhotoBtn.addEventListener('click', () => {
+            if (capturedBlob) {
+                const photoFile = new File([capturedBlob], "scatto.jpg", { type: "image/jpeg" });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(photoFile);
+                document.getElementById('photo-file').files = dataTransfer.files;
+                previewView.style.display = 'none';
+                photoChoiceView.style.display = 'block';
+                showMessage("Foto pronta per l'upload. Aggiungi didascalia/tag e carica.", "info");
+            }
+        });
+    }
+
+    if(formAddPhoto) {
+        formAddPhoto.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const photoFileInput = document.getElementById('photo-file');
+            if (photoFileInput.files.length === 0) {
+                showMessage('Per favore, seleziona un file o scatta una foto.', 'error');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('clientImage', photoFileInput.files[0]);
+            formData.append('didascalia', document.getElementById('photo-didascalia').value);
+            formData.append('tags', document.getElementById('photo-tags').value);
+            showMessage('Caricamento foto in corso...', 'info');
+            try {
+                const response = await fetch(`/api/clienti/${currentClientId}/photos`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await handleApiResponse(response);
+                if (!response.ok) {
+                    throw new Error(data.error || 'Errore durante l\'upload.');
+                }
+                showMessage('Foto caricata con successo!', 'success');
+                resetPhotoModal();
+                closeModal(addPhotoModal, formAddPhoto);
+                loadClientPhotos(currentClientId);
+            } catch (error) {
+                console.error("Errore durante l'upload della foto:", error);
+                showMessage(`Errore: ${error.message}`, 'error');
+            }
+        });
+    }
+    
+    if(closeViewPhotoBtn) {
+        closeViewPhotoBtn.addEventListener('click', () => closeModal(viewPhotoModal));
+    }
+
+    if(viewPhotoModal) {
+        viewPhotoModal.addEventListener('click', (e) => {
+            if (e.target === viewPhotoModal) {
+                closeModal(viewPhotoModal);
+            }
+        });
+    }
 
     // --- 7. AVVIO ---
     getClientIdsFromSearch();
