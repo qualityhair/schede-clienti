@@ -448,6 +448,11 @@ app.get("/dashboard.html", ensureAuthenticated, (req, res) => {
 app.get("/lista-clienti.html", ensureAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, "public", "lista-clienti.html"));
 });
+
+app.get("/catalogo.html", ensureAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "catalogo.html"));
+});
+
 app.use("/api", ensureAuthenticated);
 
 // --- API CLIENTI ---
@@ -933,6 +938,57 @@ app.delete("/api/clienti/:id", async (req, res) => {
     }
 });
 
+// =======================================================
+// === API PER IL CATALOGO FOTOGRAFICO GLOBALE ===
+// =======================================================
+app.get("/api/photos/all", ensureAuthenticated, async (req, res) => {
+    try {
+        // Questa query SQL unisce le tabelle 'client_photos' e 'clienti'
+        // per recuperare per ogni foto anche il nome e cognome del cliente.
+        const query = `
+            SELECT 
+                p.id,
+                p.file_path,
+                p.didascalia,
+                p.created_at,
+                p.tags,
+                c.id AS cliente_id,
+                c.nome AS cliente_nome,
+                c.cognome AS cliente_cognome
+            FROM 
+                client_photos p
+            JOIN 
+                clienti c ON p.cliente_id = c.id
+            ORDER BY 
+                p.created_at DESC;
+        `;
+
+        const result = await db.query(query);
+
+        // Aggiustiamo i percorsi delle immagini per il frontend
+        const photos = result.rows.map(photo => ({
+            id: photo.id,
+            url: photo.file_path, // il percorso è già un URL web
+            didascalia: photo.didascalia,
+            createdAt: photo.created_at,
+            tags: photo.tags || [],
+            cliente: {
+                id: photo.cliente_id,
+                nome: photo.cliente_nome,
+                cognome: photo.cliente_cognome
+            }
+        }));
+
+        res.json(photos);
+    } catch (err) {
+        console.error("Errore nel recupero di tutte le foto:", err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+
+
+
 // --- API CALENDARIO ---
 app.get("/api/events", ensureAuthenticated, async (req, res) => {
     try {
@@ -943,6 +999,7 @@ app.get("/api/events", ensureAuthenticated, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 // API PER GLI APPUNTAMENTI DI OGGI (PER LA DASHBOARD)
 app.get("/api/appuntamenti/oggi", ensureAuthenticated, async (req, res) => {
