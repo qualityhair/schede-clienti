@@ -160,6 +160,35 @@
 </div>
 
 
+<!-- ======================================================= -->
+<!-- === NUOVA MODALE PER LA MODIFICA DEI DETTAGLI FOTO === -->
+<!-- ======================================================= -->
+<div id="editPhotoModal" class="modal">
+    <div class="modal-content">
+        <h3>Modifica Dettagli Foto</h3>
+        <form id="formEditPhoto">
+            <input type="hidden" id="edit-photo-id">
+            
+            <div class="form-group">
+                <img id="edit-photo-preview" src="" alt="Anteprima modifica" style="max-width: 150px; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">
+            </div>
+
+            <div class="form-group">
+                <label for="edit-photo-didascalia" class="form-label">Didascalia (Opzionale):</label>
+                <input type="text" id="edit-photo-didascalia" class="input-field">
+            </div>
+            <div class="form-group">
+                <label for="edit-photo-tags" class="form-label">Tag (separati da virgola):</label>
+                <input type="text" id="edit-photo-tags" class="input-field">
+            </div>
+            <div class="modal-buttons">
+                <button type="submit" class="modal-button ok">Salva Modifiche</button>
+                <button type="button" class="modal-button cancel" id="cancel-edit-photo-btn">Annulla</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 			
 
             <div class="two-column-stack"> 

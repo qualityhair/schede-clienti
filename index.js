@@ -908,6 +908,42 @@ app.post("/api/clienti/:id/photos", ensureAuthenticated, upload.single('clientIm
     }
 });
 
+// AGGIUNGI QUESTA NUOVA ROTTA PER LA MODIFICA DELLA FOTO
+
+app.put("/api/photos/:photoId", ensureAuthenticated, async (req, res) => {
+    const { photoId } = req.params;
+    const { didascalia, tags } = req.body;
+
+    // Sicurezza: ci assicuriamo che i tag siano sempre un array
+    const tagsToSave = Array.isArray(tags) ? tags : [];
+
+    try {
+        const query = `
+            UPDATE client_photos
+            SET
+                didascalia = $1,
+                tags = $2
+            WHERE
+                id = $3
+            RETURNING *;
+        `;
+
+        const result = await db.query(query, [didascalia, tagsToSave, photoId]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Foto non trovata." });
+        }
+
+        res.json({ message: "Dettagli foto aggiornati con successo!" });
+    } catch (err) {
+        console.error(`Errore durante l'aggiornamento della foto ${photoId}:`, err);
+        res.status(500).json({ error: "Errore del server durante l'aggiornamento." });
+    }
+});
+
+
+
+
 // Rotta per eliminare una foto
 app.delete("/api/photos/:photoId", ensureAuthenticated, async (req, res) => {
     // Aggiungeremo la logica per eliminare il file fisico qui in futuro

@@ -1402,33 +1402,53 @@ body {
     color: #ffffff; /* Testo bianco per un buon contrasto */
 }
 
-/* === STILI PER LA GALLERIA FOTOGRAFICA === */
+/* Contenitore per ogni elemento della galleria (immagine + info) */
+.photo-item-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Spazio tra immagine e testo */
+}
+
 #photo-gallery-content {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Miniature un po' più grandi */
+    gap: 20px;
 }
+
 .photo-thumbnail {
     position: relative;
     cursor: pointer;
     overflow: hidden;
     border-radius: 8px;
-    aspect-ratio: 1 / 1; /* Rende le miniature quadrate */
+    aspect-ratio: 1 / 1;
 }
 .photo-thumbnail img {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Assicura che l'immagine riempia il quadrato senza distorsioni */
+    object-fit: cover;
     transition: transform 0.2s ease-in-out;
 }
 .photo-thumbnail:hover img {
     transform: scale(1.1);
 }
-.photo-delete-btn {
+
+/* Contenitore per i bottoni sulla miniatura (resta invariato) */
+.photo-actions-overlay {
     position: absolute;
     top: 5px;
     right: 5px;
-    background-color: rgba(220, 53, 69, 0.8); /* Rosso traslucido */
+    display: flex;
+    gap: 5px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.photo-thumbnail:hover .photo-actions-overlay {
+    opacity: 1;
+}
+
+/* Stile condiviso per i bottoni icona sulla foto */
+.photo-action-btn {
+    background-color: rgba(0, 0, 0, 0.6);
     color: white;
     border: none;
     border-radius: 50%;
@@ -1438,37 +1458,48 @@ body {
     line-height: 25px;
     text-align: center;
     cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+    padding: 0;
 }
-.photo-thumbnail:hover .photo-delete-btn {
-    opacity: 1;
+.photo-action-btn.edit {
+    background-color: rgba(0, 123, 255, 0.8); /* Blu */
 }
-/* Stili per i tag sotto le miniature delle foto */
+.photo-action-btn.delete {
+    background-color: rgba(220, 53, 69, 0.8); /* Rosso */
+}
+.photo-action-btn:hover {
+    filter: brightness(1.2);
+}
+
+/* --- NUOVI STILI PER LE INFORMAZIONI SOTTO LA FOTO --- */
+.photo-info-container {
+    text-align: left;
+}
+.photo-didascalia {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e0e0e0;
+    margin: 0 0 5px 0;
+    /* Tronca il testo se troppo lungo */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 .photo-tags-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 5px;
-    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-}
-.photo-thumbnail:hover .photo-tags-container {
-    opacity: 1;
 }
 .photo-tag {
     font-size: 0.7rem;
     font-weight: 600;
-    background-color: rgba(255, 215, 0, 0.9); /* Giallo traslucido */
-    color: #1a1a1a;
+    background-color: #555; /* Colore neutro per i tag sotto la foto */
+    color: #fff;
     padding: 2px 6px;
     border-radius: 4px;
 }
+
+
+
 
 /*
   Questa regola fa in modo che il pannello della galleria fotografica

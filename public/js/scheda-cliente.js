@@ -32,6 +32,15 @@ const cancelCameraBtn = document.getElementById('cancel-camera-btn');
 const photoPreview = document.getElementById('photo-preview');
 const usePhotoBtn = document.getElementById('use-photo-btn');
 const retakePhotoBtn = document.getElementById('retake-photo-btn');
+
+// Riferimenti per la modale di modifica foto
+const editPhotoModal = document.getElementById('editPhotoModal');
+const formEditPhoto = document.getElementById('formEditPhoto');
+const cancelEditPhotoBtn = document.getElementById('cancel-edit-photo-btn');
+const editPhotoIdInput = document.getElementById('edit-photo-id');
+const editPhotoPreview = document.getElementById('edit-photo-preview');
+const editPhotoDidascaliaInput = document.getElementById('edit-photo-didascalia');
+const editPhotoTagsInput = document.getElementById('edit-photo-tags');
 	
 	
 	
@@ -271,13 +280,13 @@ function displayClientTags(tags = []) {
         });
     }
 	
-	// SOSTITUISCI LA TUA VECCHIA FUNZIONE 'loadClientPhotos' CON QUESTA
+// VERSIONE COMPLETA CON INFO SOTTO LA MINIATURA
 async function loadClientPhotos(clientId) {
     const galleryContent = document.getElementById('photo-gallery-content');
     const filterContainer = document.getElementById('photo-tags-filter-container');
 
     galleryContent.innerHTML = '<p class="loading-message">Caricamento foto...</p>';
-    filterContainer.innerHTML = ''; // Pulisce i filtri vecchi
+    filterContainer.innerHTML = '';
 
     try {
         const response = await fetch(`/api/clienti/${clientId}/photos`);
@@ -286,27 +295,45 @@ async function loadClientPhotos(clientId) {
 
         if (!photos || photos.length === 0) {
             galleryContent.innerHTML = '<p>Nessuna foto presente.</p>';
-            return; // Esce dalla funzione se non ci sono foto
+            return;
         }
 
-        // --- 1. CREAZIONE DELLE MINIATURE DELLE FOTO ---
+        // --- 1. CREAZIONE DEGLI ELEMENTI (Logica Modificata) ---
         photos.forEach(photo => {
+            // Contenitore principale per ogni "card" della foto
+            const itemContainer = document.createElement('div');
+            itemContainer.className = 'photo-item-container';
+            itemContainer.dataset.tags = (photo.tags || []).join(',').toLowerCase();
+
+            // Contenitore per la miniatura cliccabile e le azioni
             const thumbDiv = document.createElement('div');
             thumbDiv.className = 'photo-thumbnail';
-            // Aggiungiamo i tag della foto come attributo dati per il filtraggio
-            thumbDiv.dataset.tags = (photo.tags || []).join(',').toLowerCase();
-
+            
             const img = document.createElement('img');
             img.src = photo.url;
             img.alt = photo.didascalia || 'Foto cliente';
-            img.onclick = () => {
+            thumbDiv.onclick = () => {
                 fullscreenPhoto.src = photo.url;
                 openModal(viewPhotoModal);
             };
+            thumbDiv.appendChild(img);
 
+            // Contenitore per i bottoni di azione (Modifica/Elimina)
+            const actionsOverlay = document.createElement('div');
+            actionsOverlay.className = 'photo-actions-overlay';
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'photo-action-btn edit';
+            editBtn.innerHTML = '✏️';
+            editBtn.title = 'Modifica Dettagli';
+            editBtn.onclick = (e) => {
+                e.stopPropagation();
+                openEditPhotoModal(photo);
+            };
+            
             const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'photo-delete-btn';
-            deleteBtn.innerHTML = '×';
+            deleteBtn.className = 'photo-action-btn delete';
+            deleteBtn.innerHTML = '&times;';
             deleteBtn.title = 'Elimina Foto';
             deleteBtn.onclick = (e) => {
                 e.stopPropagation();
@@ -315,9 +342,21 @@ async function loadClientPhotos(clientId) {
                 }
             };
 
-            thumbDiv.appendChild(img);
-            thumbDiv.appendChild(deleteBtn);
-            
+            actionsOverlay.appendChild(editBtn);
+            actionsOverlay.appendChild(deleteBtn);
+            thumbDiv.appendChild(actionsOverlay);
+
+            // Contenitore per le informazioni testuali (sotto la foto)
+            const infoContainer = document.createElement('div');
+            infoContainer.className = 'photo-info-container';
+
+            if (photo.didascalia) {
+                const didascaliaP = document.createElement('p');
+                didascaliaP.className = 'photo-didascalia';
+                didascaliaP.textContent = photo.didascalia;
+                infoContainer.appendChild(didascaliaP);
+            }
+
             if (photo.tags && photo.tags.length > 0) {
                 const tagsContainer = document.createElement('div');
                 tagsContainer.className = 'photo-tags-container';
@@ -327,36 +366,34 @@ async function loadClientPhotos(clientId) {
                     tagEl.textContent = tagText;
                     tagsContainer.appendChild(tagEl);
                 });
-                thumbDiv.appendChild(tagsContainer);
+                infoContainer.appendChild(tagsContainer);
             }
-            
-            galleryContent.appendChild(thumbDiv);
+
+            // Assembla la card completa: prima l'immagine, poi le info
+            itemContainer.appendChild(thumbDiv);
+            if (infoContainer.hasChildNodes()) {
+                itemContainer.appendChild(infoContainer);
+            }
+            galleryContent.appendChild(itemContainer);
         });
 
-        // --- 2. CREAZIONE DEI BOTTONI-FILTRO ---
-        // Raccogliamo tutti i tag da tutte le foto in un unico posto
+        // --- 2. LOGICA DEI FILTRI (Aggiornata per il nuovo contenitore) ---
         const allTags = photos.flatMap(p => p.tags || []);
-        // Creiamo una lista di tag unici (senza duplicati)
         const uniqueTags = [...new Set(allTags)];
-        uniqueTags.sort(); // Ordiniamo alfabeticamente
+        uniqueTags.sort();
 
-        // Funzione per filtrare le immagini
         const filterPhotos = (tagToFilter) => {
-            const allThumbnails = galleryContent.querySelectorAll('.photo-thumbnail');
+            const allItems = galleryContent.querySelectorAll('.photo-item-container'); // <-- Selettore aggiornato
             
-                        allThumbnails.forEach(thumb => {
-                // Trasformiamo la stringa di tag in un vero array
-                const thumbTagsArray = thumb.dataset.tags.split(',');
-                
-                // Controlliamo se l'array dei tag della foto include esattamente il tag che stiamo filtrando
-                if (!tagToFilter || thumbTagsArray.includes(tagToFilter.toLowerCase())) {
-                    thumb.style.display = 'block'; // Mostra
+            allItems.forEach(item => {
+                const itemTagsArray = item.dataset.tags.split(',');
+                if (!tagToFilter || itemTagsArray.includes(tagToFilter.toLowerCase())) {
+                    item.style.display = 'flex'; // Usiamo flex perché il contenitore è flex-direction: column
                 } else {
-                    thumb.style.display = 'none'; // Nascondi
+                    item.style.display = 'none';
                 }
             });
             
-            // Aggiorna lo stato attivo dei bottoni
             filterContainer.querySelectorAll('.tag-filter-btn').forEach(btn => {
                 if (btn.dataset.tag === tagToFilter) {
                     btn.classList.add('active');
@@ -366,15 +403,13 @@ async function loadClientPhotos(clientId) {
             });
         };
 
-        // Creiamo il bottone "Mostra Tutti"
         const allBtn = document.createElement('button');
-        allBtn.className = 'tag-filter-btn active'; // Attivo di default
+        allBtn.className = 'tag-filter-btn active';
         allBtn.textContent = 'Mostra Tutti';
-        allBtn.dataset.tag = ''; // Tag vuoto per "tutti"
+        allBtn.dataset.tag = '';
         allBtn.onclick = () => filterPhotos('');
         filterContainer.appendChild(allBtn);
 
-        // Creiamo un bottone per ogni tag unico
         uniqueTags.forEach(tag => {
             const filterBtn = document.createElement('button');
             filterBtn.className = 'tag-filter-btn';
@@ -387,18 +422,6 @@ async function loadClientPhotos(clientId) {
     } catch (error) {
         console.error('Errore nel caricamento delle foto:', error);
         galleryContent.innerHTML = '<p class="error-message">Impossibile caricare le foto.</p>';
-    }
-}
-
-async function deletePhoto(photoId) {
-    try {
-        const response = await fetch(`/api/photos/${photoId}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error('Errore server');
-        showMessage('Foto eliminata con successo.', 'success');
-        loadClientPhotos(currentClientId); // Ricarica la galleria
-    } catch (error) {
-        console.error('Errore eliminazione foto:', error);
-        showMessage('Errore durante l\'eliminazione della foto.', 'error');
     }
 }
 
@@ -462,6 +485,62 @@ function resetPhotoModal() {
     document.getElementById('photo-file').value = '';
 }
 
+// =======================================================
+// === FUNZIONI PER GESTIRE I DETTAGLI DELLE FOTO ===
+// =======================================================
+
+// Funzione per eliminare una foto
+async function deletePhoto(photoId) {
+    try {
+        const response = await fetch(`/api/photos/${photoId}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Errore server durante l\'eliminazione.');
+        showMessage('Foto eliminata con successo.', 'success');
+        loadClientPhotos(currentClientId); // Ricarica la galleria aggiornata
+    } catch (error) {
+        console.error('Errore eliminazione foto:', error);
+        showMessage('Errore durante l\'eliminazione della foto.', 'error');
+    }
+}
+
+// Funzione per aprire la modale di modifica con i dati della foto
+function openEditPhotoModal(photo) {
+    editPhotoIdInput.value = photo.id;
+    editPhotoPreview.src = photo.url;
+    editPhotoDidascaliaInput.value = photo.didascalia || '';
+    editPhotoTagsInput.value = (photo.tags || []).join(', ');
+    openModal(editPhotoModal);
+}
+
+// Funzione per salvare le modifiche ai dettagli della foto
+async function handleEditPhoto(event) {
+    event.preventDefault();
+    
+    const photoId = editPhotoIdInput.value;
+    const didascalia = editPhotoDidascaliaInput.value.trim();
+    const tagsString = editPhotoTagsInput.value.trim();
+    const tags = tagsString ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+
+    try {
+        const response = await fetch(`/api/photos/${photoId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ didascalia, tags })
+        });
+
+        const data = await handleApiResponse(response);
+        if (!response.ok) {
+            throw new Error(data.error || 'Errore durante l\'aggiornamento.');
+        }
+
+        showMessage('Dettagli della foto aggiornati!', 'success');
+        closeModal(editPhotoModal, formEditPhoto);
+        loadClientPhotos(currentClientId); // Ricarica la galleria per vedere le modifiche
+
+    } catch (error) {
+        console.error('Errore durante la modifica della foto:', error);
+        showMessage(`Errore: ${error.message}`, 'error');
+    }
+}
 	
 	
     
@@ -899,6 +978,16 @@ function resetPhotoModal() {
             }
         });
     }
+
+// Aggiungi questo blocco alla fine della sezione degli event listeners
+
+if(cancelEditPhotoBtn) {
+    cancelEditPhotoBtn.addEventListener('click', () => closeModal(editPhotoModal, formEditPhoto));
+}
+if(formEditPhoto) {
+    formEditPhoto.addEventListener('submit', handleEditPhoto);
+}
+
 
     // --- 7. AVVIO ---
     getClientIdsFromSearch();
