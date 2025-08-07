@@ -110,7 +110,10 @@ const editPhotoTagsInput = document.getElementById('edit-photo-tags');
 	// --- FINE NUOVI RIFERIMENTI ---
 	// Sotto la riga di 'modificaSoprannomeInput'
 	const modificaTagsInput = document.getElementById('modifica-tags'); 
-const profileAvatar = document.getElementById('profile-avatar');
+	
+	const emailBtn = document.getElementById('email-btn');
+	const whatsappBtn = document.getElementById('whatsapp-btn');
+	const profilePictureImg = document.getElementById('profile-picture');
 
     // Variabili di stato
     let currentClientId = null;
@@ -213,52 +216,57 @@ function displayClientTags(tags = []) {
 
 
 
-    async function loadClientData(clientId) {
+    // SOSTITUISCI LA TUA VECCHIA loadClientData CON QUESTA
+async function loadClientData(clientId) {
     if (!clientId) {
         showMessage("ID Cliente non fornito.", 'error');
         return;
     }
     try {
-        // --- PARTE 1: Recupera i dati principali del cliente ---
-        const clientResponse = await fetch(`/api/clienti/${clientId}`);
-        const data = await handleApiResponse(clientResponse);
-        if (!data || !clientResponse.ok) throw new Error(data?.error || "Errore caricamento dati cliente.");
-        
+        // Step 1: Carica i dati base del cliente
+        const response = await fetch(`/api/clienti/${clientId}`);
+        const data = await handleApiResponse(response);
+        if (!data || !response.ok) throw new Error(data?.error || "Errore caricamento dati cliente.");
+
         const client = data.client;
-        if (!client) {
-            showMessage("Cliente non trovato.", 'error');
-            return;
-        }
+        if (client) {
+            currentClienteData = client;
+            nomeCompletoSpan.textContent = `${client.nome} ${client.cognome}`;
+            soprannomeSpan.textContent = client.soprannome || "N/A";
+            emailSpan.textContent = client.email || "N/A";
+            telefonoSpan.textContent = client.telefono || "N/A";
+            clienteNoteTextarea.value = client.preferenze_note || '';
+            displayClientTags(client.tags);
+            displayAcquisti(client.storico_acquisti);
+            displayTrattamenti(data.trattamenti || []);
 
-        currentClienteData = client; // Salva i dati base
+            // --- NUOVA LOGICA PER LA FOTO PROFILO ---
+            // Usiamo la stessa chiamata API che già facciamo per le gallerie,
+            // ma la anticipiamo qui per trovare la foto profilo.
+            const photoResponse = await fetch(`/api/clienti/${clientId}/photos`);
+            const allPhotos = await handleApiResponse(photoResponse) || [];
+            
+            // Salviamo le foto in una variabile globale per riutilizzarle,
+            // così le altre funzioni non dovranno fare di nuovo la stessa chiamata.
+            currentClienteData.photos = allPhotos; 
+            
+            const profilePhoto = allPhotos.find(p => (p.tags || []).includes('profilo'));
+            
+            if (profilePhoto) {
+                profilePictureImg.src = profilePhoto.url;
+            } else {
+                profilePictureImg.src = '/img/default-avatar.png';
+            }
+            // --- FINE NUOVA LOGICA ---
 
-        // --- PARTE 2 (NUOVA): Recupera le foto e imposta l'avatar ---
-        const photoResponse = await fetch(`/api/clienti/${clientId}/photos`);
-        const allPhotos = await handleApiResponse(photoResponse) || [];
-        currentClienteData.photos = allPhotos; // Salva le foto per un uso futuro
+            // Ora chiamiamo le funzioni delle gallerie
+            loadStyleClientPhotos(clientId);
 
-        const profilePhoto = allPhotos.find(p => (p.tags || []).includes('profilo'));
-        
-        if (profilePhoto) {
-            profileAvatar.src = profilePhoto.url;
+            loadTrichoClientPhotos(clientId);
+            
         } else {
-            profileAvatar.src = '/img/default-avatar.png';
+            showMessage("Cliente non trovato.", 'error');
         }
-
-        // --- PARTE 3: Popola il resto della pagina con i dati ---
-        nomeCompletoSpan.textContent = `${client.nome} ${client.cognome}`;
-        soprannomeSpan.textContent = client.soprannome || "N/A";
-        emailSpan.textContent = client.email || "N/A";
-        telefonoSpan.textContent = client.telefono || "N/A";
-        clienteNoteTextarea.value = client.preferenze_note || '';
-        displayClientTags(client.tags);
-        displayAcquisti(client.storico_acquisti);
-        displayTrattamenti(data.trattamenti || []);
-        
-        // --- PARTE 4: Avvia il caricamento delle gallerie ---
-        loadStyleClientPhotos(clientId);
-        loadTrichoClientPhotos(clientId);
-
     } catch (error) {
         console.error("Errore in loadClientData:", error);
         showMessage(`Errore: ${error.message}`, 'error');
@@ -324,182 +332,30 @@ function displayClientTags(tags = []) {
         });
     }
 	
-// VERSIONE COMPLETA CON INFO SOTTO LA MINIATURA
-	async function loadStyleClientPhotos(clientId) {
-    const galleryContent = document.getElementById('photo-gallery-content');
-    const filterContainer = document.getElementById('photo-tags-filter-container');
 
-    galleryContent.innerHTML = '<p class="loading-message">Caricamento foto...</p>';
-    filterContainer.innerHTML = '';
-
-    try {
-        const response = await fetch(`/api/clienti/${clientId}/photos`);
-        const photos = await handleApiResponse(response);
-		const stylePhotos = photos.filter(p => !(p.tags || []).includes('_trico'));
-        galleryContent.innerHTML = '';
-
-        if (!stylePhotos || stylePhotos.length === 0) {
-            galleryContent.innerHTML = '<p>Nessuna foto presente.</p>';
-            return;
-        }
-
-        // --- 1. CREAZIONE DEGLI ELEMENTI (Logica Modificata) ---
-        stylePhotos.forEach(photo => {
-            // Contenitore principale per ogni "card" della foto
-            const itemContainer = document.createElement('div');
-            itemContainer.className = 'photo-item-container';
-            itemContainer.dataset.tags = (photo.tags || []).join(',').toLowerCase();
-
-            // Contenitore per la miniatura cliccabile e le azioni
-            const thumbDiv = document.createElement('div');
-            thumbDiv.className = 'photo-thumbnail';
-            
-            const img = document.createElement('img');
-            img.src = photo.url;
-            img.alt = photo.didascalia || 'Foto cliente';
-            thumbDiv.onclick = () => {
-                fullscreenPhoto.src = photo.url;
-                openModal(viewPhotoModal);
-            };
-            thumbDiv.appendChild(img);
-
-            // Contenitore per i bottoni di azione (Modifica/Elimina)
-            const actionsOverlay = document.createElement('div');
-            actionsOverlay.className = 'photo-actions-overlay';
-
-            const editBtn = document.createElement('button');
-            editBtn.className = 'photo-action-btn edit';
-            editBtn.innerHTML = '✏️';
-            editBtn.title = 'Modifica Dettagli';
-            editBtn.onclick = (e) => {
-                e.stopPropagation();
-                openEditPhotoModal(photo);
-            };
-            
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'photo-action-btn delete';
-            deleteBtn.innerHTML = '&times;';
-            deleteBtn.title = 'Elimina Foto';
-            deleteBtn.onclick = (e) => {
-                e.stopPropagation();
-                if (confirm('Sei sicuro di voler eliminare questa foto?')) {
-                    deletePhoto(photo.id);
-                }
-            };
-
-            actionsOverlay.appendChild(editBtn);
-            actionsOverlay.appendChild(deleteBtn);
-            thumbDiv.appendChild(actionsOverlay);
-
-            // Contenitore per le informazioni testuali (sotto la foto)
-            const infoContainer = document.createElement('div');
-            infoContainer.className = 'photo-info-container';
-
-            if (photo.didascalia) {
-                const didascaliaP = document.createElement('p');
-                didascaliaP.className = 'photo-didascalia';
-                didascaliaP.textContent = photo.didascalia;
-                infoContainer.appendChild(didascaliaP);
-            }
-
-            if (photo.tags && photo.tags.length > 0) {
-                const tagsContainer = document.createElement('div');
-                tagsContainer.className = 'photo-tags-container';
-                photo.tags.forEach(tagText => {
-                    const tagEl = document.createElement('span');
-                    tagEl.className = 'photo-tag';
-                    tagEl.textContent = tagText;
-                    tagsContainer.appendChild(tagEl);
-                });
-                infoContainer.appendChild(tagsContainer);
-            }
-
-            // Assembla la card completa: prima l'immagine, poi le info
-            itemContainer.appendChild(thumbDiv);
-            if (infoContainer.hasChildNodes()) {
-                itemContainer.appendChild(infoContainer);
-            }
-            galleryContent.appendChild(itemContainer);
-        });
-
-        // --- 2. LOGICA DEI FILTRI (Aggiornata per il nuovo contenitore) ---
-        const allTags = stylePhotos.flatMap(p => p.tags || []);
-        const uniqueTags = [...new Set(allTags)];
-        uniqueTags.sort();
-
-        const filterPhotos = (tagToFilter) => {
-            const allItems = galleryContent.querySelectorAll('.photo-item-container'); // <-- Selettore aggiornato
-            
-            allItems.forEach(item => {
-                const itemTagsArray = item.dataset.tags.split(',');
-                if (!tagToFilter || itemTagsArray.includes(tagToFilter.toLowerCase())) {
-                    item.style.display = 'flex'; // Usiamo flex perché il contenitore è flex-direction: column
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-            
-            filterContainer.querySelectorAll('.tag-filter-btn').forEach(btn => {
-                if (btn.dataset.tag === tagToFilter) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-        };
-
-        const allBtn = document.createElement('button');
-        allBtn.className = 'tag-filter-btn active';
-        allBtn.textContent = 'Mostra Tutti';
-        allBtn.dataset.tag = '';
-        allBtn.onclick = () => filterPhotos('');
-        filterContainer.appendChild(allBtn);
-
-        uniqueTags.forEach(tag => {
-            const filterBtn = document.createElement('button');
-            filterBtn.className = 'tag-filter-btn';
-            filterBtn.textContent = tag;
-            filterBtn.dataset.tag = tag;
-            filterBtn.onclick = () => filterPhotos(tag);
-            filterContainer.appendChild(filterBtn);
-        });
-
-    } catch (error) {
-        console.error('Errore nel caricamento delle foto:', error);
-        galleryContent.innerHTML = '<p class="error-message">Impossibile caricare le foto.</p>';
-    }
-}
-
-// NUOVA FUNZIONE PER CARICARE LE FOTO DELLA GALLERIA TRICO
-async function loadTrichoClientPhotos(clientId) {
-    const galleryContent = trichoPhotoGalleryContent; // Usa il contenitore TRICO
-    const filterContainer = trichoPhotoTagsFilterContainer; // Usa il contenitore filtri TRICO
+	// VERSIONE FINALE DI loadStyleClientPhotos
+async function loadStyleClientPhotos(clientId) {
+    const galleryContent = photoGalleryContent;
+    const filterContainer = photoTagsFilterContainer;
 
     galleryContent.innerHTML = '<p class="loading-message">Caricamento foto...</p>';
     if (filterContainer) filterContainer.innerHTML = '';
 
     try {
-        const response = await fetch(`/api/clienti/${clientId}/photos`);
-        const allPhotos = await handleApiResponse(response);
-        if (!allPhotos) return;
-
-        // FILTRA E PRENDE SOLO LE FOTO CON IL TAG '_trico'
-        const trichoPhotos = allPhotos.filter(p => (p.tags || []).includes('_trico'));
+        const allPhotos = currentClienteData.photos || [];
+        const stylePhotos = allPhotos.filter(p => !(p.tags || []).includes('_trico'));
 
         galleryContent.innerHTML = '';
-        if (trichoPhotos.length === 0) {
+        if (stylePhotos.length === 0) {
             galleryContent.innerHTML = '<p>Nessuna foto presente.</p>';
             return;
         }
 
-        trichoPhotos.forEach(photo => {
-            // Rimuove il tag speciale '_trico' prima di mostrarli
+        stylePhotos.forEach(photo => {
             const displayTags = (photo.tags || []).filter(t => t !== '_trico');
-            
             const itemContainer = document.createElement('div');
             itemContainer.className = 'photo-item-container';
             itemContainer.dataset.tags = displayTags.join(',').toLowerCase();
-
             const thumbDiv = document.createElement('div');
             thumbDiv.className = 'photo-thumbnail';
             const img = document.createElement('img');
@@ -510,7 +366,6 @@ async function loadTrichoClientPhotos(clientId) {
                 openModal(viewPhotoModal);
             };
             thumbDiv.appendChild(img);
-
             const actionsOverlay = document.createElement('div');
             actionsOverlay.className = 'photo-actions-overlay';
             const editBtn = document.createElement('button');
@@ -526,7 +381,114 @@ async function loadTrichoClientPhotos(clientId) {
             actionsOverlay.appendChild(editBtn);
             actionsOverlay.appendChild(deleteBtn);
             thumbDiv.appendChild(actionsOverlay);
+            const infoContainer = document.createElement('div');
+            infoContainer.className = 'photo-info-container';
+            if (photo.didascalia) {
+                const didascaliaP = document.createElement('p');
+                didascaliaP.className = 'photo-didascalia';
+                didascaliaP.textContent = photo.didascalia;
+                infoContainer.appendChild(didascaliaP);
+            }
+            if (displayTags.length > 0) {
+                const tagsContainer = document.createElement('div');
+                tagsContainer.className = 'photo-tags-container';
+                displayTags.forEach(tagText => {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'photo-tag';
+                    tagEl.textContent = tagText;
+                    tagsContainer.appendChild(tagEl);
+                });
+                infoContainer.appendChild(tagsContainer);
+            }
+            itemContainer.appendChild(thumbDiv);
+            if (infoContainer.hasChildNodes()) { itemContainer.appendChild(infoContainer); }
+            galleryContent.appendChild(itemContainer);
+        });
 
+        const allDisplayTags = stylePhotos.flatMap(p => (p.tags || []).filter(t => t !== '_trico'));
+        const uniqueTags = [...new Set(allDisplayTags)];
+        uniqueTags.sort();
+        const filterPhotos = (tagToFilter) => {
+            const allItems = galleryContent.querySelectorAll('.photo-item-container');
+            allItems.forEach(item => {
+                const itemTagsArray = item.dataset.tags.split(',');
+                if (!tagToFilter || itemTagsArray.includes(tagToFilter.toLowerCase())) {
+                    item.style.display = 'flex';
+                } else { item.style.display = 'none'; }
+            });
+            filterContainer.querySelectorAll('.tag-filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tag === tagToFilter);
+            });
+        };
+        const allBtn = document.createElement('button');
+        allBtn.className = 'tag-filter-btn active';
+        allBtn.textContent = 'Mostra Tutti';
+        allBtn.dataset.tag = '';
+        allBtn.onclick = () => filterPhotos('');
+        filterContainer.appendChild(allBtn);
+        uniqueTags.forEach(tag => {
+            const filterBtn = document.createElement('button');
+            filterBtn.className = 'tag-filter-btn';
+            filterBtn.textContent = tag;
+            filterBtn.dataset.tag = tag;
+            filterBtn.onclick = () => filterPhotos(tag);
+            filterContainer.appendChild(filterBtn);
+        });
+    } catch (error) {
+        console.error('Errore caricamento foto Style:', error);
+        galleryContent.innerHTML = '<p class="error-message">Impossibile caricare le foto.</p>';
+    }
+}
+
+
+// VERSIONE FINALE DI loadTrichoClientPhotos
+async function loadTrichoClientPhotos(clientId) {
+    const galleryContent = trichoPhotoGalleryContent;
+    const filterContainer = trichoPhotoTagsFilterContainer;
+
+    galleryContent.innerHTML = '<p class="loading-message">Caricamento foto...</p>';
+    if (filterContainer) filterContainer.innerHTML = '';
+
+    try {
+        const allPhotos = currentClienteData.photos || [];
+        const trichoPhotos = allPhotos.filter(p => (p.tags || []).includes('_trico'));
+
+        galleryContent.innerHTML = '';
+        if (trichoPhotos.length === 0) {
+            galleryContent.innerHTML = '<p>Nessuna foto presente.</p>';
+            return;
+        }
+
+        trichoPhotos.forEach(photo => {
+            const displayTags = (photo.tags || []).filter(t => t !== '_trico');
+            const itemContainer = document.createElement('div');
+            itemContainer.className = 'photo-item-container';
+            itemContainer.dataset.tags = displayTags.join(',').toLowerCase();
+            const thumbDiv = document.createElement('div');
+            thumbDiv.className = 'photo-thumbnail';
+            const img = document.createElement('img');
+            img.src = photo.url;
+            img.alt = photo.didascalia || 'Foto cliente';
+            thumbDiv.onclick = () => {
+                fullscreenPhoto.src = photo.url;
+                openModal(viewPhotoModal);
+            };
+            thumbDiv.appendChild(img);
+            const actionsOverlay = document.createElement('div');
+            actionsOverlay.className = 'photo-actions-overlay';
+            const editBtn = document.createElement('button');
+            editBtn.className = 'photo-action-btn edit';
+            editBtn.innerHTML = '✏️';
+            editBtn.title = 'Modifica Dettagli';
+            editBtn.onclick = (e) => { e.stopPropagation(); openEditPhotoModal(photo); };
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'photo-action-btn delete';
+            deleteBtn.innerHTML = '&times;';
+            deleteBtn.title = 'Elimina Foto';
+            deleteBtn.onclick = (e) => { e.stopPropagation(); if (confirm('Sei sicuro?')) { deletePhoto(photo.id); } };
+            actionsOverlay.appendChild(editBtn);
+            actionsOverlay.appendChild(deleteBtn);
+            thumbDiv.appendChild(actionsOverlay);
             const infoContainer = document.createElement('div');
             infoContainer.className = 'photo-info-container';
             if (photo.didascalia) {
@@ -554,7 +516,6 @@ async function loadTrichoClientPhotos(clientId) {
         const allDisplayTags = trichoPhotos.flatMap(p => (p.tags || []).filter(t => t !== '_trico'));
         const uniqueTags = [...new Set(allDisplayTags)];
         uniqueTags.sort();
-        
         const filterPhotos = (tagToFilter) => {
             const allItems = galleryContent.querySelectorAll('.photo-item-container');
             allItems.forEach(item => {
@@ -567,7 +528,6 @@ async function loadTrichoClientPhotos(clientId) {
                 btn.classList.toggle('active', btn.dataset.tag === tagToFilter);
             });
         };
-
         const allBtn = document.createElement('button');
         allBtn.className = 'tag-filter-btn active';
         allBtn.textContent = 'Mostra Tutti';
@@ -740,7 +700,9 @@ async function handleEditPhoto(event) {
 
     try {
         // Prima di salvare, controlliamo se la foto originale era 'trico'
-    const originalPhoto = currentClienteData.photos.find(p => p.id == photoId);
+        const photoResponse = await fetch(`/api/clienti/${currentClientId}/photos`);
+        const allPhotos = await handleApiResponse(photoResponse);
+        const originalPhoto = allPhotos.find(p => p.id == photoId);
         
         if (originalPhoto && (originalPhoto.tags || []).includes('_trico')) {
             tags.push('_trico'); // Se era una foto trico, ri-aggiungiamo il tag nascosto
@@ -1186,7 +1148,7 @@ async function handleEditPhoto(event) {
                 showMessage('Foto caricata con successo!', 'success');
                 resetPhotoModal();
                 closeModal(addPhotoModal, formAddPhoto);
-                loadStyleClientPhotos(currentClientId);
+                loadClientPhotos(currentClientId);
             } catch (error) {
                 console.error("Errore durante l'upload della foto:", error);
                 showMessage(`Errore: ${error.message}`, 'error');

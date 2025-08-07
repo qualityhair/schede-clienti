@@ -1604,21 +1604,46 @@ body {
 }
 
 
-/* Stili per l'avatar nel titolo del profilo cliente */
+/* Stili per le icone di contatto nella scheda cliente */
+.contact-line {
+    display: flex;
+    justify-content: space-between; /* Allinea testo a sx e icona a dx */
+    align-items: center;
+    margin-bottom: 5px; /* Spazio tra le righe */
+}
+.contact-line p {
+    margin: 0; /* Rimuove il margine di default del paragrafo */
+}
+.contact-btn {
+    font-size: 1.5rem; /* Rende l'emoji più grande */
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+.contact-btn:hover {
+    transform: scale(1.2);
+}
+
+
+/* Stili per la foto profilo nel titolo */
 .profile-title-container {
     display: flex;
-    align-items: center; /* Allinea verticalmente l'avatar e il testo */
-    gap: 15px; /* Spazio tra l'avatar e il testo */
+    align-items: center; /* Allinea verticalmente foto e testo */
+    gap: 15px; /* Spazio tra foto e testo */
 }
 
-.profile-avatar {
-    width: 50px;  /* Dimensione dell'avatar */
-    height: 50px; /* Dimensione dell'avatar */
-    border-radius: 50%; /* Lo rende perfettamente rotondo */
-    object-fit: cover; /* Assicura che l'immagine riempia il cerchio senza deformarsi */
-    border: 2px solid #FFD700; /* Bordo giallo, come il logo */
+.profile-picture-small {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%; /* La rende perfettamente rotonda */
+    object-fit: cover; /* Assicura che la foto riempia il cerchio senza distorsioni */
+    border: 2px solid #FFD700; /* Bordo giallo, coerente con il tema */
 }
 
+.profile-title-text {
+    /* Il testo occuperà lo spazio rimanente */
+    flex-grow: 1;
+}
 
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */

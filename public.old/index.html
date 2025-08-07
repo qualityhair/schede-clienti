@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <title>Accedi - Quality Hair</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(145deg, #f0f0f0, #ffffff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-container {
+      background-color: #fff;
+      border-radius: 24px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      padding: 40px 50px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .login-container h1 {
+      font-weight: 700;
+      font-size: 2rem;
+      margin-bottom: 10px;
+      color: #222;
+    }
+
+    .login-container p {
+      font-weight: 300;
+      color: #777;
+      margin-bottom: 30px;
+    }
+
+    .google-btn {
+      background-color: #fff;
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #444;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .google-btn:hover {
+      background-color: #f7f7f7;
+    }
+
+    .google-btn img {
+      width: 20px;
+      margin-right: 10px;
+    }
+
+    .footer {
+      margin-top: 30px;
+      font-size: 0.85rem;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1>Quality Hair</h1>
+    <p>Accedi con il tuo account autorizzato</p>
+    <a class="google-btn" href="/auth/google" aria-label="Accedi con Google" rel="noopener noreferrer">
+      <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google logo">
+      Accedi con Google
+    </a>
+    <div class="footer">Solo per uso interno Quality Hair</div>
+  </div>
+
+  <script>
+  // Verifica col server prima di fare redirect automatico
+  async function checkAuthAndRedirect() {
+    const wasAuthenticated = localStorage.getItem('wasAuthenticated');
+
+    if (window.location.pathname === '/' && wasAuthenticated === 'true') {
+      try {
+        const res = await fetch('/check-auth'); // Nuova rotta che ti dico sotto
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated) {
+            window.location.href = '/dashboard.html';
+          } else {
+            localStorage.removeItem('wasAuthenticated');
+          }
+        } else {
+          localStorage.removeItem('wasAuthenticated');
+        }
+      } catch (e) {
+        localStorage.removeItem('wasAuthenticated');
+      }
+    }
+  }
+
+  checkAuthAndRedirect();
+  localStorage.setItem('wasAuthenticated', 'true');
+</script>
+
+</body>
+</html>

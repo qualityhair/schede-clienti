@@ -22,13 +22,28 @@
         <div class="panel-grid">
             <div class="panel client-details-panel">
                 <h2 class="panel-title profile-title-container">
-    <img id="profile-avatar" src="/img/default-avatar.png" alt="Avatar Cliente" class="profile-avatar">
-    <span>Profilo di... <span id="nome-completo" style="color: #FFD700;"></span></span>
+				<!-- Contenitore per la foto profilo -->
+				<img id="profile-picture" src="/img/default-avatar.png" alt="Foto Profilo" class="profile-picture-small">
+    
+				<!-- Contenitore per il testo -->
+				<span class="profile-title-text">
+				Profilo di... <span id="nome-completo" style="color: #FFD700;"></span>
+				</span>
 </h2>
                 <div class="panel-content">
 				<p><strong>Soprannome:</strong> <span id="soprannome-cliente" style="color: #FFD700;">N/A</span></p>
-				<p><strong>Email:</strong> <span id="email"></span></p>
-				<p><strong>Telefono:</strong> <span id="telefono"></span></p>
+				<div class="contact-line">
+				<p><strong>Email:</strong> <span id="email">N/A</span></p>
+				<a id="email-btn" class="contact-btn" title="Invia Email" style="display: none;">
+				📧
+				</a>
+				</div>
+				<div class="contact-line">
+				<p><strong>Telefono:</strong> <span id="telefono">N/A</span></p>
+				<a id="whatsapp-btn" class="contact-btn" title="Invia Messaggio WhatsApp" style="display: none;">
+				💬
+				</a>
+				</div>
 				</div>
                 <div class="panel-actions">
                     <button class="btn btn-primary" id="modificaDettagliBtn">✏️ Modifica Profilo</button>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lista Clienti</title>
+  <style>
+    /* STILE ORIGINALE (NON MODIFICATO) */
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2c3e50;
+    }
+    #lista-clienti {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .cliente-box {
+      background-color: #333;
+      border-radius: 8px;
+      padding: 15px 20px;
+      color: #f1c40f;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 130px;
+    }
+    .cliente-nome-cognome {
+      font-size: 1.3em;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .azioni-btns {
+      display: flex;
+      gap: 10px;
+      margin-top: auto;
+    }
+    button {
+      flex: 1;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      color: white;
+    }
+    button.details {
+      background-color: #2980b9;
+    }
+    button.details:hover {
+      background-color: #1c5980;
+    }
+    button.delete {
+      background-color: #e74c3c;
+    }
+    button.delete:hover {
+      background-color: #b43022;
+    }
+
+    /* STILE PAGINAZIONE (come in scheda-cliente) */
+    .client-navigation-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .btn-nav {
+      padding: 8px 16px;
+      background: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn-nav:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+    }
+    .pagination-info {
+      font-weight: bold;
+    }
+
+    /* STILE MENU A TENDA (nuovo) */
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    #items-per-page {
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+    }
+
+    /* RESPONSIVE (originale) */
+    @media (max-width: 992px) {
+      #lista-clienti {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 600px) {
+      #lista-clienti {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+ <div id="navbar"></div>
+
+ <div class="container">
+  <h1>Lista Clienti <span id="totale-clienti"></span></h1>
+  
+  <!-- MENU A TENDA (aggiunto) -->
+  <div class="controls">
+    <label for="items-per-page">Clienti per pagina:</label>
+    <select id="items-per-page">
+      <option value="5">5</option>
+      <option value="10" selected>10</option>
+      <option value="20">20</option>
+      <option value="50">50</option>
+    </select>
+  </div>
+  
+<div class="paginazione-superiore client-navigation-controls">
+  <button id="btnPrecedenteTop" class="btn-nav" disabled>⬅️ Indietro</button>
+  <p id="info-paginazione-top" class="pagination-info">Pagina 1 di 1</p>
+  <button id="btnSuccessivoTop" class="btn-nav">Avanti ➡️</button>
+</div>
+
+
+
+  <div id="lista-clienti">
+    <!-- Clienti caricati qui -->
+  </div>
+  
+  <!-- PAGINAZIONE sotto -->
+  <div class="client-navigation-controls">
+    <button id="btnPrecedente" class="btn-nav" disabled>⬅️ Indietro</button>
+    <p id="info-paginazione" class="pagination-info">Pagina 1</p>
+    <button id="btnSuccessivo" class="btn-nav">Avanti ➡️</button>
+  </div>
+ </div>
+
+<script src="/js/navbar-loader.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Configurazione
+    let allClienti = [];
+    let currentPage = 1;
+    let itemsPerPage = 10;
+    
+    // Elementi UI
+    const lista = document.getElementById('lista-clienti');
+    const totale = document.getElementById('totale-clienti');
+    const btnPrev = document.getElementById('btnPrecedente');
+    const btnNext = document.getElementById('btnSuccessivo');
+    const pageInfo = document.getElementById('info-paginazione');
+    const itemsPerPageSelect = document.getElementById('items-per-page');
+
+    // Carica tutti i clienti
+    async function loadAllClienti() {
+      try {
+        const response = await fetch('/api/clienti');
+        allClienti = await response.json();
+        updateClientList();
+        updatePagination();
+      } catch (error) {
+        console.error('Errore:', error);
+        lista.innerHTML = '<div class="cliente-box" style="grid-column:1/-1;text-align:center;color:#f1c40f;">Errore nel caricamento</div>';
+      }
+    }
+
+    // Aggiorna la lista clienti
+    function updateClientList() {
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const clientiPerPagina = allClienti.slice(start, end);
+
+      lista.innerHTML = clientiPerPagina.length > 0 
+        ? clientiPerPagina.map(cliente => `
+            <div class="cliente-box">
+              <div class="cliente-nome-cognome">${cliente.nome} ${cliente.cognome}</div>
+              <div class="azioni-btns">
+                <button class="details" onclick="modificaCliente(${cliente.id})">Dettagli</button>
+                <button class="delete" onclick="eliminaCliente(${cliente.id})">Elimina</button>
+              </div>
+            </div>
+          `).join('')
+        : '<div class="cliente-box" style="grid-column:1/-1;text-align:center;color:#f1c40f;">Nessun cliente trovato</div>';
+    }
+
+    // Aggiorna i controlli
+    function updatePagination() {
+      const totalPages = Math.ceil(allClienti.length / itemsPerPage);
+      
+      totale.textContent = `(${allClienti.length})`;
+      
+      // Aggiorna entrambi i display
+      document.querySelectorAll('.pagination-info').forEach(el => {
+        el.textContent = `Pagina ${currentPage} di ${totalPages}`;
+      });
+      
+      // Disabilita pulsanti in entrambe le posizioni
+      document.querySelectorAll('#btnPrecedente, #btnPrecedenteTop').forEach(btn => {
+        btn.disabled = currentPage === 1;
+      });
+      
+      document.querySelectorAll('#btnSuccessivo, #btnSuccessivoTop').forEach(btn => {
+        btn.disabled = currentPage >= totalPages;
+      });
+    }
+
+    // Funzioni di navigazione
+    function nextPage() {
+      currentPage++;
+      updateClientList();
+      updatePagination();
+    }
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        updateClientList();
+        updatePagination();
+      }
+    }
+
+    // Event listeners
+    itemsPerPageSelect.addEventListener('change', (e) => {
+      itemsPerPage = parseInt(e.target.value);
+      currentPage = 1;
+      updateClientList();
+      updatePagination();
+    });
+
+    btnNext.addEventListener('click', nextPage);
+    document.getElementById('btnSuccessivoTop').addEventListener('click', nextPage);
+    btnPrev.addEventListener('click', prevPage);
+    document.getElementById('btnPrecedenteTop').addEventListener('click', prevPage);
+
+    // Funzioni globali
+    window.modificaCliente = function(id) {
+      window.location.href = `/scheda-cliente.html?id=${id}`;
+    };
+
+    window.eliminaCliente = function(id) {
+      if (confirm('Sei sicuro di voler eliminare questo cliente?')) {
+        fetch(`/api/clienti/${id}`, { method: 'DELETE' })
+          .then(response => {
+            if (response.ok) {
+              loadAllClienti();
+            } else {
+              alert('Errore durante l\'eliminazione');
+            }
+          });
+      }
+    };
+
+    // Inizializzazione
+    loadAllClienti();
+  });
+</script>
+
+</body>
+</html>
