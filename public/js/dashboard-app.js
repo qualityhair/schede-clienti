@@ -278,36 +278,67 @@ async function openPreparationModal(clienteId) {
             });
         }
 
-        // --- 3. Popola l'ultimo lavoro (foto e formula) ---
-        const lastStylePhoto = allPhotos.find(p => {
-    const tags = p.tags || [];
-    return !tags.includes('_trico') && !tags.includes('profilo');
-});
-        if (lastStylePhoto) {
-            prepLastPhotoContainer.innerHTML = `<img src="${lastStylePhoto.url}" alt="Ultimo lavoro">`;
-        } else {
-            prepLastPhotoContainer.innerHTML = '<p>Nessuna foto "style" trovata.</p>';
-        }
+// --- 3. Popola l'ultimo lavoro (foto e dettagli tecnici) ---
+            const lastStylePhoto = allPhotos.find(p => {
+                const tags = p.tags || [];
+                return !tags.includes('_trico') && !tags.includes('profilo');
+            });
+            if (lastStylePhoto) {
+                prepLastPhotoContainer.innerHTML = `<img src="${lastStylePhoto.url}" alt="Ultimo lavoro">`;
+            } else {
+                prepLastPhotoContainer.innerHTML = '<p>Nessuna foto "style" trovata.</p>';
+            }
 
-        // Cerchiamo l'ultima formula colore nei trattamenti
-        const lastColorTreatment = (clientData.trattamenti || []).reverse().find(t => t.formula_colore);
-        if (lastColorTreatment) {
-            prepLastFormula.innerHTML = `<strong>Formula Colore (${new Date(lastColorTreatment.data_trattamento).toLocaleDateString('it-IT')}):</strong><p>${lastColorTreatment.formula_colore}</p>`;
-        } else {
-            prepLastFormula.innerHTML = '<strong>Formula Colore:</strong><p>Nessuna formula registrata.</p>';
-        }
+                       // --- NUOVA LOGICA: Mostra l'ultimo servizio effettuato (con stile) ---
+            const trattamenti = clientData.trattamenti || [];
+            if (trattamenti.length > 0) {
+                const ultimoTrattamento = trattamenti[0];
+                const dataFormattata = new Date(ultimoTrattamento.data_trattamento).toLocaleDateString('it-IT');
+                
+                // Usiamo una struttura a div con classi per un migliore styling
+                prepLastFormula.innerHTML = `
+                    <strong>Ultimo Servizio (${dataFormattata}):</strong>
+                    <div class="prep-last-service-details">
+                        <div class="detail-row">
+                            <strong>Tipo:</strong>
+                            <span>${ultimoTrattamento.tipo_trattamento}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Dettagli:</strong>
+                            <span>${ultimoTrattamento.descrizione || 'Nessuna descrizione.'}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                prepLastFormula.innerHTML = '<strong>Ultimo Servizio:</strong><p>Nessun servizio registrato.</p>';
+            }
+            // --- FINE NUOVA LOGICA ---
 
-        // --- 4. Popola l'ultima analisi ---
-        const analysisResponse = await fetch(`/api/clienti/${clienteId}/analisi/riepilogo`);
-        const riepilogo = await handleApiResponse(analysisResponse);
-        if (riepilogo) {
-            prepLastAnalysis.innerHTML = `
-                <p><strong>Esigenza:</strong> ${riepilogo.esigenza_cliente || 'N/D'}</p>
-                <p><strong>Diagnosi:</strong> ${riepilogo.diagnosi_primaria || 'N/D'}</p>
-            `;
-        } else {
-            prepLastAnalysis.innerHTML = '<p>Nessuna analisi trovata.</p>';
-        }
+                    // --- 4. Popola l'ultima analisi (con stile e più dettagli) ---
+            const analysisResponse = await fetch(`/api/clienti/${clienteId}/analisi/riepilogo`);
+            const riepilogo = await handleApiResponse(analysisResponse);
+            if (riepilogo) {
+                // Usiamo la stessa struttura a div con classi dell'altro pannello
+                prepLastAnalysis.innerHTML = `
+                    <div class="prep-last-service-details">
+                        <div class="detail-row">
+                            <strong>Esigenza:</strong>
+                            <span>${riepilogo.esigenza_cliente || 'N/D'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Diagnosi:</strong>
+                            <span>${riepilogo.diagnosi_primaria || 'N/D'}</span>
+                        </div>
+                        <div class="detail-row">
+                            <strong>Piano:</strong>
+                            <span>${riepilogo.piano_trattamenti || 'Nessun piano specificato.'}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                prepLastAnalysis.innerHTML = '<p style="background-color: #2a2a2a; padding: 10px; border-radius: 6px;">Nessuna analisi trovata.</p>';
+            }
+            // --- FINE NUOVA LOGICA ---
 
         // --- 5. Arma i bottoni di contatto ---
         if (cliente.email) {

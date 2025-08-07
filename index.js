@@ -594,14 +594,14 @@ app.get("/api/clienti/:id/analisi/riepilogo", ensureAuthenticated, async (req, r
 
     try {
         const query = `
-			SELECT id, data_analisi, esigenza_cliente, diagnosi_primaria, diagnosi_riepilogo
-            FROM 
-                analisi_tricologiche
-            WHERE 
-                cliente_id = $1
-            ORDER BY 
-                data_analisi DESC
-            LIMIT 1;
+			SELECT id, data_analisi, esigenza_cliente, diagnosi_primaria, diagnosi_riepilogo, piano_trattamenti
+FROM 
+    analisi_tricologiche
+WHERE 
+    cliente_id = $1
+ORDER BY 
+    data_analisi DESC
+LIMIT 1;
         `;
         // Spiegazione Query:
         // - Seleziona solo i 3 campi che ci servono per il riepilogo.

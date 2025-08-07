@@ -1704,6 +1704,30 @@ body {
     gap: 15px;
 }
 
+/* Stili per il riepilogo dell'ultimo servizio nella modale di preparazione */
+.prep-last-service-details {
+    background-color: #2a2a2a;
+    padding: 15px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.prep-last-service-details .detail-row {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.prep-last-service-details .detail-row strong {
+    color: #FFD700; /* Giallo per le etichette */
+    flex-basis: 80px; /* Larghezza fissa per le etichette, per un allineamento perfetto */
+    flex-shrink: 0;
+}
+
+.prep-last-service-details .detail-row span {
+    white-space: pre-wrap; /* Mantiene gli "a capo" per le formule lunghe */
+    font-family: 'Courier New', Courier, monospace;
+}
+
 
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
