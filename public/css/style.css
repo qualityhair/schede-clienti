@@ -1406,15 +1406,17 @@ body {
 .photo-item-container {
     display: flex;
     flex-direction: column;
-    gap: 8px; /* Spazio tra immagine e testo */
+    gap: 8px;
 }
 
-#photo-gallery-content {
+/* Applichiamo lo stile a ENTRAMBE le griglie */
+#photo-gallery-content, #tricho-photo-gallery-content {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Miniature un po' più grandi */
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 20px;
 }
 
+/* Lo stile della miniatura si applica a tutte le classi .photo-thumbnail, quindi va bene così */
 .photo-thumbnail {
     position: relative;
     cursor: pointer;
@@ -1427,9 +1429,6 @@ body {
     height: 100%;
     object-fit: cover;
     transition: transform 0.2s ease-in-out;
-}
-.photo-thumbnail:hover img {
-    transform: scale(1.1);
 }
 
 /* Contenitore per i bottoni sulla miniatura (resta invariato) */
@@ -1542,6 +1541,66 @@ body {
     background-color: #FFD700; /* Il tuo giallo primario */
     color: #1a1a1a;
     border-color: #E6C200;
+}
+
+
+
+/* Stili per i filtri del catalogo (Versione a 2 Livelli) */
+.filter-container {
+    background-color: #333;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column; /* Impila le due barre verticalmente */
+    gap: 15px; /* Spazio tra la barra delle categorie e quella di ricerca */
+}
+
+.category-filter-bar, .search-filter-bar {
+    display: flex;
+    flex-wrap: wrap; /* Permette ai filtri di andare a capo */
+    gap: 20px;
+    align-items: flex-end; /* Allinea gli elementi in basso */
+}
+
+.btn-group {
+    display: flex;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.btn-filter {
+    background-color: #555;
+    color: #fff;
+    border: none;
+    padding: 8px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-right: 1px solid #444;
+}
+
+.btn-filter:last-child {
+    border-right: none;
+}
+
+.btn-filter:hover {
+    background-color: #666;
+}
+
+.btn-filter.active {
+    background-color: #FFD700;
+    color: #1a1a1a;
+    font-weight: 700;
+}
+
+/* Stile per il titolo dinamico dei risultati del catalogo */
+.filter-results-title {
+    font-size: 1.2rem;
+    color: #cccccc;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #444;
+    min-height: 1.5em; /* Evita "salti" del layout quando il testo appare/scompare */
 }
 
 /* =================================== */

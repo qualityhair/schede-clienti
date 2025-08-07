@@ -4,79 +4,110 @@ document.addEventListener('DOMContentLoaded', () => {
     const grid = document.getElementById('photo-catalog-grid');
     const clienteFilterInput = document.getElementById('filter-cliente');
     const tagFilterInput = document.getElementById('filter-tag');
+    const didascaliaFilterInput = document.getElementById('filter-didascalia');
     const resetFiltersBtn = document.getElementById('reset-filters-btn');
+    const categoryFilterBtns = document.querySelectorAll('.btn-filter');
+	const filterResultsTitle = document.getElementById('filter-results-title');
 
-    let allPhotos = []; // Conterrà tutte le foto caricate, per non ricaricarle ogni volta
+    let allPhotosData = []; // Conterrà i dati originali dal server
+    let activeCategory = 'style'; // Categoria attiva di default
 
     // --- FUNZIONI ---
 
     /**
-     * Crea l'HTML per una singola foto nella griglia.
+     * Prende i dati di tutte le foto e popola la griglia con gli elementi HTML
      */
-    function createPhotoElement(photo) {
-        const item = document.createElement('a'); // Usiamo un link per andare alla scheda cliente
-        item.className = 'catalog-photo-item';
-        item.href = `/scheda-cliente.html?id=${photo.cliente.id}`;
-        
-        // Aggiungiamo attributi dati per il filtraggio
-        item.dataset.clienteNome = `${photo.cliente.nome} ${photo.cliente.cognome}`.toLowerCase();
-        item.dataset.tags = (photo.tags || []).join(',').toLowerCase();
+    function renderGrid(photosToRender) {
+        grid.innerHTML = ''; // Pulisce la griglia
+        if (photosToRender.length === 0) {
+            grid.innerHTML = '<p>Nessuna foto trovata con i filtri attuali.</p>';
+            return;
+        }
 
-        const img = document.createElement('img');
-        img.src = photo.url;
-        img.alt = photo.didascalia || 'Foto Lavoro';
+        photosToRender.forEach(photo => {
+            const item = document.createElement('a');
+            item.className = 'catalog-photo-item';
+            item.href = `/scheda-cliente.html?id=${photo.cliente.id}`;
+            
+            const img = document.createElement('img');
+            img.src = photo.url;
+            img.alt = photo.didascalia || 'Foto Lavoro';
 
-        const overlay = document.createElement('div');
-        overlay.className = 'photo-overlay';
+            const overlay = document.createElement('div');
+            overlay.className = 'photo-overlay';
+            const clienteNome = document.createElement('h4');
+            clienteNome.textContent = `${photo.cliente.nome} ${photo.cliente.cognome}`;
+            
+            const displayTags = (photo.tags || []).filter(t => t !== '_trico');
+            const photoTags = document.createElement('p');
+            photoTags.textContent = displayTags.join(', ');
 
-        const clienteNome = document.createElement('h4');
-        clienteNome.textContent = `${photo.cliente.nome} ${photo.cliente.cognome}`;
-        
-        const photoTags = document.createElement('p');
-        photoTags.textContent = (photo.tags || []).join(', ');
-
-        overlay.appendChild(clienteNome);
-        overlay.appendChild(photoTags);
-        item.appendChild(img);
-        item.appendChild(overlay);
-
-        return item;
+            overlay.appendChild(clienteNome);
+            overlay.appendChild(photoTags);
+            item.appendChild(img);
+            item.appendChild(overlay);
+            grid.appendChild(item);
+        });
     }
 
     /**
-     * Applica i filtri correnti a tutte le foto nella griglia.
+     * Applica i filtri ai dati originali e chiama renderGrid per aggiornare la vista
      */
     function applyFilters() {
         const clienteFilter = clienteFilterInput.value.toLowerCase();
         const tagFilter = tagFilterInput.value.toLowerCase();
+        const didascaliaFilter = didascaliaFilterInput.value.toLowerCase();
 
-        grid.querySelectorAll('.catalog-photo-item').forEach(item => {
-            // --- LOGICA DI FILTRAGGIO CORRETTA ---
+        // --- NUOVA LOGICA PER IL TITOLO DINAMICO ---
+        let titleParts = [];
+        if (clienteFilter) {
+            titleParts.push(`cliente: "${clienteFilter}"`);
+        }
+        if (tagFilter) {
+            titleParts.push(`tag: "${tagFilter}"`);
+        }
+        if (didascaliaFilter) {
+            titleParts.push(`descrizione: "${didascaliaFilter}"`);
+        }
 
-            // 1. Controlla il cliente (la ricerca parziale qui va bene)
-            const matchesCliente = item.dataset.clienteNome.includes(clienteFilter);
+        if (titleParts.length > 0) {
+            filterResultsTitle.textContent = `Risultati per ${titleParts.join(' & ')}`;
+        } else {
+            filterResultsTitle.textContent = '';
+        }
+        // --- FINE NUOVA LOGICA ---
 
-            // 2. Controlla i tag in modo preciso
-            let matchesTag = true; // Di default, il tag corrisponde
-            if (tagFilter) { // Se è stato inserito un filtro per tag...
-                const photoTagsArray = item.dataset.tags.split(',');
-                // ...controlliamo che ALMENO UNO dei tag della foto INIZI con il testo del filtro
-                matchesTag = photoTagsArray.some(tag => tag.trim().startsWith(tagFilter));
-            }
-            // ------------------------------------
 
-            // La foto è visibile solo se corrisponde a ENTRAMBI i filtri
-            if (matchesCliente && matchesTag) {
-                item.style.display = 'block';
-            } else {
-                item.style.display = 'none';
-            }
+        // 1. Filtra i dati in memoria, non il DOM
+        const filteredPhotos = allPhotosData.filter(photo => {
+            const tags = photo.tags || [];
+            const didascalia = (photo.didascalia || '').toLowerCase();
+            const clienteNome = `${photo.cliente.nome} ${photo.cliente.cognome}`.toLowerCase();
+            const displayTags = tags.filter(t => t !== '_trico');
+
+            // Filtro Categoria
+            if (activeCategory === 'trico' && !tags.includes('_trico')) return false;
+            if (activeCategory === 'style' && tags.includes('_trico')) return false;
+
+            // Filtro Cliente
+            if (clienteFilter && !clienteNome.includes(clienteFilter)) return false;
+
+            // Filtro Descrizione
+            if (didascaliaFilter && !didascalia.includes(didascaliaFilter)) return false;
+            
+            // Filtro Tag
+            if (tagFilter && !displayTags.some(tag => tag.toLowerCase().startsWith(tagFilter))) return false;
+
+            // Se ha superato tutti i controlli, la foto è valida
+            return true;
         });
+
+        // 2. Renderizza solo le foto filtrate
+        renderGrid(filteredPhotos);
     }
 
-
     /**
-     * Funzione principale: carica tutte le foto dal server e le mostra.
+     * Funzione principale: carica tutte le foto dal server una sola volta.
      */
     async function loadAllPhotos() {
         grid.innerHTML = '<p>Caricamento catalogo in corso...</p>';
@@ -84,18 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/photos/all');
             if (!response.ok) throw new Error('Errore di rete');
 
-            allPhotos = await response.json();
-            grid.innerHTML = '';
-
-            if (allPhotos.length === 0) {
-                grid.innerHTML = '<p>Nessuna foto trovata nel catalogo.</p>';
-                return;
-            }
-
-            allPhotos.forEach(photo => {
-                const photoElement = createPhotoElement(photo);
-                grid.appendChild(photoElement);
-            });
+            allPhotosData = await response.json(); // Salva i dati originali
+            applyFilters(); // Applica i filtri di default e renderizza
 
         } catch (error) {
             console.error("Errore nel caricamento del catalogo:", error);
@@ -103,21 +124,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-
     // --- EVENT LISTENERS ---
 
-    // Applica i filtri ogni volta che l'utente scrive nei campi di input
     clienteFilterInput.addEventListener('input', applyFilters);
     tagFilterInput.addEventListener('input', applyFilters);
+    didascaliaFilterInput.addEventListener('input', applyFilters);
 
-    // Resetta i filtri e mostra di nuovo tutte le foto
+    categoryFilterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            categoryFilterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeCategory = btn.dataset.category;
+            applyFilters();
+        });
+    });
+
     resetFiltersBtn.addEventListener('click', () => {
         clienteFilterInput.value = '';
         tagFilterInput.value = '';
+        didascaliaFilterInput.value = '';
+        
+        categoryFilterBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.category === 'style');
+        });
+        activeCategory = 'style';
+        filterResultsTitle.textContent = '';
         applyFilters();
     });
 
     // --- AVVIO ---
     loadAllPhotos();
-
 });

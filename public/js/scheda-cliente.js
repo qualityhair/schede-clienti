@@ -16,6 +16,27 @@ const viewPhotoModal = document.getElementById('viewPhotoModal');
 const fullscreenPhoto = document.getElementById('fullscreen-photo');
 const closeViewPhotoBtn = document.getElementById('close-view-photo-btn');
 
+// --- RIFERIMENTI GALLERIA 'TRICO' (Nuova) ---
+const addTrichoPhotoBtn = document.getElementById('add-tricho-photo-btn');
+const addTrichoPhotoModal = document.getElementById('addTrichoPhotoModal');
+const formAddTrichoPhoto = document.getElementById('formAddTrichoPhoto');
+const cancelTrichoPhotoBtn = document.getElementById('cancel-tricho-photo-btn');
+const trichoPhotoGalleryContent = document.getElementById('tricho-photo-gallery-content');
+const trichoPhotoTagsFilterContainer = document.getElementById('tricho-photo-tags-filter-container');
+const trichoPhotoChoiceView = document.getElementById('tricho-photo-choice-view');
+const trichoCameraView = document.getElementById('tricho-camera-view');
+const trichoPreviewView = document.getElementById('tricho-preview-view');
+const trichoStartCameraBtn = document.getElementById('tricho-start-camera-btn');
+const trichoCameraVideo = document.getElementById('tricho-camera-video');
+const trichoCameraCanvas = document.getElementById('tricho-camera-canvas');
+const trichoTakePhotoBtn = document.getElementById('tricho-take-photo-btn');
+const trichoCancelCameraBtn = document.getElementById('tricho-cancel-camera-btn');
+const trichoPhotoPreview = document.getElementById('tricho-photo-preview');
+const trichoUsePhotoBtn = document.getElementById('tricho-use-photo-btn');
+const trichoRetakePhotoBtn = document.getElementById('tricho-retake-photo-btn');
+
+
+
 // Viste della modale foto
 const photoChoiceView = document.getElementById('photo-choice-view');
 const cameraView = document.getElementById('camera-view');
@@ -99,6 +120,8 @@ const editPhotoTagsInput = document.getElementById('edit-photo-tags');
 	// Insieme alle altre variabili di stato
 	let stream = null; // Conterrà il flusso video della fotocamera
 	let capturedBlob = null; // Conterrà la foto scattata come oggetto Blob
+	let trichoStream = null;
+	let trichoCapturedBlob = null;
 
     // --- 2. FUNZIONI DI UTILITÀ ---
 
@@ -210,7 +233,8 @@ function displayClientTags(tags = []) {
                 clienteNoteTextarea.value = client.preferenze_note || '';
 				displayClientTags(client.tags); // <--- AGGIUNGI QUESTA RIGA
                 displayAcquisti(client.storico_acquisti);
-				loadClientPhotos(clientId); // <--- AGGIUNGI QUESTA CHIAMATA
+				loadStyleClientPhotos(clientId); // Carica la galleria Style
+				loadTrichoClientPhotos(clientId);  // Carica la galleria Trico
             } else {
                 showMessage("Cliente non trovato.", 'error');
             }
@@ -281,7 +305,7 @@ function displayClientTags(tags = []) {
     }
 	
 // VERSIONE COMPLETA CON INFO SOTTO LA MINIATURA
-async function loadClientPhotos(clientId) {
+	async function loadStyleClientPhotos(clientId) {
     const galleryContent = document.getElementById('photo-gallery-content');
     const filterContainer = document.getElementById('photo-tags-filter-container');
 
@@ -291,15 +315,16 @@ async function loadClientPhotos(clientId) {
     try {
         const response = await fetch(`/api/clienti/${clientId}/photos`);
         const photos = await handleApiResponse(response);
+		const stylePhotos = photos.filter(p => !(p.tags || []).includes('_trico'));
         galleryContent.innerHTML = '';
 
-        if (!photos || photos.length === 0) {
+        if (!stylePhotos || stylePhotos.length === 0) {
             galleryContent.innerHTML = '<p>Nessuna foto presente.</p>';
             return;
         }
 
         // --- 1. CREAZIONE DEGLI ELEMENTI (Logica Modificata) ---
-        photos.forEach(photo => {
+        stylePhotos.forEach(photo => {
             // Contenitore principale per ogni "card" della foto
             const itemContainer = document.createElement('div');
             itemContainer.className = 'photo-item-container';
@@ -378,7 +403,7 @@ async function loadClientPhotos(clientId) {
         });
 
         // --- 2. LOGICA DEI FILTRI (Aggiornata per il nuovo contenitore) ---
-        const allTags = photos.flatMap(p => p.tags || []);
+        const allTags = stylePhotos.flatMap(p => p.tags || []);
         const uniqueTags = [...new Set(allTags)];
         uniqueTags.sort();
 
@@ -424,6 +449,126 @@ async function loadClientPhotos(clientId) {
         galleryContent.innerHTML = '<p class="error-message">Impossibile caricare le foto.</p>';
     }
 }
+
+// NUOVA FUNZIONE PER CARICARE LE FOTO DELLA GALLERIA TRICO
+async function loadTrichoClientPhotos(clientId) {
+    const galleryContent = trichoPhotoGalleryContent; // Usa il contenitore TRICO
+    const filterContainer = trichoPhotoTagsFilterContainer; // Usa il contenitore filtri TRICO
+
+    galleryContent.innerHTML = '<p class="loading-message">Caricamento foto...</p>';
+    if (filterContainer) filterContainer.innerHTML = '';
+
+    try {
+        const response = await fetch(`/api/clienti/${clientId}/photos`);
+        const allPhotos = await handleApiResponse(response);
+        if (!allPhotos) return;
+
+        // FILTRA E PRENDE SOLO LE FOTO CON IL TAG '_trico'
+        const trichoPhotos = allPhotos.filter(p => (p.tags || []).includes('_trico'));
+
+        galleryContent.innerHTML = '';
+        if (trichoPhotos.length === 0) {
+            galleryContent.innerHTML = '<p>Nessuna foto presente.</p>';
+            return;
+        }
+
+        trichoPhotos.forEach(photo => {
+            // Rimuove il tag speciale '_trico' prima di mostrarli
+            const displayTags = (photo.tags || []).filter(t => t !== '_trico');
+            
+            const itemContainer = document.createElement('div');
+            itemContainer.className = 'photo-item-container';
+            itemContainer.dataset.tags = displayTags.join(',').toLowerCase();
+
+            const thumbDiv = document.createElement('div');
+            thumbDiv.className = 'photo-thumbnail';
+            const img = document.createElement('img');
+            img.src = photo.url;
+            img.alt = photo.didascalia || 'Foto cliente';
+            thumbDiv.onclick = () => {
+                fullscreenPhoto.src = photo.url;
+                openModal(viewPhotoModal);
+            };
+            thumbDiv.appendChild(img);
+
+            const actionsOverlay = document.createElement('div');
+            actionsOverlay.className = 'photo-actions-overlay';
+            const editBtn = document.createElement('button');
+            editBtn.className = 'photo-action-btn edit';
+            editBtn.innerHTML = '✏️';
+            editBtn.title = 'Modifica Dettagli';
+            editBtn.onclick = (e) => { e.stopPropagation(); openEditPhotoModal(photo); };
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'photo-action-btn delete';
+            deleteBtn.innerHTML = '&times;';
+            deleteBtn.title = 'Elimina Foto';
+            deleteBtn.onclick = (e) => { e.stopPropagation(); if (confirm('Sei sicuro?')) { deletePhoto(photo.id); } };
+            actionsOverlay.appendChild(editBtn);
+            actionsOverlay.appendChild(deleteBtn);
+            thumbDiv.appendChild(actionsOverlay);
+
+            const infoContainer = document.createElement('div');
+            infoContainer.className = 'photo-info-container';
+            if (photo.didascalia) {
+                const didascaliaP = document.createElement('p');
+                didascaliaP.className = 'photo-didascalia';
+                didascaliaP.textContent = photo.didascalia;
+                infoContainer.appendChild(didascaliaP);
+            }
+            if (displayTags.length > 0) {
+                const tagsContainer = document.createElement('div');
+                tagsContainer.className = 'photo-tags-container';
+                displayTags.forEach(tagText => {
+                    const tagEl = document.createElement('span');
+                    tagEl.className = 'photo-tag';
+                    tagEl.textContent = tagText;
+                    tagsContainer.appendChild(tagEl);
+                });
+                infoContainer.appendChild(tagsContainer);
+            }
+            itemContainer.appendChild(thumbDiv);
+            if (infoContainer.hasChildNodes()) { itemContainer.appendChild(infoContainer); }
+            galleryContent.appendChild(itemContainer);
+        });
+
+        const allDisplayTags = trichoPhotos.flatMap(p => (p.tags || []).filter(t => t !== '_trico'));
+        const uniqueTags = [...new Set(allDisplayTags)];
+        uniqueTags.sort();
+        
+        const filterPhotos = (tagToFilter) => {
+            const allItems = galleryContent.querySelectorAll('.photo-item-container');
+            allItems.forEach(item => {
+                const itemTagsArray = item.dataset.tags.split(',');
+                if (!tagToFilter || itemTagsArray.includes(tagToFilter.toLowerCase())) {
+                    item.style.display = 'flex';
+                } else { item.style.display = 'none'; }
+            });
+            filterContainer.querySelectorAll('.tag-filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.tag === tagToFilter);
+            });
+        };
+
+        const allBtn = document.createElement('button');
+        allBtn.className = 'tag-filter-btn active';
+        allBtn.textContent = 'Mostra Tutti';
+        allBtn.dataset.tag = '';
+        allBtn.onclick = () => filterPhotos('');
+        filterContainer.appendChild(allBtn);
+        uniqueTags.forEach(tag => {
+            const filterBtn = document.createElement('button');
+            filterBtn.className = 'tag-filter-btn';
+            filterBtn.textContent = tag;
+            filterBtn.dataset.tag = tag;
+            filterBtn.onclick = () => filterPhotos(tag);
+            filterContainer.appendChild(filterBtn);
+        });
+    } catch (error) {
+        console.error('Errore caricamento foto Trico:', error);
+        galleryContent.innerHTML = '<p class="error-message">Impossibile caricare le foto.</p>';
+    }
+}
+
+
 
 // =======================================================
 // === NUOVE FUNZIONI PER LA GESTIONE DELLA FOTOCAMERA ===
@@ -485,6 +630,57 @@ function resetPhotoModal() {
     document.getElementById('photo-file').value = '';
 }
 
+
+// =======================================================
+// === FUNZIONI DUPLICATE PER LA FOTOCAMERA 'TRICO' ===
+// =======================================================
+
+async function startTrichoCamera() {
+    try {
+        trichoStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' }
+        });
+        trichoCameraVideo.srcObject = trichoStream;
+        trichoPhotoChoiceView.style.display = 'none';
+        trichoCameraView.style.display = 'block';
+        trichoPreviewView.style.display = 'none';
+    } catch (err) {
+        console.error("Errore nell'accesso alla fotocamera Trico:", err);
+        showMessage("Impossibile accedere alla fotocamera. Assicurati di aver dato i permessi.", "error");
+    }
+}
+
+function stopTrichoCamera() {
+    if (trichoStream) {
+        trichoStream.getTracks().forEach(track => track.stop());
+        trichoStream = null;
+    }
+}
+
+function takeTrichoPhoto() {
+    trichoCameraCanvas.width = trichoCameraVideo.videoWidth;
+    trichoCameraCanvas.height = trichoCameraVideo.videoHeight;
+    const context = trichoCameraCanvas.getContext('2d');
+    context.drawImage(trichoCameraVideo, 0, 0, trichoCameraCanvas.width, trichoCameraCanvas.height);
+    
+    trichoCameraCanvas.toBlob(blob => {
+        trichoCapturedBlob = blob;
+        trichoPhotoPreview.src = URL.createObjectURL(blob);
+        stopTrichoCamera();
+        trichoCameraView.style.display = 'none';
+        trichoPreviewView.style.display = 'block';
+    }, 'image/jpeg', 0.9);
+}
+
+function resetTrichoPhotoModal() {
+    stopTrichoCamera();
+    trichoCapturedBlob = null;
+    trichoPhotoChoiceView.style.display = 'block';
+    trichoCameraView.style.display = 'none';
+    trichoPreviewView.style.display = 'none';
+    document.getElementById('tricho-photo-file').value = '';
+}
+
 // =======================================================
 // === FUNZIONI PER GESTIRE I DETTAGLI DELLE FOTO ===
 // =======================================================
@@ -495,7 +691,9 @@ async function deletePhoto(photoId) {
         const response = await fetch(`/api/photos/${photoId}`, { method: 'DELETE' });
         if (!response.ok) throw new Error('Errore server durante l\'eliminazione.');
         showMessage('Foto eliminata con successo.', 'success');
-        loadClientPhotos(currentClientId); // Ricarica la galleria aggiornata
+        // Ricarica entrambe le gallerie per riflettere la cancellazione
+        loadStyleClientPhotos(currentClientId);
+        loadTrichoClientPhotos(currentClientId);
     } catch (error) {
         console.error('Errore eliminazione foto:', error);
         showMessage('Errore durante l\'eliminazione della foto.', 'error');
@@ -518,9 +716,18 @@ async function handleEditPhoto(event) {
     const photoId = editPhotoIdInput.value;
     const didascalia = editPhotoDidascaliaInput.value.trim();
     const tagsString = editPhotoTagsInput.value.trim();
-    const tags = tagsString ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+    let tags = tagsString ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
 
     try {
+        // Prima di salvare, controlliamo se la foto originale era 'trico'
+        const photoResponse = await fetch(`/api/clienti/${currentClientId}/photos`);
+        const allPhotos = await handleApiResponse(photoResponse);
+        const originalPhoto = allPhotos.find(p => p.id == photoId);
+        
+        if (originalPhoto && (originalPhoto.tags || []).includes('_trico')) {
+            tags.push('_trico'); // Se era una foto trico, ri-aggiungiamo il tag nascosto
+        }
+
         const response = await fetch(`/api/photos/${photoId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -534,7 +741,9 @@ async function handleEditPhoto(event) {
 
         showMessage('Dettagli della foto aggiornati!', 'success');
         closeModal(editPhotoModal, formEditPhoto);
-        loadClientPhotos(currentClientId); // Ricarica la galleria per vedere le modifiche
+        // Ricarica entrambe le gallerie per vedere le modifiche
+        loadStyleClientPhotos(currentClientId);
+        loadTrichoClientPhotos(currentClientId);
 
     } catch (error) {
         console.error('Errore durante la modifica della foto:', error);
@@ -978,6 +1187,93 @@ async function handleEditPhoto(event) {
             }
         });
     }
+
+
+
+// =======================================================
+// === EVENT LISTENERS PER LA GALLERIA 'TRICO' (Nuova) ===
+// =======================================================
+
+if(addTrichoPhotoBtn) {
+    addTrichoPhotoBtn.addEventListener('click', () => {
+        resetTrichoPhotoModal();
+        openModal(addTrichoPhotoModal);
+    });
+}
+if(cancelTrichoPhotoBtn) {
+    cancelTrichoPhotoBtn.addEventListener('click', () => {
+        resetTrichoPhotoModal();
+        closeModal(addTrichoPhotoModal, formAddTrichoPhoto);
+    });
+}
+if(trichoStartCameraBtn) {
+    trichoStartCameraBtn.addEventListener('click', startTrichoCamera);
+}
+if(trichoCancelCameraBtn) {
+    trichoCancelCameraBtn.addEventListener('click', () => {
+        stopTrichoCamera();
+        resetTrichoPhotoModal();
+    });
+}
+if(trichoTakePhotoBtn) {
+    trichoTakePhotoBtn.addEventListener('click', takeTrichoPhoto);
+}
+if(trichoRetakePhotoBtn) {
+    trichoRetakePhotoBtn.addEventListener('click', () => {
+        trichoCapturedBlob = null;
+        startTrichoCamera();
+    });
+}
+if(trichoUsePhotoBtn) {
+    trichoUsePhotoBtn.addEventListener('click', () => {
+        if (trichoCapturedBlob) {
+            const photoFile = new File([trichoCapturedBlob], "scatto_trico.jpg", { type: "image/jpeg" });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(photoFile);
+            document.getElementById('tricho-photo-file').files = dataTransfer.files;
+            trichoPreviewView.style.display = 'none';
+            trichoPhotoChoiceView.style.display = 'block';
+            showMessage("Foto pronta per l'upload.", "info");
+        }
+    });
+}
+if(formAddTrichoPhoto) {
+    formAddTrichoPhoto.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const photoFileInput = document.getElementById('tricho-photo-file');
+        if (photoFileInput.files.length === 0) {
+            showMessage('Seleziona un file o scatta una foto.', 'error');
+            return;
+        }
+        const formData = new FormData();
+        formData.append('clientImage', photoFileInput.files[0]);
+        formData.append('didascalia', document.getElementById('tricho-photo-didascalia').value);
+        
+        // Aggiunge il tag nascosto '_trico' ai tag inseriti dall'utente
+        const tags = document.getElementById('tricho-photo-tags').value;
+        const finalTags = tags ? `_trico, ${tags}` : '_trico';
+        formData.append('tags', finalTags);
+
+        showMessage('Caricamento foto in corso...', 'info');
+        try {
+            const response = await fetch(`/api/clienti/${currentClientId}/photos`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await handleApiResponse(response);
+            if (!response.ok) { throw new Error(data.error || 'Errore upload.'); }
+            
+            showMessage('Foto Trico caricata!', 'success');
+            resetTrichoPhotoModal();
+            closeModal(addTrichoPhotoModal, formAddTrichoPhoto);
+            loadTrichoClientPhotos(currentClientId); // Ricarica solo la galleria trico
+        } catch (error) {
+            console.error("Errore upload trico:", error);
+            showMessage(`Errore: ${error.message}`, 'error');
+        }
+    });
+}
+
 
 // Aggiungi questo blocco alla fine della sezione degli event listeners
 

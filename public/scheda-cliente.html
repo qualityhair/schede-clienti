@@ -58,6 +58,25 @@
     <div id="analisi-riepilogo-content">
         <p class="loading-message">Caricamento riepilogo analisi...</p>
     </div>
+	
+	 <!-- ======================================================= -->
+    <!-- === INCOLLA E MODIFICA IL PANNELLO DUPLICATO QUI === -->
+    <!-- ======================================================= -->
+    <hr style="border-color: #444; margin: 20px 0;"> <!-- Un separatore per pulizia -->
+    <div class="panel" id="tricho-photo-gallery-panel" style="border: none; box-shadow: none; padding: 0; margin-top: 15px;">
+        <h3 class="panel-title" style="font-size: 1.2em;"> <!-- Usiamo un h3 per la gerarchia -->
+            <span>Foto Analisi</span>
+            <button class="btn btn-icon" id="add-tricho-photo-btn" title="Aggiungi Foto Trico">➕</button>
+        </h3>
+        <div id="tricho-photo-tags-filter-container" class="tags-filter-container">
+            <!-- Filtri per la galleria trico -->
+        </div>
+        <div class="panel-content" id="tricho-photo-gallery-content" style="padding: 0;">
+            <!-- Foto trico qui -->
+        </div>
+    </div>
+    <!-- ======================================================= -->
+
     
     <!-- Pulsanti di azione -->
 <div class="panel-actions">
@@ -118,6 +137,7 @@
                 </div>
                 <div class="modal-buttons">
                     <button type="submit" class="modal-button ok">Carica Foto</button>
+					<button type="button" class="modal-button cancel" id="cancel-photo-btn">Annulla</button>
                 </div>
             </form>
 
@@ -189,6 +209,59 @@
     </div>
 </div>
 
+
+<!-- ======================================================= -->
+<!-- === MODALE UPLOAD PER FOTO TRICO (DUPLICATA E MODIFICATA) === -->
+<!-- ======================================================= -->
+<div id="addTrichoPhotoModal" class="modal">
+    <div class="modal-content">
+        <h3>Aggiungi Foto Trico</h3>
+        
+        <div id="tricho-photo-choice-view">
+            <form id="formAddTrichoPhoto">
+                <div class="form-group">
+                    <label for="tricho-photo-file" class="form-label">Seleziona Immagine da File:</label>
+                    <input type="file" id="tricho-photo-file" name="clientImage" accept="image/*" class="input-field">
+                </div>
+                 <div class="form-group">
+                    <label for="tricho-photo-didascalia" class="form-label">Didascalia (Opzionale):</label>
+                    <input type="text" id="tricho-photo-didascalia" class="input-field" placeholder="Es: Cute arrossata, Luglio 2025">
+                </div>
+                <div class="form-group">
+                    <label for="tricho-photo-tags" class="form-label">Tag (separati da virgola):</label>
+                    <input type="text" id="tricho-photo-tags" class="input-field" placeholder="Es: dermatite, rossore">
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="modal-button ok">Carica Foto</button>
+					<button type="button" class="modal-button cancel" id="cancel-tricho-photo-btn">Annulla</button>
+                </div>
+            </form>
+            <hr class="panel-divider">
+            <div class="form-group" style="text-align: center;">
+                <label class="form-label">Oppure usa la fotocamera:</label>
+                <button type="button" id="tricho-start-camera-btn" class="modal-button ok" style="width: auto; padding: 12px 25px;">📷 Scatta Foto</button>
+            </div>
+        </div>
+
+        <div id="tricho-camera-view" style="display: none;">
+            <video id="tricho-camera-video" style="width: 100%; border-radius: 8px;" autoplay playsinline></video>
+            <canvas id="tricho-camera-canvas" style="display: none;"></canvas>
+            <div class="modal-buttons" style="margin-top: 15px;">
+                <button type="button" id="tricho-take-photo-btn" class="modal-button ok">Scatta</button>
+                <button type="button" id="tricho-cancel-camera-btn" class="modal-button cancel">Annulla</button>
+            </div>
+        </div>
+        
+        <div id="tricho-preview-view" style="display: none;">
+            <img id="tricho-photo-preview" src="" alt="Anteprima foto" style="width: 100%; border-radius: 8px;">
+            <div class="modal-buttons" style="margin-top: 15px;">
+                <button type="button" id="tricho-use-photo-btn" class="modal-button ok">Usa Questa Foto</button>
+                <button type="button" id="tricho-retake-photo-btn" class="modal-button cancel">Riprova</button>
+            </div>
+        </div>
+
+    </div>
+</div>
 			
 
             <div class="two-column-stack"> 

@@ -82,18 +82,43 @@
     <main class="container">
         <h1 class="page-title">Catalogo Lavori</h1>
         
-        <!-- Barra dei Filtri -->
-        <div class="filter-bar">
-            <div class="filter-group">
-                <label for="filter-cliente">Filtra per Cliente:</label>
-                <input type="text" id="filter-cliente" class="input-field filter-input" placeholder="Cerca nome o cognome...">
+                <!-- Barra dei Filtri (Versione Aggiornata) -->
+                <!-- Barra dei Filtri (Versione a 2 Livelli) -->
+        <div class="filter-container">
+            <!-- Livello 1: Filtro per Tipo Galleria -->
+            <div class="category-filter-bar">
+                <div class="filter-group">
+                    <label>Tipo di Lavoro:</label>
+                    <div class="btn-group">
+                        <button class="btn-filter active" data-category="style">Lavori di Stile</button>
+                        <button class="btn-filter" data-category="trico">Foto Trico</button>
+                        <button class="btn-filter" data-category="all">Mostra Tutti</button>
+                    </div>
+                </div>
             </div>
-            <div class="filter-group">
-                <label for="filter-tag">Filtra per Tag:</label>
-                <input type="text" id="filter-tag" class="input-field filter-input" placeholder="Cerca un tag...">
+
+            <!-- Livello 2: Filtri di Ricerca -->
+            <div class="search-filter-bar">
+                <div class="filter-group">
+                    <label for="filter-cliente">Filtra per Cliente:</label>
+                    <input type="text" id="filter-cliente" class="input-field filter-input" placeholder="Cerca nome...">
+                </div>
+                <div class="filter-group">
+                    <label for="filter-tag">Filtra per Tag:</label>
+                    <input type="text" id="filter-tag" class="input-field filter-input" placeholder="Cerca tag...">
+                </div>
+                <div class="filter-group">
+                    <label for="filter-didascalia">Filtra per Descrizione:</label>
+                    <input type="text" id="filter-didascalia" class="input-field filter-input" placeholder="Cerca descrizione...">
+                </div>
+                <button id="reset-filters-btn" class="btn btn-nav" style="margin-top: auto;">Reset</button>
             </div>
-            <button id="reset-filters-btn" class="btn btn-nav" style="margin-top: auto;">Reset</button>
         </div>
+
+
+ 
+		<h2 id="filter-results-title" class="filter-results-title"></h2>
+
 
         <!-- Griglia delle Foto -->
         <div id="photo-catalog-grid">
