@@ -279,7 +279,10 @@ async function openPreparationModal(clienteId) {
         }
 
         // --- 3. Popola l'ultimo lavoro (foto e formula) ---
-        const lastStylePhoto = allPhotos.find(p => !(p.tags || []).includes('_trico'));
+        const lastStylePhoto = allPhotos.find(p => {
+    const tags = p.tags || [];
+    return !tags.includes('_trico') && !tags.includes('profilo');
+});
         if (lastStylePhoto) {
             prepLastPhotoContainer.innerHTML = `<img src="${lastStylePhoto.url}" alt="Ultimo lavoro">`;
         } else {
