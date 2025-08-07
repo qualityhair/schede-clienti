@@ -15,6 +15,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const appointmentsListContainer = document.getElementById('lista-appuntamenti');
 	const newClientTagsInput = document.getElementById("new-client-tags");
 
+// Riferimenti per la modale di preparazione
+const prepareAppointmentModal = document.getElementById('prepare-appointment-modal');
+const prepCloseBtn = document.getElementById('prep-close-btn');
+const prepAvatar = document.getElementById('prep-avatar');
+const prepClientName = document.getElementById('prep-client-name');
+const prepClientTags = document.getElementById('prep-client-tags');
+const prepLastPhotoContainer = document.getElementById('prep-last-photo-container');
+const prepLastFormula = document.getElementById('prep-last-formula');
+const prepLastAnalysis = document.getElementById('prep-last-analysis');
+const prepFullCardBtn = document.getElementById('prep-full-card-btn');
+const prepWhatsappBtn = document.getElementById('prep-whatsapp-btn');
+const prepEmailBtn = document.getElementById('prep-email-btn');
+
+
 
     // --- FUNZIONI DI UTILITÀ ---
 
@@ -47,6 +61,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return null;
     }
 
+function openModal(modalElement) {
+    if (modalElement) modalElement.classList.add('open');
+}
+
+function closeModal(modalElement, formToReset = null) {
+    if (modalElement) modalElement.classList.remove('open');
+    if (formToReset) formToReset.reset();
+}
 
     // --- LOGICA PANNELLO "CERCA CLIENTE" ---
 
@@ -181,57 +203,130 @@ function getAppointmentColor(app) {
     // --- LOGICA PANNELLO "APPUNTAMENTI DI OGGI" ---
 
     // Funzione per cercare un cliente dal titolo di un evento
-        async function searchClientFromEvent(rawTitle) {
-        const title = (rawTitle || '').trim();
-        if (!title) {
-            showMessage('Titolo evento non valido.', 'error');
+        // VERSIONE AGGIORNATA CHE APRE LA MODALE DI PREPARAZIONE
+async function searchClientFromEvent(rawTitle) {
+    const title = (rawTitle || '').trim();
+    if (!title) { showMessage('Titolo evento non valido.', 'error'); return; }
+
+    // Pulisce il nome per la ricerca
+    const parole = title.split(' ');
+    const nomeDaCercare = (parole.length > 1) ? `${parole[0]} ${parole[1]}` : parole[0];
+
+    try {
+        // Cerchiamo il cliente per trovare il suo ID
+        const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(nomeDaCercare)}`);
+        const clients = await handleApiResponse(response);
+
+        if (!clients || clients.length === 0) {
+            showMessage(`Nessun cliente trovato per "${nomeDaCercare}".`, 'info');
             return;
         }
 
-        // --- Tentativo #1: Ricerca per Nome e Cognome esatti ---
-        const parole = title.split(' ');
-        const nomeCompleto = (parole.length > 1) ? `${parole[0]} ${parole[1]}` : parole[0];
+        // Se trova più clienti, per ora prendiamo il primo (il più pertinente)
+        const clienteId = clients[0].id;
         
-        try {
-            let response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(nomeCompleto)}&exact=true`);
-            let data = await handleApiResponse(response);
+        // Apriamo la modale di preparazione con l'ID del cliente trovato
+        openPreparationModal(clienteId);
 
-            if (data && data.length === 1) {
-                // SUCCESSO AL PRIMO TENTATIVO! Trovato un unico cliente per nome e cognome.
-                showMessage(`Trovata corrispondenza esatta per "${nomeCompleto}".`, 'success');
-                setTimeout(() => {
-                    window.location.href = `/scheda-cliente.html?id=${data[0].id}`;
-                }, 1000);
-                return; // Esce dalla funzione
-            }
-
-            // --- Tentativo #2: Ricerca per Soprannome esatto (solo se il primo fallisce) ---
-            const soloPrimaParola = parole[0];
-            
-            response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(soloPrimaParola)}&exact=true`);
-            data = await handleApiResponse(response);
-
-            if (data && data.length === 1) {
-                // SUCCESSO AL SECONDO TENTATIVO! Trovato un unico cliente per soprannome.
-                showMessage(`Trovata corrispondenza esatta per il soprannome "${soloPrimaParola}".`, 'success');
-                setTimeout(() => {
-                    window.location.href = `/scheda-cliente.html?id=${data[0].id}`;
-                }, 1000);
-                return; // Esce dalla funzione
-            }
-
-            // --- Se entrambi i tentativi falliscono ---
-            if (data && data.length > 1) {
-                showMessage(`Trovate troppe corrispondenze per "${title}". Usa la ricerca manuale.`, 'info');
-            } else {
-                showMessage(`Nessuna corrispondenza trovata per "${title}".`, 'info');
-            }
-
-        } catch (error) {
-            console.error("Errore ricerca da evento:", error);
-            showMessage('Errore critico durante la ricerca da evento.', 'error');
-        }
+    } catch (error) {
+        console.error("Errore ricerca da evento:", error);
+        showMessage('Errore critico durante la ricerca da evento.', 'error');
     }
+}
+
+// NUOVA FUNZIONE PER APRIRE E POPOLARE LA MODALE DI PREPARAZIONE
+async function openPreparationModal(clienteId) {
+    // Reset dei contenuti
+    prepAvatar.src = '/img/default-avatar.png';
+    prepClientName.textContent = 'Caricamento...';
+    prepClientTags.innerHTML = '';
+    prepLastPhotoContainer.innerHTML = '<p>...</p>';
+    prepLastFormula.innerHTML = '<strong>Formula Colore:</strong><p>...</p>';
+    prepLastAnalysis.innerHTML = '<p>...</p>';
+    prepWhatsappBtn.style.display = 'none';
+    prepEmailBtn.style.display = 'none';
+
+    openModal(prepareAppointmentModal);
+
+    try {
+        // --- 1. Recupera i dati principali e le foto del cliente ---
+        const clientResponse = await fetch(`/api/clienti/${clienteId}`);
+        const clientData = await handleApiResponse(clientResponse);
+        if (!clientData || !clientData.client) throw new Error('Dati cliente non trovati.');
+        
+        const photoResponse = await fetch(`/api/clienti/${clienteId}/photos`);
+        const allPhotos = await handleApiResponse(photoResponse) || [];
+
+        const cliente = clientData.client;
+
+        // --- 2. Popola l'header ---
+        prepClientName.textContent = `${cliente.nome} ${cliente.cognome}`;
+        prepFullCardBtn.href = `/scheda-cliente.html?id=${cliente.id}`;
+
+        const profilePhoto = allPhotos.find(p => (p.tags || []).includes('profilo'));
+        if (profilePhoto) {
+            prepAvatar.src = profilePhoto.url;
+        }
+
+        if (cliente.tags && cliente.tags.length > 0) {
+            cliente.tags.forEach(tag => {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'client-tag';
+                tagElement.textContent = tag;
+                tagElement.dataset.tag = tag.toLowerCase().trim();
+                prepClientTags.appendChild(tagElement);
+            });
+        }
+
+        // --- 3. Popola l'ultimo lavoro (foto e formula) ---
+        const lastStylePhoto = allPhotos.find(p => !(p.tags || []).includes('_trico'));
+        if (lastStylePhoto) {
+            prepLastPhotoContainer.innerHTML = `<img src="${lastStylePhoto.url}" alt="Ultimo lavoro">`;
+        } else {
+            prepLastPhotoContainer.innerHTML = '<p>Nessuna foto "style" trovata.</p>';
+        }
+
+        // Cerchiamo l'ultima formula colore nei trattamenti
+        const lastColorTreatment = (clientData.trattamenti || []).reverse().find(t => t.formula_colore);
+        if (lastColorTreatment) {
+            prepLastFormula.innerHTML = `<strong>Formula Colore (${new Date(lastColorTreatment.data_trattamento).toLocaleDateString('it-IT')}):</strong><p>${lastColorTreatment.formula_colore}</p>`;
+        } else {
+            prepLastFormula.innerHTML = '<strong>Formula Colore:</strong><p>Nessuna formula registrata.</p>';
+        }
+
+        // --- 4. Popola l'ultima analisi ---
+        const analysisResponse = await fetch(`/api/clienti/${clienteId}/analisi/riepilogo`);
+        const riepilogo = await handleApiResponse(analysisResponse);
+        if (riepilogo) {
+            prepLastAnalysis.innerHTML = `
+                <p><strong>Esigenza:</strong> ${riepilogo.esigenza_cliente || 'N/D'}</p>
+                <p><strong>Diagnosi:</strong> ${riepilogo.diagnosi_primaria || 'N/D'}</p>
+            `;
+        } else {
+            prepLastAnalysis.innerHTML = '<p>Nessuna analisi trovata.</p>';
+        }
+
+        // --- 5. Arma i bottoni di contatto ---
+        if (cliente.email) {
+            const subject = encodeURIComponent("Info sul tuo appuntamento");
+            prepEmailBtn.href = `https://mail.google.com/mail/?view=cm&fs=1&to=${cliente.email}&su=${subject}`;
+            prepEmailBtn.setAttribute('target', '_blank');
+            prepEmailBtn.style.display = 'inline-block';
+        }
+        if (cliente.telefono) {
+            const numeroPulito = cliente.telefono.replace(/\s+/g, '');
+            prepWhatsappBtn.href = `https://wa.me/${numeroPulito}`;
+            prepWhatsappBtn.setAttribute('target', '_blank');
+            prepWhatsappBtn.style.display = 'inline-block';
+        }
+
+    } catch (error) {
+        console.error('Errore durante la preparazione della scheda:', error);
+        showMessage('Impossibile caricare i dati di preparazione.', 'error');
+        closeModal(prepareAppointmentModal);
+    }
+}
+
 
     // Funzione per caricare e mostrare gli appuntamenti
     async function fetchAndDisplayAppointments() {
@@ -288,5 +383,6 @@ appointments.forEach(app => {
     if (searchInput) searchInput.addEventListener("keypress", e => { if (e.key === "Enter") handleSearchClient(); });
     if (addNewClientButton) addNewClientButton.addEventListener("click", handleAddNewClient);
     if (appointmentsListContainer) fetchAndDisplayAppointments();
+	if (prepCloseBtn) prepCloseBtn.addEventListener('click', () => closeModal(prepareAppointmentModal));
 
 });

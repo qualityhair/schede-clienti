@@ -88,6 +88,60 @@
 <!-- ============================================= -->
     </main>
 
+
+<!-- ======================================================= -->
+<!-- === NUOVA MODALE "PREPARA APPUNTAMENTO" === -->
+<!-- ======================================================= -->
+<div id="prepare-appointment-modal" class="modal">
+    <div class="modal-content large-modal">
+        
+        <div class="prep-header">
+            <img id="prep-avatar" src="/img/default-avatar.png" alt="Avatar Cliente" class="profile-avatar">
+            <div class="prep-header-info">
+                <h3 id="prep-client-name">Nome Cliente...</h3>
+                <div id="prep-client-tags" class="tags-container"></div>
+            </div>
+            <button class="modal-button cancel" id="prep-close-btn" style="position: absolute; top: 15px; right: 15px;">&times;</button>
+        </div>
+
+        <hr class="panel-divider">
+
+        <div class="prep-grid">
+            <!-- Colonna Sinistra: Ultimo Lavoro -->
+            <div class="prep-section">
+                <h4>Ultimo Lavoro Eseguito</h4>
+                <div id="prep-last-photo-container" class="prep-photo-container">
+                    <p>Nessuna foto recente trovata.</p>
+                </div>
+                <div id="prep-last-formula">
+                    <strong>Formula Colore:</strong>
+                    <p>Nessuna formula registrata.</p>
+                </div>
+            </div>
+
+            <!-- Colonna Destra: Ultima Analisi -->
+            <div class="prep-section">
+                <h4>Ultima Analisi Trico</h4>
+                <div id="prep-last-analysis">
+                    <p>Nessuna analisi trovata.</p>
+                </div>
+            </div>
+        </div>
+
+        <hr class="panel-divider">
+
+        <!-- Azioni Rapide -->
+        <div class="prep-actions">
+            <a id="prep-full-card-btn" href="#" class="btn btn-primary">Apri Scheda Completa</a>
+            <div class="contact-actions">
+                <a id="prep-whatsapp-btn" class="contact-btn" title="Invia WhatsApp" style="display: none;">💬</a>
+                <a id="prep-email-btn" class="contact-btn" title="Invia Email" style="display: none;">📧</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
     <script src="/js/dashboard-app.js"></script>
 
 </body>
