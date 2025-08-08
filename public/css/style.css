@@ -1612,8 +1612,8 @@ body {
 }
 
 .profile-avatar {
-    width: 50px;  /* Dimensione dell'avatar */
-    height: 50px; /* Dimensione dell'avatar */
+    width: 80px;  /* Dimensione dell'avatar */
+    height: 80px; /* Dimensione dell'avatar */
     border-radius: 50%; /* Lo rende perfettamente rotondo */
     object-fit: cover; /* Assicura che l'immagine riempia il cerchio senza deformarsi */
     border: 2px solid #FFD700; /* Bordo giallo, come il logo */
