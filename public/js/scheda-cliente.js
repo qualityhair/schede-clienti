@@ -68,6 +68,7 @@ const editPhotoTagsInput = document.getElementById('edit-photo-tags');
     const nomeCompletoSpan = document.getElementById("nome-completo");
     const emailSpan = document.getElementById("email");
     const telefonoSpan = document.getElementById("telefono");
+	const statoPagamentoBadge = document.getElementById("stato-pagamento-badge");
     const listaTrattamentiBody = document.getElementById("lista-trattamenti");
     const btnEliminaCliente = document.getElementById("btnEliminaCliente");
     const btnPrecedente = document.getElementById("btnPrecedente");
@@ -85,6 +86,7 @@ const editPhotoTagsInput = document.getElementById('edit-photo-tags');
     const prezzoAcquistoInput = document.getElementById("prezzo-acquisto");
     const quantitaAcquistoInput = document.getElementById("quantita-acquisto");
     const noteAcquistoTextarea = document.getElementById("note-acquisto");
+	const pagatoAcquistoInput = document.getElementById("pagato-acquisto");
     const aggiungiTrattamentoBtn = document.getElementById("aggiungiTrattamentoBtn");
     const modalAggiungiTrattamento = document.getElementById("addTrattamentoModal");
     const formAddTrattamento = document.getElementById("formAddTrattamento");
@@ -94,6 +96,7 @@ const editPhotoTagsInput = document.getElementById('edit-photo-tags');
     const prezzoTrattamentoInput = document.getElementById('prezzoTrattamento');
     const descrizioneTrattamentoInput = document.getElementById('descrizioneTrattamento');
     const noteTrattamentoInput = document.getElementById('noteTrattamento');
+	const pagatoTrattamentoInput = document.getElementById("pagato-trattamento");
     const modificaDettagliBtn = document.getElementById("modificaDettagliBtn");
     const modificaClienteModal = document.getElementById('modificaClienteModal');
     const formModificaCliente = document.getElementById('formModificaCliente');
@@ -211,6 +214,20 @@ function displayClientTags(tags = []) {
     }
 }
 
+function displayStatoPagamento(stato) {
+    if (!statoPagamentoBadge) return; // Controllo di sicurezza
+
+    // Rimuove le classi di stile precedenti per evitare conflitti
+    statoPagamentoBadge.classList.remove('status-regolare', 'status-sospeso');
+    
+    if (stato === 'sospeso') {
+        statoPagamentoBadge.textContent = 'In Sospeso';
+        statoPagamentoBadge.classList.add('status-sospeso');
+    } else { // 'regolare' e qualsiasi altro caso
+        statoPagamentoBadge.textContent = 'Regolare';
+        statoPagamentoBadge.classList.add('status-regolare');
+    }
+}
 
 
     async function loadClientData(clientId) {
@@ -252,6 +269,7 @@ function displayClientTags(tags = []) {
         telefonoSpan.textContent = client.telefono || "N/A";
         clienteNoteTextarea.value = client.preferenze_note || '';
         displayClientTags(client.tags);
+		displayStatoPagamento(client.stato_pagamento);
         displayAcquisti(client.storico_acquisti);
         displayTrattamenti(data.trattamenti || []);
         
@@ -266,63 +284,121 @@ function displayClientTags(tags = []) {
 }
 
     function displayTrattamenti(trattamenti) {
-        listaTrattamentiBody.innerHTML = '';
-        if (trattamenti.length === 0) {
-            listaTrattamentiBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun trattamento registrato.</td></tr>';
-            return;
-        }
-        trattamenti.sort((a, b) => new Date(a.data_trattamento) - new Date(b.data_trattamento));
-        trattamenti.forEach(trattamento => {
-            const row = listaTrattamentiBody.insertRow();
-            row.insertCell().textContent = trattamento.tipo_trattamento;
-            row.insertCell().textContent = trattamento.descrizione;
-            row.insertCell().textContent = new Date(trattamento.data_trattamento).toLocaleDateString('it-IT');
-            row.insertCell().textContent = trattamento.prezzo ? `€ ${parseFloat(trattamento.prezzo).toFixed(2)}` : 'N/A';
-            row.insertCell().textContent = trattamento.note || "N/A";
-            const actionCell = row.insertCell();
-            const editButton = document.createElement("button");
-            editButton.textContent = "✏️ Modifica";
-            editButton.className = "btn btn-edit";
-            editButton.onclick = () => { window.location.href = `/modifica-trattamento.html?id=${trattamento.id}&clientId=${currentClientId}`; };
-            actionCell.appendChild(editButton);
-            const deleteButton = document.createElement("button");
-            deleteButton.textContent = "🗑️ Elimina";
-            deleteButton.className = "btn btn-delete";
-            deleteButton.style.marginLeft = "5px";
-            deleteButton.onclick = () => confirmDeleteTrattamento(trattamento.id);
-            actionCell.appendChild(deleteButton);
-        });
+    listaTrattamentiBody.innerHTML = '';
+    if (trattamenti.length === 0) {
+        // La tabella ora ha 7 colonne, quindi aggiorniamo colspan
+        listaTrattamentiBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nessun trattamento registrato.</td></tr>';
+        return;
     }
 
-    function displayAcquisti(acquistiString) {
-        listaAcquistiBody.innerHTML = '';
-        let acquisti = [];
-        try {
-            acquisti = acquistiString ? JSON.parse(acquistiString) : [];
-        } catch (e) {
-            console.error("Errore parsing storico acquisti:", e);
-        }
-        if (acquisti.length === 0) {
-            listaAcquistiBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun acquisto registrato.</td></tr>';
-            return;
-        }
-        acquisti.sort((a, b) => new Date(a.data) - new Date(b.data));
-        acquisti.forEach((acquisto, index) => {
-            const row = listaAcquistiBody.insertRow();
-            row.insertCell().textContent = acquisto.prodotto;
-            row.insertCell().textContent = new Date(acquisto.data).toLocaleDateString('it-IT');
-            row.insertCell().textContent = `${acquisto.prezzo.toFixed(2)} €`;
-            row.insertCell().textContent = acquisto.quantita;
-            row.insertCell().textContent = acquisto.note || "N/A";
-            const actionCell = row.insertCell();
-            const deleteButton = document.createElement("button");
-            deleteButton.textContent = "🗑️ Elimina";
-            deleteButton.className = "btn btn-delete";
-            deleteButton.style.marginLeft = "5px";
-            deleteButton.onclick = () => confirmDeleteAcquisto(index);
-            actionCell.appendChild(deleteButton);
+    // L'ordinamento è già gestito dal backend, quindi questa riga non è più necessaria
+    // trattamenti.sort((a, b) => new Date(a.data_trattamento) - new Date(b.data_trattamento));
+    
+    trattamenti.forEach(trattamento => {
+        const row = listaTrattamentiBody.insertRow();
+        
+        row.insertCell().textContent = trattamento.tipo_trattamento;
+        row.insertCell().textContent = trattamento.descrizione || 'N/A';
+        row.insertCell().textContent = new Date(trattamento.data_trattamento).toLocaleDateString('it-IT');
+        row.insertCell().textContent = trattamento.prezzo ? `€ ${parseFloat(trattamento.prezzo).toFixed(2)}` : 'N/A';
+
+        // --- NUOVA CELLA PER LA CHECKBOX "PAGATO" ---
+        const pagatoCell = row.insertCell();
+        pagatoCell.style.textAlign = 'center';
+        const pagatoCheckbox = document.createElement('input');
+        pagatoCheckbox.type = 'checkbox';
+        pagatoCheckbox.checked = trattamento.pagato;
+        pagatoCheckbox.title = trattamento.pagato ? 'Marcato come Pagato' : 'Marca come Pagato';
+        
+        // Quando l'utente clicca, chiamiamo la funzione per aggiornare il DB
+        pagatoCheckbox.addEventListener('change', () => {
+            updateStatoPagamentoTrattamento(trattamento.id, pagatoCheckbox.checked);
         });
+        pagatoCell.appendChild(pagatoCheckbox);
+        // --- FINE NUOVA CELLA ---
+
+        row.insertCell().textContent = trattamento.note || "N/A";
+        
+        const actionCell = row.insertCell();
+        const editButton = document.createElement("button");
+        editButton.textContent = "✏️ Modifica";
+        editButton.className = "btn btn-edit";
+        editButton.onclick = () => { window.location.href = `/modifica-trattamento.html?id=${trattamento.id}&clientId=${currentClientId}`; };
+        actionCell.appendChild(editButton);
+        
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "🗑️ Elimina";
+        deleteButton.className = "btn btn-delete";
+        deleteButton.style.marginLeft = "5px";
+        deleteButton.onclick = () => confirmDeleteTrattamento(trattamento.id);
+        actionCell.appendChild(deleteButton);
+    });
+}
+
+    function displayAcquisti(acquistiString) {
+    listaAcquistiBody.innerHTML = '';
+    let acquisti = [];
+    try {
+        acquisti = acquistiString ? JSON.parse(acquistiString) : [];
+    } catch (e) {
+        console.error("Errore parsing storico acquisti:", e);
     }
+    
+    if (acquisti.length === 0) {
+        listaAcquistiBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Nessun acquisto registrato.</td></tr>';
+        return;
+    }
+
+    // Ordiniamo qui per visualizzazione, ma l'indice originale è importante per le modifiche
+    const acquistiOrdinati = [...acquisti]
+        .map((acquisto, index) => ({ ...acquisto, originalIndex: index })) // Aggiungiamo l'indice originale
+        .sort((a, b) => new Date(a.data) - new Date(b.data));
+
+    acquistiOrdinati.forEach(acquisto => {
+        const isNewFormat = 'prezzo_unitario' in acquisto;
+        
+        const prezzoUnitario = isNewFormat ? acquisto.prezzo_unitario : acquisto.prezzo;
+        const quantita = acquisto.quantita || 1;
+        const prezzoTotale = prezzoUnitario * quantita;
+        const isPagato = isNewFormat ? (acquisto.pagato || false) : true;
+
+        const row = listaAcquistiBody.insertRow();
+        row.insertCell().textContent = acquisto.prodotto;
+        row.insertCell().textContent = new Date(acquisto.data).toLocaleDateString('it-IT');
+        row.insertCell().textContent = `€ ${parseFloat(prezzoUnitario).toFixed(2)}`;
+        row.insertCell().textContent = quantita;
+        row.insertCell().textContent = `€ ${prezzoTotale.toFixed(2)}`;
+
+        const pagatoCell = row.insertCell();
+        pagatoCell.style.textAlign = 'center';
+        const pagatoCheckbox = document.createElement('input');
+        pagatoCheckbox.type = 'checkbox';
+        pagatoCheckbox.checked = isPagato;
+        
+        // Per i vecchi acquisti, la checkbox è disabilitata
+        pagatoCheckbox.disabled = !isNewFormat;
+        pagatoCheckbox.title = isNewFormat 
+            ? (isPagato ? 'Marcato come Pagato' : 'Marca come Pagato') 
+            : 'Acquisto in vecchio formato (considerato pagato)';
+        
+        if (isNewFormat) {
+            pagatoCheckbox.addEventListener('change', () => {
+                // Usiamo l'INDICE ORIGINALE non ordinato per modificare l'array giusto
+                updateStatoPagamentoAcquisto(acquisto.originalIndex, pagatoCheckbox.checked);
+            });
+        }
+        pagatoCell.appendChild(pagatoCheckbox);
+
+        row.insertCell().textContent = acquisto.note || "N/A";
+        
+        const actionCell = row.insertCell();
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "🗑️ Elimina";
+        deleteButton.className = "btn btn-delete";
+        deleteButton.onclick = () => confirmDeleteAcquisto(acquisto.originalIndex); // Usiamo l'indice originale
+        actionCell.appendChild(deleteButton);
+    });
+}
 	
 // VERSIONE COMPLETA CON INFO SOTTO LA MINIATURA
 	async function loadStyleClientPhotos(clientId) {
@@ -807,6 +883,104 @@ async function handleEditPhoto(event) {
 
     // --- 4. FUNZIONI DI GESTIONE (DELETE, SAVE, UPDATE, etc.) ---
 
+async function updateStatoPagamentoTrattamento(trattamentoId, nuovoStato) {
+    showMessage("Aggiornamento in corso...", 'info');
+
+    try {
+        // 1. Recuperiamo i dati completi del trattamento che stiamo per modificare.
+        // Questo è necessario perché il tuo backend si aspetta l'oggetto completo per la modifica.
+        const responseTrattamento = await fetch(`/api/trattamenti/${trattamentoId}`);
+        if (!responseTrattamento.ok) {
+            throw new Error('Impossibile recuperare i dati del trattamento da modificare.');
+        }
+        const trattamento = await responseTrattamento.json();
+
+        // 2. Aggiorniamo solo il campo 'pagato' con il nuovo valore (true/false) dalla checkbox.
+        trattamento.pagato = nuovoStato;
+
+        // 3. Inviamo l'intero oggetto aggiornato al backend.
+        const updateResponse = await fetch(`/api/trattamenti/${trattamentoId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(trattamento)
+        });
+
+        // La funzione handleApiResponse gestisce già i possibili errori di rete/server.
+        const data = await handleApiResponse(updateResponse);
+        if (!updateResponse.ok) {
+            throw new Error(data.error || 'Errore durante l\'aggiornamento del trattamento.');
+        }
+
+        // 4. Se tutto va a buon fine, ricarichiamo i dati del cliente.
+        // Questo è il modo più semplice e sicuro per garantire che sia la tabella
+        // che il badge principale "Sospeso/Regolare" siano perfettamente sincronizzati.
+        await loadClientData(currentClientId);
+
+        // Mostriamo il messaggio di successo solo alla fine, quando l'utente vede l'interfaccia aggiornata.
+        showMessage("Stato pagamento aggiornato!", 'success');
+
+    } catch (error) {
+        console.error("Errore nell'aggiornare lo stato di pagamento:", error);
+        showMessage(`Errore: ${error.message}`, 'error');
+        
+        // In caso di errore, è una buona pratica ricaricare comunque i dati.
+        // Questo assicura che la checkbox torni allo stato reale presente nel database,
+        // evitando che l'utente veda uno stato che non è stato salvato.
+        await loadClientData(currentClientId);
+    }
+}
+
+// --- INCOLLA QUESTO BLOCCO AL POSTO DELLA VECCHIA FUNZIONE updateStatoPagamentoAcquisto ---
+async function updateStatoPagamentoAcquisto(acquistoIndex, nuovoStato) {
+    showMessage("Aggiornamento in corso...", 'info');
+
+    try {
+        let storicoAcquisti = [];
+        if (currentClienteData && currentClienteData.storico_acquisti) {
+            storicoAcquisti = JSON.parse(currentClienteData.storico_acquisti);
+        }
+
+        if (acquistoIndex < 0 || acquistoIndex >= storicoAcquisti.length) {
+            throw new Error("Acquisto non trovato per la modifica.");
+        }
+        
+        const acquistoDaModificare = storicoAcquisti[acquistoIndex];
+        
+        if (!('prezzo_unitario' in acquistoDaModificare)) {
+            acquistoDaModificare.prezzo_unitario = acquistoDaModificare.prezzo;
+            delete acquistoDaModificare.prezzo;
+        }
+        acquistoDaModificare.pagato = nuovoStato;
+        
+        // Prepariamo il corpo della richiesta con i dati aggiornati
+        const updatedStorico = JSON.stringify(storicoAcquisti);
+
+        const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ storico_acquisti: updatedStorico })
+        });
+
+        const dataResponse = await handleApiResponse(response);
+        if (!response.ok) {
+            throw new Error(dataResponse.error || "Errore durante il salvataggio.");
+        }
+        
+        // ==========> LA MODIFICA CHIAVE È QUI <==========
+        // Invece di ridisegnare solo la tabella, ora ricarichiamo TUTTI i dati.
+        // Questo garantisce che anche il badge dello stato generale venga aggiornato.
+        await loadClientData(currentClientId);
+        
+        showMessage("Stato pagamento acquisto aggiornato!", 'success');
+        
+    } catch (error) {
+        console.error("Errore nell'aggiornare lo stato dell'acquisto:", error);
+        showMessage(`Errore: ${error.message}`, 'error');
+        await loadClientData(currentClientId);
+    }
+}
+
+
     async function confirmDeleteTrattamento(trattamentoId) {
         if (!confirm("Sei sicuro di voler eliminare questo trattamento?")) return;
         try {
@@ -854,85 +1028,111 @@ async function handleEditPhoto(event) {
         }
     }
 
-    async function handleAddAcquisto(event) {
-        event.preventDefault();
-        const prodotto = prodottoAcquistoInput.value.trim();
-        const data = dataAcquistoInput.value;
-        const prezzo = parseFloat(prezzoAcquistoInput.value);
-        const quantita = parseInt(quantitaAcquistoInput.value);
-        const note = noteAcquistoTextarea.value.trim();
-        if (!prodotto || !data || isNaN(prezzo) || isNaN(quantita) || prezzo < 0 || quantita < 1) {
-            showMessage("Compila tutti i campi obbligatori con valori validi.", 'error');
-            return;
-        }
-        const nuovoAcquisto = { prodotto, data, prezzo, quantita, note };
-        try {
-            const clientResponse = await fetch(`/api/clienti/${currentClientId}`);
-            const clientData = await handleApiResponse(clientResponse);
-            if (!clientData || !clientResponse.ok) throw new Error("Errore recupero dati cliente.");
-            let storicoAcquisti = [];
-            try {
-                storicoAcquisti = clientData.client.storico_acquisti ? JSON.parse(clientData.client.storico_acquisti) : [];
-            } catch (e) { console.error("Errore parsing storico acquisti:", e); }
-            storicoAcquisti.push(nuovoAcquisto);
-            const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ storico_acquisti: JSON.stringify(storicoAcquisti) })
-            });
-            const dataResponse = await handleApiResponse(response);
-            if (!dataResponse) return;
-            if (!response.ok) throw new Error(dataResponse.error || "Errore aggiunta acquisto.");
-            showMessage("Acquisto aggiunto!", 'success');
-            closeModal(modalAggiungiAcquisto, formAggiungiAcquisto);
-            loadClientData(currentClientId);
-        } catch (error) {
-            console.error("Errore aggiunta acquisto:", error);
-            showMessage(`Errore: ${error.message}`, 'error');
-        }
+    // --- SOSTITUISCI LA VECCHIA handleAddAcquisto ---
+async function handleAddAcquisto(event) {
+    event.preventDefault();
+    const prodotto = prodottoAcquistoInput.value.trim();
+    const data = dataAcquistoInput.value;
+    const prezzo_unitario = parseFloat(prezzoAcquistoInput.value);
+    const quantita = parseInt(quantitaAcquistoInput.value);
+    const note = noteAcquistoTextarea.value.trim();
+    // Leggiamo lo stato della nuova checkbox
+    const pagato = pagatoAcquistoInput.checked;
+
+    if (!prodotto || !data || isNaN(prezzo_unitario) || isNaN(quantita) || prezzo_unitario < 0 || quantita < 1) {
+        showMessage("Compila tutti i campi obbligatori con valori validi.", 'error');
+        return;
     }
 
-    async function handleAddTrattamento(event) {
-        event.preventDefault();
-        if (!currentClientId) {
-            showMessage("ID cliente mancante.", 'error');
-            return;
+    // Creiamo l'oggetto acquisto includendo il valore di 'pagato'
+    const nuovoAcquisto = { 
+        prodotto, 
+        data, 
+        prezzo_unitario,
+        quantita, 
+        pagato, // <-- valore dinamico dalla checkbox
+        note 
+    };
+
+    try {
+        let storicoAcquisti = [];
+        if (currentClienteData && currentClienteData.storico_acquisti) {
+            try {
+                storicoAcquisti = JSON.parse(currentClienteData.storico_acquisti);
+            } catch (e) {
+                console.error("Storico acquisti malformato, verrà sovrascritto.", e);
+            }
         }
-        const tipo_trattamento = tipoTrattamentoInput.value.trim();
-        const data_trattamento = dataTrattamentoInput.value;
-        const prezzo_trattamento = parseFloat(prezzoTrattamentoInput.value);
-        if (isNaN(prezzo_trattamento) || prezzo_trattamento < 0) {
-            showMessage("Inserisci un prezzo valido.", 'error');
-            return;
+        storicoAcquisti.push(nuovoAcquisto);
+        
+        const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ storico_acquisti: JSON.stringify(storicoAcquisti) })
+        });
+        
+        const dataResponse = await handleApiResponse(response);
+        if (!response.ok) {
+            throw new Error(dataResponse.error || "Errore durante l'aggiunta dell'acquisto.");
         }
-        if (!tipo_trattamento || !data_trattamento) {
-            showMessage("Compila Tipo e Data.", 'error');
-            return;
-        }
-        try {
-            const response = await fetch(`/api/trattamenti`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    cliente_id: currentClientId,
-                    tipo_trattamento,
-                    data_trattamento,
-                    prezzo: prezzo_trattamento,
-                    descrizione: descrizioneTrattamentoInput.value.trim(),
-                    note: noteTrattamentoInput.value.trim()
-                })
-            });
-            const data = await handleApiResponse(response);
-            if (!data) return;
-            if (!response.ok) throw new Error(data.error || "Errore aggiunta trattamento.");
-            showMessage("Trattamento aggiunto!", 'success');
-            closeModal(modalAggiungiTrattamento, formAddTrattamento);
-            loadClientData(currentClientId);
-        } catch (error) {
-            console.error("Errore aggiunta trattamento:", error);
-            showMessage(`Errore: ${error.message}`, 'error');
-        }
+        
+        showMessage("Acquisto aggiunto!", 'success');
+        closeModal(modalAggiungiAcquisto, formAggiungiAcquisto);
+        loadClientData(currentClientId);
+    } catch (error) {
+        console.error("Errore aggiunta acquisto:", error);
+        showMessage(`Errore: ${error.message}`, 'error');
     }
+}
+
+    // --- SOSTITUISCI LA VECCHIA handleAddTrattamento ---
+async function handleAddTrattamento(event) {
+    event.preventDefault();
+    if (!currentClientId) {
+        showMessage("ID cliente mancante.", 'error');
+        return;
+    }
+    const tipo_trattamento = tipoTrattamentoInput.value.trim();
+    const data_trattamento = dataTrattamentoInput.value;
+    const prezzo_trattamento = parseFloat(prezzoTrattamentoInput.value);
+    // Leggiamo lo stato della nuova checkbox
+    const pagato = pagatoTrattamentoInput.checked;
+
+    if (isNaN(prezzo_trattamento) || prezzo_trattamento < 0) {
+        showMessage("Inserisci un prezzo valido.", 'error');
+        return;
+    }
+    if (!tipo_trattamento || !data_trattamento) {
+        showMessage("Compila Tipo e Data.", 'error');
+        return;
+    }
+    try {
+        const response = await fetch(`/api/trattamenti`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // Aggiungiamo il campo 'pagato' all'oggetto inviato
+            body: JSON.stringify({
+                cliente_id: currentClientId,
+                tipo_trattamento,
+                data_trattamento,
+                prezzo: prezzo_trattamento,
+                descrizione: descrizioneTrattamentoInput.value.trim(),
+                note: noteTrattamentoInput.value.trim(),
+                pagato // <-- valore dinamico dalla checkbox
+            })
+        });
+        const data = await handleApiResponse(response);
+        if (!data) return;
+        if (!response.ok) throw new Error(data.error || "Errore aggiunta trattamento.");
+        
+        showMessage("Trattamento aggiunto!", 'success');
+        closeModal(modalAggiungiTrattamento, formAddTrattamento);
+        loadClientData(currentClientId);
+    } catch (error) {
+        console.error("Errore aggiunta trattamento:", error);
+        showMessage(`Errore: ${error.message}`, 'error');
+    }
+}
 
     async function confirmDeleteAcquisto(indexToDelete) {
         if (!confirm("Sei sicuro di voler eliminare questo acquisto?")) return;

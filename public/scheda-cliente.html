@@ -22,273 +22,90 @@
         <div class="panel-grid">
             <div class="panel client-details-panel">
                 <h2 class="panel-title profile-title-container">
-    <img id="profile-avatar" src="/img/default-avatar.png" alt="Avatar Cliente" class="profile-avatar">
-    <span>Profilo di  <span id="nome-completo" style="color: #FFD700;"></span></span>
-</h2>
+                    <img id="profile-avatar" src="/img/default-avatar.png" alt="Avatar Cliente" class="profile-avatar">
+                    <span>Profilo di  <span id="nome-completo" style="color: #FFD700;"></span></span>
+                </h2>
                 <div class="panel-content">
-				<p><strong>Soprannome:</strong> <span id="soprannome-cliente" style="color: #FFD700;">N/A</span></p>
-				<p><strong>Email:</strong> <span id="email"></span></p>
-				<p><strong>Telefono:</strong> <span id="telefono"></span></p>
+				    <p><strong>Soprannome:</strong> <span id="soprannome-cliente" style="color: #FFD700;">N/A</span></p>
+				    <p><strong>Email:</strong> <span id="email"></span></p>
+				    <p><strong>Telefono:</strong> <span id="telefono"></span></p>
+                    <p><strong>Stato Pagamenti:</strong> 
+                        <span id="stato-pagamento-badge" class="status-badge">Caricamento...</span>
+                    </p>
 				</div>
                 <div class="panel-actions">
                     <button class="btn btn-primary" id="modificaDettagliBtn">✏️ Modifica Profilo</button>
                 </div>
 				
-				<!-- SEPARATORE VISIVO -->
 				<hr style="border-color: #444; margin: 20px 0;">
 
-				<!-- NUOVA SEZIONE NOTE INTEGRATA -->
 				<div class="detail-group">
-				<label for="cliente-note" class="form-label" style="font-size: 1.2em; color: #FFD700;">Note e Preferenze:</label>
-				<textarea id="cliente-note" class="textarea-field" rows="5" placeholder="Aggiungi note su tagli, prodotti preferiti, allergie, conversazioni..."></textarea>
-				<div class="panel-actions" style="margin-top: 15px;">
-				<button id="salva-note-btn" class="btn btn-primary">Salva Note</button>
-				</div>
-</div>
-				
-				
+				    <label for="cliente-note" class="form-label" style="font-size: 1.2em; color: #FFD700;">Note e Preferenze:</label>
+				    <textarea id="cliente-note" class="textarea-field" rows="5" placeholder="Aggiungi note su tagli, prodotti preferiti, allergie, conversazioni..."></textarea>
+				    <div class="panel-actions" style="margin-top: 15px;">
+				        <button id="salva-note-btn" class="btn btn-primary">Salva Note</button>
+				    </div>
+                </div>
             </div>
 			
-			<!-- Pannello Riepilogo Analisi Tricologica -->
-<div class="panel" id="analisi-tricologica-panel">
-    <h2 class="panel-title">
-    <span>Analisi Trico-Cosmetica</span>
-    <!-- Usiamo il tuo modello esatto -->
-    <button class="btn btn-icon" id="nuova-analisi-btn" title="Aggiungi Nuova Analisi">➕</button>
-</h2>
-    
-    <!-- Questo contenitore verrà riempito dinamicamente dal JavaScript -->
-    <div id="analisi-riepilogo-content">
-        <p class="loading-message">Caricamento riepilogo analisi...</p>
-    </div>
+            <div class="panel" id="analisi-tricologica-panel">
+                <h2 class="panel-title">
+                    <span>Analisi Trico-Cosmetica</span>
+                    <button class="btn btn-icon" id="nuova-analisi-btn" title="Aggiungi Nuova Analisi">➕</button>
+                </h2>
+                <div id="analisi-riepilogo-content">
+                    <p class="loading-message">Caricamento riepilogo analisi...</p>
+                </div>
 	
-	 <!-- ======================================================= -->
-    <!-- === INCOLLA E MODIFICA IL PANNELLO DUPLICATO QUI === -->
-    <!-- ======================================================= -->
-    <hr style="border-color: #444; margin: 20px 0;"> <!-- Un separatore per pulizia -->
-    <div class="panel" id="tricho-photo-gallery-panel" style="border: none; box-shadow: none; padding: 0; margin-top: 15px;">
-        <h3 class="panel-title" style="font-size: 1.2em;"> <!-- Usiamo un h3 per la gerarchia -->
-            <span>Foto Analisi</span>
-            <button class="btn btn-icon" id="add-tricho-photo-btn" title="Aggiungi Foto Trico">➕</button>
-        </h3>
-        <div id="tricho-photo-tags-filter-container" class="tags-filter-container">
-            <!-- Filtri per la galleria trico -->
-        </div>
-        <div class="panel-content" id="tricho-photo-gallery-content" style="padding: 0;">
-            <!-- Foto trico qui -->
-        </div>
-    </div>
-    <!-- ======================================================= -->
-
-    
-    <!-- Pulsanti di azione -->
-<div class="panel-actions">
-    <a href="#" id="storico-analisi-btn" class="btn btn-nav" style="display: none;">Vedi Storico Completo</a>
-</div>
-</div>
-
-
-<!-- ======================================================= -->
-<!-- === NUOVO PANNELLO STORICO FOTOGRAFICO === -->
-<!-- ======================================================= -->
-<div class="panel" id="photo-gallery-panel">
-    <h2 class="panel-title">
-        <span>Archivio Foto</span>
-        <button class="btn btn-icon" id="add-photo-btn" title="Aggiungi Nuova Foto">➕</button>
-    </h2>
-	
-	<!-- ======================================================= -->
-<!-- === NUOVO CONTENITORE PER I FILTRI DEI TAG (AGGIUNGI QUESTO) === -->
-<!-- ======================================================= -->
-<div id="photo-tags-filter-container" class="tags-filter-container">
-    <!-- I bottoni-filtro verranno inseriti qui dal JavaScript -->
-</div>
-<!-- ======================================================= -->
-	
-    <div class="panel-content" id="photo-gallery-content">
-        <!-- Le miniature delle foto verranno inserite qui dal JavaScript -->
-        <p class="loading-message">Caricamento foto in corso...</p>
-    </div>
-</div>
-<!-- ======================================================= -->
-
-
-<!-- ======================================================= -->
-<!-- === NUOVA MODALE PER L'UPLOAD DELLE FOTO (AGGIORNATA PER I TAG) === -->
-<!-- ======================================================= -->
-<!-- ======================================================= -->
-<!-- === MODALE UPLOAD FOTO (AGGIORNATA CON FOTOCAMERA) === -->
-<!-- ======================================================= -->
-<div id="addPhotoModal" class="modal">
-    <div class="modal-content">
-        <h3>Aggiungi Nuova Foto</h3>
-        
-        <!-- Vista 1: Scelta iniziale (Upload vs Scatta) -->
-        <div id="photo-choice-view">
-            <form id="formAddPhoto">
-                <div class="form-group">
-                    <label for="photo-file" class="form-label">Seleziona Immagine da File:</label>
-                    <input type="file" id="photo-file" name="clientImage" accept="image/*" class="input-field">
+                <hr style="border-color: #444; margin: 20px 0;">
+                <div class="panel" id="tricho-photo-gallery-panel" style="border: none; box-shadow: none; padding: 0; margin-top: 15px;">
+                    <h3 class="panel-title" style="font-size: 1.2em;">
+                        <span>Foto Analisi</span>
+                        <button class="btn btn-icon" id="add-tricho-photo-btn" title="Aggiungi Foto Trico">➕</button>
+                    </h3>
+                    <div id="tricho-photo-tags-filter-container" class="tags-filter-container"></div>
+                    <div class="panel-content" id="tricho-photo-gallery-content" style="padding: 0;"></div>
                 </div>
-                 <div class="form-group">
-                    <label for="photo-didascalia" class="form-label">Didascalia (Opzionale):</label>
-                    <input type="text" id="photo-didascalia" class="input-field" placeholder="Es: Balayage biondo freddo, Luglio 2025">
+
+                <div class="panel-actions">
+                    <a href="#" id="storico-analisi-btn" class="btn btn-nav" style="display: none;">Vedi Storico Completo</a>
                 </div>
-                <div class="form-group">
-                    <label for="photo-tags" class="form-label">Tag (separati da virgola):</label>
-                    <input type="text" id="photo-tags" class="input-field" placeholder="Es: colore, meches, balayage">
+            </div>
+
+            <div class="panel" id="photo-gallery-panel">
+                <h2 class="panel-title">
+                    <span>Archivio Foto</span>
+                    <button class="btn btn-icon" id="add-photo-btn" title="Aggiungi Nuova Foto">➕</button>
+                </h2>
+                <div id="photo-tags-filter-container" class="tags-filter-container"></div>
+                <div class="panel-content" id="photo-gallery-content">
+                    <p class="loading-message">Caricamento foto in corso...</p>
                 </div>
-                <div class="modal-buttons">
-                    <button type="submit" class="modal-button ok">Carica Foto</button>
-					<button type="button" class="modal-button cancel" id="cancel-photo-btn">Annulla</button>
-                </div>
-            </form>
-
-            <hr class="panel-divider">
-
-            <div class="form-group" style="text-align: center;">
-                <label class="form-label">Oppure usa la fotocamera:</label>
-                <button type="button" id="start-camera-btn" class="modal-button ok" style="width: auto; padding: 12px 25px;">📷 Scatta Foto</button>
             </div>
-        </div>
-
-        <!-- Vista 2: Live-view della fotocamera -->
-        <div id="camera-view" style="display: none;">
-            <video id="camera-video" style="width: 100%; border-radius: 8px;" autoplay playsinline></video>
-            <canvas id="camera-canvas" style="display: none;"></canvas> <!-- Usato per scattare la foto -->
-            <div class="modal-buttons" style="margin-top: 15px;">
-                <button type="button" id="take-photo-btn" class="modal-button ok">Scatta</button>
-                <button type="button" id="cancel-camera-btn" class="modal-button cancel">Annulla</button>
-            </div>
-        </div>
-        
-        <!-- Vista 3: Anteprima della foto scattata -->
-        <div id="preview-view" style="display: none;">
-            <img id="photo-preview" src="" alt="Anteprima foto" style="width: 100%; border-radius: 8px;">
-            <div class="modal-buttons" style="margin-top: 15px;">
-                <button type="button" id="use-photo-btn" class="modal-button ok">Usa Questa Foto</button>
-                <button type="button" id="retake-photo-btn" class="modal-button cancel">Riprova</button>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<!-- NUOVA MODALE PER VISUALIZZARE L'IMMAGINE IN GRANDE -->
-<div id="viewPhotoModal" class="modal" style="--bg-color: rgba(0,0,0,0.9);">
-    <div class="modal-content" style="background: none; box-shadow: none; padding: 0;">
-        <img id="fullscreen-photo" src="" alt="Foto Cliente" style="max-width: 90vw; max-height: 90vh; object-fit: contain;">
-        <button id="close-view-photo-btn" style="position: absolute; top: 15px; right: 25px; font-size: 2rem; color: white; background: none; border: none; cursor: pointer;">×</button>
-    </div>
-</div>
-
-
-<!-- ======================================================= -->
-<!-- === NUOVA MODALE PER LA MODIFICA DEI DETTAGLI FOTO === -->
-<!-- ======================================================= -->
-<div id="editPhotoModal" class="modal">
-    <div class="modal-content">
-        <h3>Modifica Dettagli Foto</h3>
-        <form id="formEditPhoto">
-            <input type="hidden" id="edit-photo-id">
-            
-            <div class="form-group">
-                <img id="edit-photo-preview" src="" alt="Anteprima modifica" style="max-width: 150px; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">
-            </div>
-
-            <div class="form-group">
-                <label for="edit-photo-didascalia" class="form-label">Didascalia (Opzionale):</label>
-                <input type="text" id="edit-photo-didascalia" class="input-field">
-            </div>
-            <div class="form-group">
-                <label for="edit-photo-tags" class="form-label">Tag (separati da virgola):</label>
-                <input type="text" id="edit-photo-tags" class="input-field">
-            </div>
-            <div class="modal-buttons">
-                <button type="submit" class="modal-button ok">Salva Modifiche</button>
-                <button type="button" class="modal-button cancel" id="cancel-edit-photo-btn">Annulla</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-
-<!-- ======================================================= -->
-<!-- === MODALE UPLOAD PER FOTO TRICO (DUPLICATA E MODIFICATA) === -->
-<!-- ======================================================= -->
-<div id="addTrichoPhotoModal" class="modal">
-    <div class="modal-content">
-        <h3>Aggiungi Foto Trico</h3>
-        
-        <div id="tricho-photo-choice-view">
-            <form id="formAddTrichoPhoto">
-                <div class="form-group">
-                    <label for="tricho-photo-file" class="form-label">Seleziona Immagine da File:</label>
-                    <input type="file" id="tricho-photo-file" name="clientImage" accept="image/*" class="input-field">
-                </div>
-                 <div class="form-group">
-                    <label for="tricho-photo-didascalia" class="form-label">Didascalia (Opzionale):</label>
-                    <input type="text" id="tricho-photo-didascalia" class="input-field" placeholder="Es: Cute arrossata, Luglio 2025">
-                </div>
-                <div class="form-group">
-                    <label for="tricho-photo-tags" class="form-label">Tag (separati da virgola):</label>
-                    <input type="text" id="tricho-photo-tags" class="input-field" placeholder="Es: dermatite, rossore">
-                </div>
-                <div class="modal-buttons">
-                    <button type="submit" class="modal-button ok">Carica Foto</button>
-					<button type="button" class="modal-button cancel" id="cancel-tricho-photo-btn">Annulla</button>
-                </div>
-            </form>
-            <hr class="panel-divider">
-            <div class="form-group" style="text-align: center;">
-                <label class="form-label">Oppure usa la fotocamera:</label>
-                <button type="button" id="tricho-start-camera-btn" class="modal-button ok" style="width: auto; padding: 12px 25px;">📷 Scatta Foto</button>
-            </div>
-        </div>
-
-        <div id="tricho-camera-view" style="display: none;">
-            <video id="tricho-camera-video" style="width: 100%; border-radius: 8px;" autoplay playsinline></video>
-            <canvas id="tricho-camera-canvas" style="display: none;"></canvas>
-            <div class="modal-buttons" style="margin-top: 15px;">
-                <button type="button" id="tricho-take-photo-btn" class="modal-button ok">Scatta</button>
-                <button type="button" id="tricho-cancel-camera-btn" class="modal-button cancel">Annulla</button>
-            </div>
-        </div>
-        
-        <div id="tricho-preview-view" style="display: none;">
-            <img id="tricho-photo-preview" src="" alt="Anteprima foto" style="width: 100%; border-radius: 8px;">
-            <div class="modal-buttons" style="margin-top: 15px;">
-                <button type="button" id="tricho-use-photo-btn" class="modal-button ok">Usa Questa Foto</button>
-                <button type="button" id="tricho-retake-photo-btn" class="modal-button cancel">Riprova</button>
-            </div>
-        </div>
-
-    </div>
-</div>
-			
 
             <div class="two-column-stack"> 
-
                <div class="panel treatments-panel">
-    <h2 class="panel-title">Servizi e Trattamenti
-        <button class="btn btn-icon" id="aggiungiTrattamentoBtn" title="Aggiungi Nuovo Trattamento">➕</button>
-    </h2>
-    <div class="panel-content table-responsive">
-        <table class="trattamenti data-table">
-            <thead>
-                <tr>
-                    <th>Tipo</th>
-                    <th>Descrizione</th>
-                    <th>Data</th>
-                    <th>Prezzo</th> <th>Note</th>
-                    <th>Azione</th>
-                </tr>
-            </thead>
-            <tbody id="lista-trattamenti">
-                </tbody>
-        </table>
-    </div>
-</div>
+                    <h2 class="panel-title">Servizi e Trattamenti
+                        <button class="btn btn-icon" id="aggiungiTrattamentoBtn" title="Aggiungi Nuovo Trattamento">➕</button>
+                    </h2>
+                    <div class="panel-content table-responsive">
+                        <table class="trattamenti data-table">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Descrizione</th>
+                                    <th>Data</th>
+                                    <th>Prezzo</th>
+                                    <th>Pagato</th>
+                                    <th>Note</th>
+                                    <th>Azione</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-trattamenti">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
                 <div class="panel purchases-panel">
                     <h2 class="panel-title">Acquisti
@@ -297,34 +114,160 @@
                     <div class="panel-content table-responsive">
                         <table class="acquisti-table data-table">
                             <thead>
+                                <!-- ======================================================= -->
+                                <!-- === INTESTAZIONE TABELLA ACQUISTI - VERSIONE CORRETTA === -->
+                                <!-- ======================================================= -->
                                 <tr>
                                     <th>Prodotto</th>
                                     <th>Data</th>
-                                    <th>Prezzo</th>
-                                    <th>Quantità</th>
+                                    <th>Prezzo Unit.</th>
+                                    <th>Qtà</th>
+                                    <th>Prezzo Tot.</th>
+                                    <th>Pagato</th>
                                     <th>Note</th>
-                                    <th>Azione</th>
+                                    <th>Azione</th> <!-- <-- ECCOLA QUI, REINSERITA -->
                                 </tr>
+                                <!-- ======================================================= -->
                             </thead>
                             <tbody id="lista-acquisti">
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
-
-            </div> </div>
-
-        <div class="delete-client-section">
-            <button id="btnEliminaCliente" class="btn btn-danger">
-                Elimina Cliente
-            </button>
+            </div> 
         </div>
 
+        <div class="delete-client-section">
+            <button id="btnEliminaCliente" class="btn btn-danger">Elimina Cliente</button>
+        </div>
     </main>
 
     <script src="/js/scheda-cliente.js"></script>
     <script src="/js/navbar-loader.js"></script>
 
+    <div id="addPhotoModal" class="modal">
+        <div class="modal-content">
+            <h3>Aggiungi Nuova Foto</h3>
+            <div id="photo-choice-view">
+                <form id="formAddPhoto">
+                    <div class="form-group">
+                        <label for="photo-file" class="form-label">Seleziona Immagine da File:</label>
+                        <input type="file" id="photo-file" name="clientImage" accept="image/*" class="input-field">
+                    </div>
+                     <div class="form-group">
+                        <label for="photo-didascalia" class="form-label">Didascalia (Opzionale):</label>
+                        <input type="text" id="photo-didascalia" class="input-field" placeholder="Es: Balayage biondo freddo, Luglio 2025">
+                    </div>
+                    <div class="form-group">
+                        <label for="photo-tags" class="form-label">Tag (separati da virgola):</label>
+                        <input type="text" id="photo-tags" class="input-field" placeholder="Es: colore, meches, balayage">
+                    </div>
+                    <div class="modal-buttons">
+                        <button type="submit" class="modal-button ok">Carica Foto</button>
+					    <button type="button" class="modal-button cancel" id="cancel-photo-btn">Annulla</button>
+                    </div>
+                </form>
+                <hr class="panel-divider">
+                <div class="form-group" style="text-align: center;">
+                    <label class="form-label">Oppure usa la fotocamera:</label>
+                    <button type="button" id="start-camera-btn" class="modal-button ok" style="width: auto; padding: 12px 25px;">📷 Scatta Foto</button>
+                </div>
+            </div>
+            <div id="camera-view" style="display: none;">
+                <video id="camera-video" style="width: 100%; border-radius: 8px;" autoplay playsinline></video>
+                <canvas id="camera-canvas" style="display: none;"></canvas>
+                <div class="modal-buttons" style="margin-top: 15px;">
+                    <button type="button" id="take-photo-btn" class="modal-button ok">Scatta</button>
+                    <button type="button" id="cancel-camera-btn" class="modal-button cancel">Annulla</button>
+                </div>
+            </div>
+            <div id="preview-view" style="display: none;">
+                <img id="photo-preview" src="" alt="Anteprima foto" style="width: 100%; border-radius: 8px;">
+                <div class="modal-buttons" style="margin-top: 15px;">
+                    <button type="button" id="use-photo-btn" class="modal-button ok">Usa Questa Foto</button>
+                    <button type="button" id="retake-photo-btn" class="modal-button cancel">Riprova</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewPhotoModal" class="modal" style="--bg-color: rgba(0,0,0,0.9);">
+        <div class="modal-content" style="background: none; box-shadow: none; padding: 0;">
+            <img id="fullscreen-photo" src="" alt="Foto Cliente" style="max-width: 90vw; max-height: 90vh; object-fit: contain;">
+            <button id="close-view-photo-btn" style="position: absolute; top: 15px; right: 25px; font-size: 2rem; color: white; background: none; border: none; cursor: pointer;">×</button>
+        </div>
+    </div>
+
+    <div id="editPhotoModal" class="modal">
+        <div class="modal-content">
+            <h3>Modifica Dettagli Foto</h3>
+            <form id="formEditPhoto">
+                <input type="hidden" id="edit-photo-id">
+                <div class="form-group">
+                    <img id="edit-photo-preview" src="" alt="Anteprima modifica" style="max-width: 150px; border-radius: 8px; margin-bottom: 15px; display: block; margin-left: auto; margin-right: auto;">
+                </div>
+                <div class="form-group">
+                    <label for="edit-photo-didascalia" class="form-label">Didascalia (Opzionale):</label>
+                    <input type="text" id="edit-photo-didascalia" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label for="edit-photo-tags" class="form-label">Tag (separati da virgola):</label>
+                    <input type="text" id="edit-photo-tags" class="input-field">
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="modal-button ok">Salva Modifiche</button>
+                    <button type="button" class="modal-button cancel" id="cancel-edit-photo-btn">Annulla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="addTrichoPhotoModal" class="modal">
+        <div class="modal-content">
+            <h3>Aggiungi Foto Trico</h3>
+            <div id="tricho-photo-choice-view">
+                <form id="formAddTrichoPhoto">
+                    <div class="form-group">
+                        <label for="tricho-photo-file" class="form-label">Seleziona Immagine da File:</label>
+                        <input type="file" id="tricho-photo-file" name="clientImage" accept="image/*" class="input-field">
+                    </div>
+                     <div class="form-group">
+                        <label for="tricho-photo-didascalia" class="form-label">Didascalia (Opzionale):</label>
+                        <input type="text" id="tricho-photo-didascalia" class="input-field" placeholder="Es: Cute arrossata, Luglio 2025">
+                    </div>
+                    <div class="form-group">
+                        <label for="tricho-photo-tags" class="form-label">Tag (separati da virgola):</label>
+                        <input type="text" id="tricho-photo-tags" class="input-field" placeholder="Es: dermatite, rossore">
+                    </div>
+                    <div class="modal-buttons">
+                        <button type="submit" class="modal-button ok">Carica Foto</button>
+					    <button type="button" class="modal-button cancel" id="cancel-tricho-photo-btn">Annulla</button>
+                    </div>
+                </form>
+                <hr class="panel-divider">
+                <div class="form-group" style="text-align: center;">
+                    <label class="form-label">Oppure usa la fotocamera:</label>
+                    <button type="button" id="tricho-start-camera-btn" class="modal-button ok" style="width: auto; padding: 12px 25px;">📷 Scatta Foto</button>
+                </div>
+            </div>
+            <div id="tricho-camera-view" style="display: none;">
+                <video id="tricho-camera-video" style="width: 100%; border-radius: 8px;" autoplay playsinline></video>
+                <canvas id="tricho-camera-canvas" style="display: none;"></canvas>
+                <div class="modal-buttons" style="margin-top: 15px;">
+                    <button type="button" id="tricho-take-photo-btn" class="modal-button ok">Scatta</button>
+                    <button type="button" id="tricho-cancel-camera-btn" class="modal-button cancel">Annulla</button>
+                </div>
+            </div>
+            <div id="tricho-preview-view" style="display: none;">
+                <img id="tricho-photo-preview" src="" alt="Anteprima foto" style="width: 100%; border-radius: 8px;">
+                <div class="modal-buttons" style="margin-top: 15px;">
+                    <button type="button" id="tricho-use-photo-btn" class="modal-button ok">Usa Questa Foto</button>
+                    <button type="button" id="tricho-retake-photo-btn" class="modal-button cancel">Riprova</button>
+                </div>
+            </div>
+        </div>
+    </div>
+			
     <div id="modalAggiungiAcquisto" class="modal">
         <div class="modal-content">
             <h3>Aggiungi Nuovo Acquisto</h3>
@@ -338,7 +281,7 @@
                     <input type="date" id="data-acquisto" required class="input-field">
                 </div>
                 <div class="form-group">
-                    <label for="prezzo-acquisto">Prezzo (€):</label>
+                    <label for="prezzo-acquisto">Prezzo Unitario (€):</label>
                     <input type="number" id="prezzo-acquisto" step="0.01" min="0" required class="input-field">
                 </div>
                 <div class="form-group">
@@ -349,6 +292,11 @@
                     <label for="note-acquisto">Note (Opzionale):</label>
                     <textarea id="note-acquisto" class="textarea-field"></textarea>
                 </div>
+				<div class="form-group form-group-checkbox">
+    <input type="checkbox" id="pagato-acquisto">
+    <label for="pagato-acquisto">Già Pagato?</label>
+</div>
+				
                 <div class="modal-buttons">
                     <button type="submit" class="modal-button ok">Aggiungi</button>
                     <button type="button" class="modal-button cancel" id="annulla-acquisto-btn">Annulla</button>
@@ -393,6 +341,11 @@
                     <label for="noteTrattamento" class="form-label">Note (Opzionale):</label>
                     <textarea id="noteTrattamento" class="textarea-field"></textarea>
                 </div>
+				
+				<div class="form-group form-group-checkbox">
+    <input type="checkbox" id="pagato-trattamento">
+    <label for="pagato-trattamento">Già Pagato?</label>
+</div>
                 <div class="modal-buttons">
                     <button type="submit" class="modal-button ok">Salva Trattamento</button>
                     <button type="button" class="modal-button cancel" id="cancelTrattamentoBtn">Annulla</button>
@@ -401,7 +354,7 @@
         </div>
     </div>
 
-        <div id="modificaClienteModal" class="modal">
+    <div id="modificaClienteModal" class="modal">
         <div class="modal-content">
             <h3>Modifica Dettagli Cliente</h3>
             <form id="formModificaCliente">
@@ -416,8 +369,8 @@
                 </div>
 				
 				<div class="form-group">
-				<label for="modifica-soprannome" class="form-label">Soprannome:</label>
-				<input type="text" id="modifica-soprannome" class="input-field">
+				    <label for="modifica-soprannome" class="form-label">Soprannome:</label>
+				    <input type="text" id="modifica-soprannome" class="input-field">
 				</div>
 				
                 <div class="form-group">
@@ -429,14 +382,10 @@
                     <input type="tel" id="modifica-telefono" class="input-field">
                 </div>
 
-                <!-- ======================================================= -->
-                <!-- === ECCO IL NUOVO BLOCCO, INSERITO NEL POSTO GIUSTO === -->
-                <!-- ======================================================= -->
                 <div class="form-group">
                     <label for="modifica-tags">Tag (separati da virgola):</label>
                     <input type="text" id="modifica-tags" class="input-field" placeholder="Es: Cliente VIP, Allergia Tinta, Caffè Amaro">
                 </div>
-                <!-- ======================================================= -->
 
                 <div class="modal-buttons">
                     <button type="submit" class="modal-button ok">Salva Modifiche</button>

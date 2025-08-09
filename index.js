@@ -576,13 +576,59 @@ app.get("/api/clienti/cerca", async (req, res) => {
 });
 
 
+// --- INCOLLA QUESTO BLOCCO AL POSTO DEL TUO CODICE ---
+// --- INCOLLA QUESTO BLOCCO AL POSTO DELLA VECCHIA ROTTA /api/clienti/:id ---
 app.get("/api/clienti/:id", async (req, res) => {
+    const { id } = req.params;
+
     try {
-        const c = await db.query("SELECT id, nome, cognome, soprannome, email, telefono, preferenze_note, storico_acquisti, tags FROM clienti WHERE id=$1", [req.params.id]); // <-- Aggiunto 'soprannome' qui
-        if (c.rows.length === 0) return res.status(404).json({ error: "Non trovato" });
-        const t = await db.query("SELECT * FROM trattamenti WHERE cliente_id=$1 ORDER BY data_trattamento DESC", [req.params.id]);
-        res.json({ client: c.rows[0], trattamenti: t.rows });
+        // 1. Recupera i dati del cliente (inclusa la stringa JSON degli acquisti)
+        const clientResult = await db.query("SELECT id, nome, cognome, soprannome, email, telefono, preferenze_note, storico_acquisti, tags FROM clienti WHERE id=$1", [id]);
+        
+        if (clientResult.rows.length === 0) {
+            return res.status(404).json({ error: "Non trovato" });
+        }
+        const client = clientResult.rows[0];
+
+        // 2. Recupera tutti i trattamenti per quel cliente
+        const trattamentiResult = await db.query("SELECT * FROM trattamenti WHERE cliente_id=$1 ORDER BY data_trattamento ASC", [id]);
+        const trattamenti = trattamentiResult.rows;
+
+        // --- 3. [NUOVA LOGICA DI CONTROLLO SOSPESI - POTENZIATA] ---
+        let haSospesi = false;
+
+        // a) Controlla i trattamenti non pagati dalla tabella trattamenti
+        const sospesiTrattamentiResult = await db.query(
+            'SELECT EXISTS (SELECT 1 FROM trattamenti WHERE cliente_id = $1 AND pagato = false)',
+            [id]
+        );
+        if (sospesiTrattamentiResult.rows[0].exists) {
+            haSospesi = true;
+        }
+
+        // b) Se non ha ancora trovato sospesi, controlla gli acquisti
+        if (!haSospesi && client.storico_acquisti) {
+            try {
+                const acquisti = JSON.parse(client.storico_acquisti);
+                // Cerca se esiste ('some') almeno un acquisto con pagato = false
+                if (acquisti.some(acquisto => acquisto.pagato === false)) {
+                    haSospesi = true;
+                }
+            } catch (e) {
+                // Se il JSON è malformato, logga l'errore ma non bloccare la richiesta
+                console.error(`Errore parsing storico_acquisti per cliente ${id}:`, e);
+            }
+        }
+        
+        // c) Aggiungi il campo virtuale 'stato_pagamento' in base al risultato finale
+        client.stato_pagamento = haSospesi ? 'sospeso' : 'regolare';
+        // --- FINE NUOVA LOGICA ---
+
+        // 4. Invia la risposta completa al frontend
+        res.json({ client: client, trattamenti: trattamenti });
+
     } catch (err) {
+        console.error(`Errore nel recuperare i dati del cliente ${id}:`, err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -1089,12 +1135,19 @@ app.get("/api/clienti/:id/trattamenti", async (req, res) => {
     }
 });
 
+// --- SOSTITUISCI LA VECCHIA ROTTA POST /api/trattamenti ---
 app.post("/api/trattamenti", async (req, res) => {
-    const { cliente_id, tipo_trattamento, descrizione, data_trattamento, note, prezzo } = req.body;
+    // Estraiamo anche il nuovo campo 'pagato'
+    const { cliente_id, tipo_trattamento, descrizione, data_trattamento, note, prezzo, pagato } = req.body;
+    
+    // Sicurezza: assicuriamoci che 'pagato' sia un booleano
+    const isPagato = Boolean(pagato);
+
     try {
+        // Aggiungiamo la colonna 'pagato' e il suo valore alla query
         await db.query(
-            "INSERT INTO trattamenti (cliente_id, tipo_trattamento, descrizione, data_trattamento, prezzo, note) VALUES ($1, $2, $3, $4, $5, $6)",
-            [cliente_id, tipo_trattamento, descrizione, data_trattamento, prezzo, note]
+            "INSERT INTO trattamenti (cliente_id, tipo_trattamento, descrizione, data_trattamento, prezzo, note, pagato) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+            [cliente_id, tipo_trattamento, descrizione, data_trattamento, prezzo, note, isPagato]
         );
         res.status(201).json({ message: "Trattamento aggiunto" });
     } catch (err) {
@@ -1102,16 +1155,24 @@ app.post("/api/trattamenti", async (req, res) => {
     }
 });
 
+// --- INCOLLA QUESTO BLOCCO AL POSTO DEL TUO CODICE ALLA RIGA 926 ---
 app.put("/api/trattamenti/:id", async (req, res) => {
     const { id } = req.params;
-    const { tipo_trattamento, descrizione, data_trattamento, note, prezzo } = req.body;
+    // Estraiamo anche 'pagato' dal corpo della richiesta
+    const { tipo_trattamento, descrizione, data_trattamento, note, prezzo, pagato } = req.body;
+    
+    // Sicurezza: ci assicuriamo che 'pagato' sia sempre un booleano
+    const isPagato = Boolean(pagato);
+
     try {
+        // Aggiorniamo la query per includere la colonna 'pagato'
         await db.query(
-            "UPDATE trattamenti SET tipo_trattamento=$1, descrizione=$2, data_trattamento=$3, prezzo=$4, note=$5 WHERE id=$6",
-            [tipo_trattamento, descrizione, data_trattamento, prezzo, note, id]
+            "UPDATE trattamenti SET tipo_trattamento=$1, descrizione=$2, data_trattamento=$3, prezzo=$4, note=$5, pagato=$6 WHERE id=$7",
+            [tipo_trattamento, descrizione, data_trattamento, prezzo, note, isPagato, id]
         );
         res.json({ message: "Trattamento aggiornato" });
     } catch (err) {
+        console.error(`Errore aggiornamento trattamento ${id}:`, err); // Log di errore
         res.status(500).json({ error: err.message });
     }
 });
