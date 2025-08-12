@@ -1771,6 +1771,192 @@ body {
     height: 18px;
 }
 
+/* ============================================= */
+/* === STILI PER PANNELLO CLIENTI CORRELATI === */
+/* ============================================= */
+
+/* Contenitore principale dei legami */
+#relazioni-container {
+    margin-top: 15px;
+    padding-left: 10px;
+    border-left: 3px solid #ffd700; /* Bordo dorato a sinistra per eleganza */
+}
+
+/* Stile per ogni singola riga di relazione */
+.relazione-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    font-size: 0.95em;
+}
+
+/* Stile per il link cliccabile al nome del cliente correlato */
+.relazione-item a {
+    color: #f0f0f0;
+    font-weight: bold;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.relazione-item a:hover {
+    color: #ffd700; /* Il nome diventa dorato al passaggio del mouse */
+}
+
+/* Bottone per eliminare una relazione */
+.relazione-item .btn-delete-relazione {
+    background: none;
+    border: none;
+    color: #ff4d4d; /* Rosso per l'azione di eliminazione */
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0 5px;
+    transition: transform 0.2s ease;
+}
+
+.relazione-item .btn-delete-relazione:hover {
+    transform: scale(1.2); /* Effetto di ingrandimento al passaggio del mouse */
+}
+
+
+/* ======================================================= */
+/* === STILI PER LA MODALE GESTIONE RELAZIONI          === */
+/* ======================================================= */
+
+/* Contenitore per i risultati della ricerca cliente */
+.search-results-container {
+    position: absolute; /* Si posiziona sopra gli altri elementi */
+    width: calc(100% - 2px); /* Larghezza completa meno il bordo */
+    background-color: #3a3a3a;
+    border: 1px solid #555;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 150px;
+    overflow-y: auto;
+    z-index: 1001; /* Deve stare sopra il contenuto della modale */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Stile per ogni singolo risultato della ricerca */
+.search-result-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.search-result-item:hover {
+    background-color: #555;
+}
+
+/* Contenitore della lista dei legami esistenti dentro la modale */
+#lista-relazioni-esistenti {
+    max-height: 120px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+/* ============================================= */
+/* === STILI PER PANNELLO BUONI PREPAGATI     === */
+/* ============================================= */
+
+.buono-item {
+    background-color: #3a3a3a;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-left: 4px solid #007bff; /* Blu per i buoni */
+}
+
+.buono-item.stato-esaurito {
+    border-left-color: #6c757d; /* Grigio per i buoni esauriti */
+    opacity: 0.7;
+}
+
+.buono-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.buono-header h4 {
+    margin: 0;
+    font-size: 1.1em;
+    color: #ffd700;
+}
+
+.buono-dettagli p {
+    margin: 4px 0;
+    font-size: 0.9em;
+}
+
+.buono-servizi-lista, .buono-valore-info {
+    margin-top: 10px;
+}
+
+.buono-servizio-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+}
+
+.buono-servizio-item .btn-usa-servizio {
+    padding: 4px 10px;
+    font-size: 0.8em;
+}
+
+/* ============================================= */
+/* === STILI PER MODALE CREAZIONE BUONO       === */
+/* ============================================= */
+
+.modal-content.large {
+    max-width: 700px; /* Modale più larga per contenere tutto */
+}
+
+.radio-group {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+.radio-group input[type="radio"] {
+    margin-right: 5px;
+}
+
+.form-hint {
+    font-size: 0.8em;
+    color: #aaa;
+    margin-top: 5px;
+}
+
+#lista-servizi-buono .servizio-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#lista-servizi-buono .servizio-row .input-field,
+#lista-servizi-buono .servizio-row .select-field {
+    flex-grow: 1; /* Fa espandere i campi per riempire lo spazio */
+}
+
+#lista-servizi-buono .servizio-row .btn-delete-relazione {
+    flex-shrink: 0; /* Impedisce al bottone di rimpicciolirsi */
+}
+
+
+/* Stile per i link dentro ai dettagli del buono (es. nome beneficiario) */
+.buono-dettagli a {
+    color: #f0f0f0; /* Stesso colore del testo normale */
+    font-weight: bold;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.buono-dettagli a:hover {
+    color: #ffd700; /* Il nome diventa dorato al passaggio del mouse */
+}
 
 
 /* =================================== */

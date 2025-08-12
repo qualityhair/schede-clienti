@@ -113,7 +113,40 @@ const editPhotoTagsInput = document.getElementById('edit-photo-tags');
 	// --- FINE NUOVI RIFERIMENTI ---
 	// Sotto la riga di 'modificaSoprannomeInput'
 	const modificaTagsInput = document.getElementById('modifica-tags'); 
-const profileAvatar = document.getElementById('profile-avatar');
+	const profileAvatar = document.getElementById('profile-avatar');
+
+	// --- RIFERIMENTI PER LE RELAZIONI TRA CLIENTI ---
+const gestisciRelazioniBtn = document.getElementById('gestisciRelazioniBtn');
+const gestisciRelazioniModal = document.getElementById('gestisciRelazioniModal');
+const chiudiGestisciRelazioniModal = document.getElementById('chiudiGestisciRelazioniModal');
+const relazioniContainer = document.getElementById('relazioni-container');
+const listaRelazioniEsistenti = document.getElementById('lista-relazioni-esistenti');
+const formAggiungiRelazione = document.getElementById('formAggiungiRelazione');
+const searchClienteRelazioneInput = document.getElementById('search-cliente-relazione');
+const searchResultsRelazioneContainer = document.getElementById('search-results-relazione');
+const selectedClienteIdRelazioneInput = document.getElementById('selected-cliente-id-relazione');
+const tipoRelazioneInput = document.getElementById('tipo-relazione');
+
+// --- RIFERIMENTI PER I BUONI PREPAGATI ---
+const creaBuonoBtn = document.getElementById('creaBuonoBtn');
+const buoniContainer = document.getElementById('buoni-container');
+const buoniAcquistatiContainer = document.getElementById('buoni-acquistati-container');
+const creaBuonoModal = document.getElementById('creaBuonoModal');
+const annullaCreaBuonoBtn = document.getElementById('annullaCreaBuonoBtn');
+const formCreaBuono = document.getElementById('formCreaBuono');
+const buonoAcquirenteNome = document.getElementById('buono-acquirente-nome');
+const buonoBeneficiarioSearchInput = document.getElementById('buono-beneficiario-search');
+const buonoBeneficiarioIdInput = document.getElementById('buono-beneficiario-id');
+const buonoBeneficiarioSearchResults = document.getElementById('buono-beneficiario-search-results');
+const buonoDescrizioneInput = document.getElementById('buono-descrizione');
+const buonoNoteInput = document.getElementById('buono-note');
+const radioTipoBuono = document.querySelectorAll('input[name="tipo-buono"]');
+const sezioneQuantita = document.getElementById('buono-sezione-quantita');
+const sezioneValore = document.getElementById('buono-sezione-valore');
+const listaServiziBuono = document.getElementById('lista-servizi-buono');
+const aggiungiServizioBuonoBtn = document.getElementById('aggiungi-servizio-buono-btn');
+const buonoValoreInizialeInput = document.getElementById('buono-valore-iniziale');	
+	
 
     // Variabili di stato
     let currentClientId = null;
@@ -664,6 +697,213 @@ async function loadTrichoClientPhotos(clientId) {
     }
 }
 
+// =======================================================
+// === FUNZIONI PER GESTIONE RELAZIONI CLIENTI         ===
+// =======================================================
+
+// Funzione per caricare e mostrare le relazioni nella scheda cliente
+async function loadAndDisplayRelazioni(clienteId) {
+    relazioniContainer.innerHTML = '<p class="loading-message">Caricamento...</p>';
+    try {
+        const response = await fetch(`/api/clienti/${clienteId}/relazioni`);
+        const relazioni = await handleApiResponse(response);
+
+        relazioniContainer.innerHTML = '';
+        if (!relazioni || relazioni.length === 0) {
+            relazioniContainer.innerHTML = '<p>Nessun cliente correlato.</p>';
+            return;
+        }
+
+        relazioni.forEach(rel => {
+            const div = document.createElement('div');
+            div.className = 'relazione-item';
+            div.innerHTML = `
+                <span>${rel.tipo_relazione}: <a href="/scheda-cliente.html?id=${rel.cliente_correlato_id}">${rel.cliente_correlato_nome} ${rel.cliente_correlato_cognome}</a></span>
+            `;
+            relazioniContainer.appendChild(div);
+        });
+    } catch (error) {
+        console.error("Errore caricamento relazioni:", error);
+        relazioniContainer.innerHTML = '<p class="error-message">Errore caricamento.</p>';
+    }
+}
+
+// Funzione per mostrare le relazioni DENTRO LA MODALE (con il bottone elimina)
+async function populateRelazioniModal(clienteId) {
+    listaRelazioniEsistenti.innerHTML = '<p class="loading-message">Caricamento...</p>';
+    try {
+        const response = await fetch(`/api/clienti/${clienteId}/relazioni`);
+        const relazioni = await handleApiResponse(response);
+
+        listaRelazioniEsistenti.innerHTML = '';
+        if (!relazioni || relazioni.length === 0) {
+            listaRelazioniEsistenti.innerHTML = '<p>Nessun legame esistente.</p>';
+            return;
+        }
+
+        relazioni.forEach(rel => {
+            const div = document.createElement('div');
+            div.className = 'relazione-item';
+            div.innerHTML = `
+                <span>${rel.tipo_relazione} con <strong>${rel.cliente_correlato_nome} ${rel.cliente_correlato_cognome}</strong></span>
+                <button class="btn-delete-relazione" data-relazione-id="${rel.relazione_id}" title="Elimina questo legame">&times;</button>
+            `;
+            listaRelazioniEsistenti.appendChild(div);
+        });
+    } catch (error) {
+        console.error("Errore popolamento modale relazioni:", error);
+        listaRelazioniEsistenti.innerHTML = '<p class="error-message">Errore caricamento.</p>';
+    }
+}
+
+// Funzione per eliminare una relazione
+async function handleDeleteRelazione(relazioneId) {
+    if (!confirm("Sei sicuro di voler eliminare questo legame?")) return;
+
+    try {
+        const response = await fetch(`/api/relazioni/${relazioneId}`, { method: 'DELETE' });
+        const data = await handleApiResponse(response);
+        if (!response.ok) {
+            throw new Error(data.error || "Errore durante l'eliminazione.");
+        }
+        showMessage("Legame eliminato!", 'success');
+        // Ricarica sia la modale che il pannello principale
+        await populateRelazioniModal(currentClientId);
+        await loadAndDisplayRelazioni(currentClientId);
+    } catch (error) {
+        console.error("Errore eliminazione relazione:", error);
+        showMessage(`Errore: ${error.message}`, 'error');
+    }
+}
+
+// =======================================================
+// === FUNZIONI PER GESTIONE BUONI PREPAGATI           ===
+// =======================================================
+
+// Funzione per caricare e mostrare i buoni nella scheda cliente
+// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
+async function loadAndDisplayBuoni(clienteId) {
+    // Aggiungiamo un titolo alla sezione
+    buoniContainer.innerHTML = '<h3 class="panel-subtitle" style="margin-bottom: 10px;">Buoni Ricevuti</h3>';
+    
+    try {
+        const response = await fetch(`/api/clienti/${clienteId}/buoni`);
+        const buoni = await handleApiResponse(response);
+
+        if (!buoni || buoni.length === 0) {
+            // Se non ci sono buoni, mostriamo il messaggio sotto il titolo
+            buoniContainer.innerHTML += '<p>Nessun buono o pacchetto attivo ricevuto.</p>';
+            return;
+        }
+
+        buoni.forEach(buono => {
+            const div = document.createElement('div');
+            div.className = `buono-item ${buono.stato === 'esaurito' ? 'stato-esaurito' : ''}`;
+            
+            let dettagliHtml = '';
+            if (buono.tipo_buono === 'quantita') {
+                dettagliHtml = '<div class="buono-servizi-lista">';
+                buono.servizi_inclusi.forEach(s => {
+                    const rimanenti = s.totali - s.usati;
+                    dettagliHtml += `
+                        <div class="buono-servizio-item">
+                            <span>${s.servizio}: <strong>${rimanenti}</strong> / ${s.totali} rimanenti</span>
+                            ${rimanenti > 0 ? `<button class="btn btn-primary btn-usa-servizio" data-buono-id="${buono.id}" data-servizio-nome="${s.servizio}">Usa 1</button>` : '<span>Esaurito</span>'}
+                        </div>
+                    `;
+                });
+                dettagliHtml += '</div>';
+            } else if (buono.tipo_buono === 'valore') {
+                dettagliHtml = `
+                    <div class="buono-valore-info">
+                        <p>Credito residuo: <strong>€ ${parseFloat(buono.valore_rimanente_euro).toFixed(2)}</strong> / ${parseFloat(buono.valore_iniziale_euro).toFixed(2)}</p>
+                    </div>
+                `;
+            }
+
+            div.innerHTML = `
+                <div class="buono-header">
+                    <h4>${buono.descrizione || 'Buono Prepagato'}</h4>
+                    <span>Acquistato da: ${buono.acquirente_nome} ${buono.acquirente_cognome}</span>
+                </div>
+                <div class="buono-dettagli">
+                    ${dettagliHtml}
+                </div>
+            `;
+            buoniContainer.appendChild(div);
+        });
+    } catch (error) {
+        console.error("Errore caricamento buoni:", error);
+        buoniContainer.innerHTML += '<p class="error-message">Errore caricamento buoni.</p>';
+    }
+}
+
+// --- INCOLLA QUESTA NUOVA FUNZIONE IN SCHEDA-CLIENTE.JS ---
+
+// Funzione per mostrare i buoni che il cliente ha ACQUISTATO per altri
+async function loadAndDisplayBuoniAcquistati(clienteId) {
+    buoniAcquistatiContainer.innerHTML = '<p class="loading-message">Caricamento...</p>';
+    try {
+        const response = await fetch(`/api/clienti/${clienteId}/buoni-acquistati`);
+        const buoni = await handleApiResponse(response);
+
+        buoniAcquistatiContainer.innerHTML = '';
+        if (!buoni || buoni.length === 0) {
+            buoniAcquistatiContainer.innerHTML = '<p>Nessun buono acquistato per altri clienti.</p>';
+            return;
+        }
+
+        buoni.forEach(buono => {
+            const div = document.createElement('div');
+            // Usiamo le stesse classi CSS dei buoni ricevuti per avere uno stile coerente
+            div.className = `buono-item ${buono.stato === 'esaurito' ? 'stato-esaurito' : ''}`;
+            
+            let dettagliHtml = `<p>Beneficiario: <a href="/scheda-cliente.html?id=${buono.beneficiario_id}" title="Vai alla scheda di ${buono.beneficiario_nome}">${buono.beneficiario_nome} ${buono.beneficiario_cognome}</a></p>`;
+
+            if (buono.tipo_buono === 'quantita') {
+                const serviziRimanenti = buono.servizi_inclusi.map(s => `${s.servizio} (${s.totali - s.usati}/${s.totali})`).join(', ');
+                dettagliHtml += `<p><strong>Servizi:</strong> ${serviziRimanenti}</p>`;
+            } else { // tipo_buono === 'valore'
+                dettagliHtml += `<p><strong>Credito:</strong> € ${parseFloat(buono.valore_rimanente_euro).toFixed(2)} / ${parseFloat(buono.valore_iniziale_euro).toFixed(2)}</p>`;
+            }
+
+            div.innerHTML = `
+                <div class="buono-header">
+                    <h4>${buono.descrizione || 'Buono Regalo'}</h4>
+                    <span style="font-weight: bold; font-size: 0.9em;" class="${buono.stato === 'esaurito' ? 'text-muted' : 'text-success'}">${buono.stato.charAt(0).toUpperCase() + buono.stato.slice(1)}</span>
+                </div>
+                <div class="buono-dettagli">
+                    ${dettagliHtml}
+                </div>
+            `;
+            buoniAcquistatiContainer.appendChild(div);
+        });
+
+    } catch (error) {
+        console.error("Errore caricamento buoni acquistati:", error);
+        buoniAcquistatiContainer.innerHTML = '<p class="error-message">Errore caricamento.</p>';
+    }
+}
+
+
+
+// Funzione per aggiungere una riga di servizio nella modale
+function aggiungiRigaServizio() {
+    const div = document.createElement('div');
+    div.className = 'servizio-row';
+    div.innerHTML = `
+        <select class="select-field servizio-nome">
+            <option value="Taglio">Taglio</option>
+            <option value="Piega">Piega</option>
+            <option value="Colore">Colore</option>
+            <option value="Barba">Barba</option>
+            <option value="Trattamento">Trattamento</option>
+        </select>
+        <input type="number" class="input-field servizio-quantita" value="1" min="1" placeholder="Qtà">
+        <button type="button" class="btn-delete-relazione" onclick="this.parentElement.remove()">×</button>
+    `;
+    listaServiziBuono.appendChild(div);
+}
 
 
 // =======================================================
@@ -1254,6 +1494,9 @@ async function handleAddTrattamento(event) {
         if (currentClientId) {
             await loadClientData(currentClientId);
             await caricaRiepilogoAnalisi(currentClientId);
+			await loadAndDisplayRelazioni(currentClientId);
+			await loadAndDisplayBuoni(currentClientId);
+			await loadAndDisplayBuoniAcquistati(currentClientId);
             
             const nuovaAnalisiIconBtn = document.getElementById('nuova-analisi-btn');
             if (nuovaAnalisiIconBtn) {
@@ -1501,6 +1744,255 @@ if(cancelEditPhotoBtn) {
 if(formEditPhoto) {
     formEditPhoto.addEventListener('submit', handleEditPhoto);
 }
+
+
+// --- EVENT LISTENERS PER GESTIONE RELAZIONI ---
+gestisciRelazioniBtn.addEventListener('click', () => {
+    formAggiungiRelazione.reset();
+    searchResultsRelazioneContainer.innerHTML = '';
+    selectedClienteIdRelazioneInput.value = '';
+    populateRelazioniModal(currentClientId);
+    openModal(gestisciRelazioniModal);
+});
+
+chiudiGestisciRelazioniModal.addEventListener('click', () => {
+    closeModal(gestisciRelazioniModal);
+});
+
+// Ricerca cliente mentre si digita
+let searchTimeout;
+searchClienteRelazioneInput.addEventListener('keyup', () => {
+    clearTimeout(searchTimeout);
+    const searchTerm = searchClienteRelazioneInput.value.trim();
+    if (searchTerm.length < 2) {
+        searchResultsRelazioneContainer.innerHTML = '';
+        return;
+    }
+    searchTimeout = setTimeout(async () => {
+        const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
+        const clienti = await response.json();
+        searchResultsRelazioneContainer.innerHTML = '';
+        clienti
+            .filter(c => c.id !== currentClientId) // Escludi il cliente corrente dai risultati
+            .forEach(cliente => {
+                const div = document.createElement('div');
+                div.className = 'search-result-item';
+                div.textContent = `${cliente.nome} ${cliente.cognome}`;
+                div.dataset.clienteId = cliente.id;
+                searchResultsRelazioneContainer.appendChild(div);
+            });
+    }, 300);
+});
+
+// Gestione click sui risultati della ricerca
+searchResultsRelazioneContainer.addEventListener('click', (e) => {
+    if (e.target.classList.contains('search-result-item')) {
+        const clienteId = e.target.dataset.clienteId;
+        const clienteNome = e.target.textContent;
+        selectedClienteIdRelazioneInput.value = clienteId;
+        searchClienteRelazioneInput.value = clienteNome;
+        searchResultsRelazioneContainer.innerHTML = '';
+    }
+});
+
+// Aggiunta di una nuova relazione
+formAggiungiRelazione.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const cliente_b_id = selectedClienteIdRelazioneInput.value;
+    const tipo_relazione = tipoRelazioneInput.value;
+
+    if (!cliente_b_id) {
+        showMessage("Seleziona un cliente dalla lista di ricerca.", 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/relazioni', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                cliente_a_id: currentClientId,
+                cliente_b_id: cliente_b_id,
+                tipo_relazione: tipo_relazione
+            })
+        });
+        const data = await handleApiResponse(response);
+        if (!response.ok) {
+            throw new Error(data.error || "Errore durante la creazione del legame.");
+        }
+
+        showMessage("Legame aggiunto con successo!", 'success');
+        formAggiungiRelazione.reset();
+        // Ricarica tutto
+        await populateRelazioniModal(currentClientId);
+        await loadAndDisplayRelazioni(currentClientId);
+
+    } catch (error) {
+        console.error("Errore aggiunta relazione:", error);
+        showMessage(`Errore: ${error.message}`, 'error');
+    }
+});
+
+// Gestione click per eliminare una relazione (usa la delegazione di eventi)
+listaRelazioniEsistenti.addEventListener('click', (e) => {
+    if (e.target.classList.contains('btn-delete-relazione')) {
+        const relazioneId = e.target.dataset.relazioneId;
+        handleDeleteRelazione(relazioneId);
+    }
+});
+
+// --- EVENT LISTENERS PER GESTIONE BUONI ---
+creaBuonoBtn.addEventListener('click', () => {
+    formCreaBuono.reset();
+    buonoBeneficiarioIdInput.value = '';
+    buonoBeneficiarioSearchInput.value = '';
+    buonoAcquirenteNome.textContent = `${currentClienteData.nome} ${currentClienteData.cognome}`;
+    listaServiziBuono.innerHTML = '';
+    aggiungiRigaServizio(); // Aggiunge la prima riga di default
+    sezioneQuantita.style.display = 'block';
+    sezioneValore.style.display = 'none';
+    openModal(creaBuonoModal);
+});
+
+annullaCreaBuonoBtn.addEventListener('click', () => {
+    closeModal(creaBuonoModal);
+});
+
+// Mostra/nasconde sezioni in base al tipo di buono scelto
+radioTipoBuono.forEach(radio => {
+    radio.addEventListener('change', () => {
+        if (radio.value === 'quantita') {
+            sezioneQuantita.style.display = 'block';
+            sezioneValore.style.display = 'none';
+        } else {
+            sezioneQuantita.style.display = 'none';
+            sezioneValore.style.display = 'block';
+        }
+    });
+});
+
+aggiungiServizioBuonoBtn.addEventListener('click', aggiungiRigaServizio);
+
+// Ricerca beneficiario
+buonoBeneficiarioSearchInput.addEventListener('keyup', () => {
+    const searchTerm = buonoBeneficiarioSearchInput.value.trim();
+    // Usa la stessa logica di timeout della ricerca relazioni
+    clearTimeout(searchTimeout);
+    if (searchTerm.length < 2) {
+        buonoBeneficiarioSearchResults.innerHTML = '';
+        return;
+    }
+    searchTimeout = setTimeout(async () => {
+        const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
+        const clienti = await response.json();
+        buonoBeneficiarioSearchResults.innerHTML = '';
+        clienti.forEach(cliente => {
+            const div = document.createElement('div');
+            div.className = 'search-result-item';
+            div.textContent = `${cliente.nome} ${cliente.cognome}`;
+            div.dataset.clienteId = cliente.id;
+            buonoBeneficiarioSearchResults.appendChild(div);
+        });
+    }, 300);
+});
+
+// Click su risultato ricerca beneficiario
+buonoBeneficiarioSearchResults.addEventListener('click', (e) => {
+    if (e.target.classList.contains('search-result-item')) {
+        buonoBeneficiarioIdInput.value = e.target.dataset.clienteId;
+        buonoBeneficiarioSearchInput.value = e.target.textContent;
+        buonoBeneficiarioSearchResults.innerHTML = '';
+    }
+});
+
+// Submit del form per creare il buono
+formCreaBuono.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const acquirenteId = currentClientId;
+    const beneficiarioId = buonoBeneficiarioIdInput.value;
+    const tipoBuono = document.querySelector('input[name="tipo-buono"]:checked').value;
+
+    const buonoData = {
+        acquirenteId,
+        beneficiarioId,
+        tipoBuono,
+        descrizione: buonoDescrizioneInput.value.trim(),
+        note: buonoNoteInput.value.trim(),
+    };
+
+    if (tipoBuono === 'quantita') {
+        const servizi = [];
+        const righeServizi = listaServiziBuono.querySelectorAll('.servizio-row');
+        if (righeServizi.length === 0) {
+            showMessage("Aggiungi almeno un servizio per il pacchetto.", 'error');
+            return;
+        }
+        righeServizi.forEach(riga => {
+            servizi.push({
+                servizio: riga.querySelector('.servizio-nome').value,
+                totali: parseInt(riga.querySelector('.servizio-quantita').value, 10),
+                usati: 0
+            });
+        });
+        buonoData.serviziInclusi = servizi;
+    } else {
+        const valore = parseFloat(buonoValoreInizialeInput.value);
+        if (isNaN(valore) || valore <= 0) {
+            showMessage("Inserisci un valore valido per il buono.", 'error');
+            return;
+        }
+        buonoData.valoreIniziale = valore;
+    }
+
+    try {
+        const response = await fetch('/api/buoni', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(buonoData)
+        });
+        const data = await handleApiResponse(response);
+        if (!response.ok) throw new Error(data.error || "Errore creazione buono.");
+
+        showMessage("Buono creato con successo!", "success");
+        closeModal(creaBuonoModal);
+        // Ricarica i buoni sia per l'acquirente che per il beneficiario (se visibile)
+        await loadAndDisplayBuoni(currentClientId);
+
+    } catch (error) {
+        console.error("Errore creazione buono:", error);
+        showMessage(`Errore: ${error.message}`, "error");
+    }
+});
+
+// Utilizzo di un servizio da un buono (usa la delegazione di eventi)
+buoniContainer.addEventListener('click', async (e) => {
+    if (e.target.classList.contains('btn-usa-servizio')) {
+        const buonoId = e.target.dataset.buonoId;
+        const servizioNome = e.target.dataset.servizioNome;
+        
+        if (!confirm(`Sei sicuro di voler usare 1 "${servizioNome}" da questo pacchetto?`)) return;
+
+        try {
+            const response = await fetch(`/api/buoni/${buonoId}/usa-servizio`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ servizioNome: servizioNome, beneficiarioId: currentClientId })
+            });
+            const data = await handleApiResponse(response);
+            if (!response.ok) throw new Error(data.error || "Errore durante l'utilizzo del servizio.");
+
+            showMessage("Servizio scalato dal pacchetto!", "success");
+            // Ricarica tutto per vedere le modifiche
+            await loadClientData(currentClientId);
+            await loadAndDisplayBuoni(currentClientId);
+
+        } catch (error) {
+            console.error("Errore utilizzo servizio:", error);
+            showMessage(`Errore: ${error.message}`, "error");
+        }
+    }
+});
 
 
     // --- 7. AVVIO ---

@@ -1186,6 +1186,281 @@ app.delete("/api/trattamenti/:id", async (req, res) => {
     }
 });
 
+// ===========================================
+// === API PER LE RELAZIONI TRA CLIENTI    ===
+// ===========================================
+
+// 1. API per RECUPERARE tutte le relazioni di un dato cliente
+app.get("/api/clienti/:id/relazioni", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Questa query è complessa: cerca le relazioni dove il cliente è sia 'cliente_a' che 'cliente_b'
+        // e, per ogni relazione, recupera nome e cognome dell'ALTRO cliente.
+        const query = `
+            SELECT 
+                r.id AS relazione_id,
+                r.tipo_relazione,
+                c.id AS cliente_correlato_id,
+                c.nome AS cliente_correlato_nome,
+                c.cognome AS cliente_correlato_cognome
+            FROM 
+                relazioni_clienti r
+            JOIN 
+                clienti c ON (
+                    CASE 
+                        WHEN r.cliente_a_id = $1 THEN r.cliente_b_id = c.id
+                        ELSE r.cliente_a_id = c.id
+                    END
+                )
+            WHERE 
+                r.cliente_a_id = $1 OR r.cliente_b_id = $1;
+        `;
+        const result = await db.query(query, [id]);
+        res.json(result.rows);
+
+    } catch (err) {
+        console.error(`Errore nel recupero relazioni per cliente ${id}:`, err.message);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// 2. API per CREARE una nuova relazione
+app.post("/api/relazioni", ensureAuthenticated, async (req, res) => {
+    const { cliente_a_id, cliente_b_id, tipo_relazione } = req.body;
+
+    // Validazione dei dati
+    if (!cliente_a_id || !cliente_b_id || !tipo_relazione) {
+        return res.status(400).json({ error: "Dati mancanti per creare la relazione." });
+    }
+    if (cliente_a_id === cliente_b_id) {
+        return res.status(400).json({ error: "Un cliente non può essere correlato a se stesso." });
+    }
+
+    try {
+        const query = `
+            INSERT INTO relazioni_clienti (cliente_a_id, cliente_b_id, tipo_relazione) 
+            VALUES ($1, $2, $3) 
+            RETURNING *;
+        `;
+        const result = await db.query(query, [cliente_a_id, cliente_b_id, tipo_relazione]);
+        res.status(201).json(result.rows[0]);
+    
+    } catch (err) {
+        // Se l'errore è '23505', significa che il vincolo UNIQUE è stato violato (relazione già esistente)
+        if (err.code === '23505') {
+            return res.status(409).json({ error: "Questo legame esiste già." });
+        }
+        console.error('Errore creazione relazione:', err.message);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// 3. API per ELIMINARE una relazione
+app.delete("/api/relazioni/:id", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params; // Questo è l'ID della RELAZIONE, non del cliente
+
+    try {
+        const result = await db.query("DELETE FROM relazioni_clienti WHERE id = $1", [id]);
+        
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Relazione non trovata." });
+        }
+        
+        res.status(200).json({ message: "Relazione eliminata con successo." });
+
+    } catch (err) {
+        console.error(`Errore eliminazione relazione ${id}:`, err.message);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// ===========================================
+// === API PER I BUONI PREPAGATI           ===
+// ===========================================
+
+// 1. API per RECUPERARE tutti i buoni di cui un cliente è BENEFICIARIO
+app.get("/api/clienti/:id/buoni", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params; // ID del beneficiario
+
+    try {
+        // Selezioniamo i buoni dove il cliente è il beneficiario e che sono ancora attivi
+        // e recuperiamo anche nome e cognome di chi ha acquistato il buono
+        const query = `
+            SELECT 
+                b.*,
+                c.nome AS acquirente_nome,
+                c.cognome AS acquirente_cognome
+            FROM 
+                buoni_prepagati b
+            JOIN 
+                clienti c ON b.cliente_acquirente_id = c.id
+            WHERE 
+                b.cliente_beneficiario_id = $1 AND b.stato = 'attivo'
+            ORDER BY 
+                b.data_acquisto DESC;
+        `;
+        const result = await db.query(query, [id]);
+        res.json(result.rows);
+
+    } catch (err) {
+        console.error(`Errore nel recupero buoni per cliente ${id}:`, err.message);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+
+// --- INCOLLA QUESTA NUOVA API IN INDEX.JS ---
+
+// API per RECUPERARE tutti i buoni che un cliente ha ACQUISTATO per altri
+app.get("/api/clienti/:id/buoni-acquistati", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params; // Questo è l'ID dell'ACQUIRENTE
+
+    try {
+        // Selezioniamo i buoni dove il cliente corrente è l'acquirente
+        // e recuperiamo anche nome e cognome del beneficiario tramite una JOIN
+        const query = `
+            SELECT 
+                b.*,
+                c.id AS beneficiario_id,
+                c.nome AS beneficiario_nome,
+                c.cognome AS beneficiario_cognome
+            FROM 
+                buoni_prepagati b
+            JOIN 
+                clienti c ON b.cliente_beneficiario_id = c.id
+            WHERE 
+                b.cliente_acquirente_id = $1
+            ORDER BY 
+                b.data_acquisto DESC;
+        `;
+        const result = await db.query(query, [id]);
+        res.json(result.rows);
+
+    } catch (err) {
+        console.error(`Errore nel recupero buoni acquistati da cliente ${id}:`, err.message);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+
+// 2. API per CREARE un nuovo buono
+app.post("/api/buoni", ensureAuthenticated, async (req, res) => {
+    const {
+        acquirenteId,
+        beneficiarioId,
+        descrizione,
+        note,
+        tipoBuono,
+        serviziInclusi, // Array di oggetti per tipo 'quantita'
+        valoreIniziale // Numero per tipo 'valore'
+    } = req.body;
+
+    // Validazione base
+    if (!acquirenteId || !beneficiarioId || !tipoBuono) {
+        return res.status(400).json({ error: "Dati essenziali mancanti." });
+    }
+
+    try {
+        const query = `
+            INSERT INTO buoni_prepagati 
+            (cliente_acquirente_id, cliente_beneficiario_id, descrizione, note, tipo_buono, servizi_inclusi, valore_iniziale_euro, valore_rimanente_euro)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING *;
+        `;
+        
+        const values = [
+            acquirenteId,
+            beneficiarioId,
+            descrizione,
+            note,
+            tipoBuono,
+            tipoBuono === 'quantita' ? JSON.stringify(serviziInclusi) : null,
+            tipoBuono === 'valore' ? valoreIniziale : null,
+            tipoBuono === 'valore' ? valoreIniziale : null // all'inizio, rimanente = iniziale
+        ];
+
+        const result = await db.query(query, values);
+        res.status(201).json(result.rows[0]);
+
+    } catch (err) {
+        console.error("Errore durante la creazione del buono:", err.message);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// 3. API per UTILIZZARE un servizio da un buono a quantità
+// --- SOSTITUISCI L'INTERA API ESISTENTE "/api/buoni/:buonoId/usa-servizio" CON QUESTA ---
+app.post("/api/buoni/:buonoId/usa-servizio", ensureAuthenticated, async (req, res) => {
+    const { buonoId } = req.params;
+    const { servizioNome, beneficiarioId } = req.body;
+
+    if (!servizioNome || !beneficiarioId) {
+        return res.status(400).json({ error: "Dati mancanti per utilizzare il servizio." });
+    }
+
+    const client = await db.connect();
+    try {
+        await client.query('BEGIN'); // Inizia una transazione sicura
+
+        // 1. [MODIFICA CHIAVE] Recupera il buono E ANCHE i dati dell'acquirente con una JOIN
+        const buonoResult = await client.query(`
+            SELECT 
+                b.*,
+                c.nome AS acquirente_nome,
+                c.cognome AS acquirente_cognome
+            FROM 
+                buoni_prepagati b
+            JOIN
+                clienti c ON b.cliente_acquirente_id = c.id
+            WHERE 
+                b.id = $1 FOR UPDATE
+        `, [buonoId]);
+
+        if (buonoResult.rows.length === 0) {
+            throw new Error("Buono non trovato.");
+        }
+        const buono = buonoResult.rows[0];
+        let servizi = buono.servizi_inclusi;
+
+        // 2. Trova il servizio specifico e incrementa il contatore 'usati'
+        const servizioIndex = servizi.findIndex(s => s.servizio === servizioNome);
+        if (servizioIndex === -1 || servizi[servizioIndex].usati >= servizi[servizioIndex].totali) {
+            throw new Error("Servizio non disponibile o già esaurito in questo buono.");
+        }
+        servizi[servizioIndex].usati++;
+
+        // 3. Controlla se il buono è diventato esaurito
+        const tuttiServiziEsauriti = servizi.every(s => s.usati >= s.totali);
+        const nuovoStato = tuttiServiziEsauriti ? 'esaurito' : 'attivo';
+
+        // 4. Aggiorna il buono nel database
+        const updatedBuonoResult = await client.query(
+            "UPDATE buoni_prepagati SET servizi_inclusi = $1, stato = $2, updated_at = NOW() WHERE id = $3 RETURNING *",
+            [JSON.stringify(servizi), nuovoStato, buonoId]
+        );
+
+        // 5. [MODIFICA CHIAVE] Crea un trattamento a costo zero con la NOTA CORRETTA
+        // Ora abbiamo `buono.acquirente_nome` e `buono.acquirente_cognome` grazie alla JOIN
+        const nomeAcquirente = `${buono.acquirente_nome} ${buono.acquirente_cognome}`;
+        await client.query(
+            `INSERT INTO trattamenti (cliente_id, tipo_trattamento, descrizione, data_trattamento, prezzo, note, pagato) 
+             VALUES ($1, $2, $3, NOW(), 0, $4, true)`,
+            [beneficiarioId, servizioNome, `Servizio da pacchetto (ID Buono: ${buonoId})`, `Acquistato da: ${nomeAcquirente}`]
+        );
+
+        await client.query('COMMIT'); // Conferma tutte le operazioni
+        res.json(updatedBuonoResult.rows[0]);
+
+    } catch (err) {
+        await client.query('ROLLBACK'); // Annulla tutto in caso di errore
+        console.error(`Errore utilizzo servizio da buono ${buonoId}:`, err.message);
+        res.status(500).json({ error: err.message });
+    } finally {
+        client.release();
+    }
+});
+
 // --- Avvio server ---
 const port = process.env.PORT || 3000;
 app.listen(port, '0.0.0.0', () => {
