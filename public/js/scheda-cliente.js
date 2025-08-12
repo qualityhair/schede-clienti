@@ -218,6 +218,43 @@ const buonoValoreInizialeInput = document.getElementById('buono-valore-iniziale'
             return null;
         }
     }
+	
+	// --- INCOLLA QUESTA NUOVA FUNZIONE ---
+
+function showShareLinkModal(link) {
+    // Rimuove eventuali modali precedenti
+    const existingModal = document.getElementById('shareLinkModal');
+    if (existingModal) existingModal.remove();
+
+    const modalDiv = document.createElement('div');
+    modalDiv.id = 'shareLinkModal';
+    modalDiv.className = 'simple-modal';
+    
+    modalDiv.innerHTML = `
+        <p><strong>Condividi questo link con il cliente:</strong></p>
+        <input type="text" class="input-field" value="${link}" readonly>
+        <div class="modal-buttons">
+            <button id="copyLinkBtn" class="modal-button ok">Copia Link</button>
+            <button id="closeShareModalBtn" class="modal-button cancel">Chiudi</button>
+        </div>
+    `;
+    document.body.appendChild(modalDiv);
+
+    const input = modalDiv.querySelector('input');
+    input.select(); // Seleziona il testo per facilitare la copia
+
+    document.getElementById('copyLinkBtn').addEventListener('click', () => {
+        navigator.clipboard.writeText(link).then(() => {
+            showMessage("Link copiato!", "success");
+        }, (err) => {
+            showMessage("Errore nella copia.", "error");
+        });
+    });
+
+    document.getElementById('closeShareModalBtn').addEventListener('click', () => {
+        modalDiv.remove();
+    });
+}
 
   // --- 3. FUNZIONI DI CARICAMENTO E VISUALIZZAZIONE DATI ---
 
@@ -781,17 +818,14 @@ async function handleDeleteRelazione(relazioneId) {
 // =======================================================
 
 // Funzione per caricare e mostrare i buoni nella scheda cliente
-// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
+
 async function loadAndDisplayBuoni(clienteId) {
-    // Aggiungiamo un titolo alla sezione
     buoniContainer.innerHTML = '<h3 class="panel-subtitle" style="margin-bottom: 10px;">Buoni Ricevuti</h3>';
-    
     try {
         const response = await fetch(`/api/clienti/${clienteId}/buoni`);
         const buoni = await handleApiResponse(response);
 
         if (!buoni || buoni.length === 0) {
-            // Se non ci sono buoni, mostriamo il messaggio sotto il titolo
             buoniContainer.innerHTML += '<p>Nessun buono o pacchetto attivo ricevuto.</p>';
             return;
         }
@@ -821,10 +855,14 @@ async function loadAndDisplayBuoni(clienteId) {
                 `;
             }
 
+            // [MODIFICA CHIAVE] Aggiungiamo il bottone link
             div.innerHTML = `
                 <div class="buono-header">
                     <h4>${buono.descrizione || 'Buono Prepagato'}</h4>
-                    <span>Acquistato da: ${buono.acquirente_nome} ${buono.acquirente_cognome}</span>
+                    <div>
+                        <button class="btn-icon btn-share-buono" data-token="${buono.token_accesso}" title="Condividi Link Buono">🔗</button>
+                        <span>Acquistato da: ${buono.acquirente_nome} ${buono.acquirente_cognome}</span>
+                    </div>
                 </div>
                 <div class="buono-dettagli">
                     ${dettagliHtml}
@@ -1994,6 +2032,18 @@ buoniContainer.addEventListener('click', async (e) => {
     }
 });
 
+
+// --- INCOLLA QUESTO ALLA FINE DEGLI EVENT LISTENERS ---
+
+// Listener per il click sul bottone "Condividi Buono" (usa delegazione di eventi)
+buoniContainer.addEventListener('click', (e) => {
+    if (e.target.classList.contains('btn-share-buono')) {
+        const token = e.target.dataset.token;
+        // Costruisce l'URL completo basandosi sulla posizione attuale della pagina
+        const link = `${window.location.origin}/buono.html?token=${token}`;
+        showShareLinkModal(link);
+    }
+});
 
     // --- 7. AVVIO ---
     getClientIdsFromSearch();

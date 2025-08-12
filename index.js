@@ -438,6 +438,44 @@ app.get('/logout', (req, res, next) => {
     });
 });
 
+// ROTTA PUBBLICA PER VISUALIZZARE UN BUONO
+// ===========================================
+app.get("/api/buono/public/:token", async (req, res) => {
+    const { token } = req.params;
+
+    try {
+        // Query per trovare il buono tramite il suo token e recuperare tutti i dati necessari
+        const query = `
+            SELECT 
+                b.*,
+                acq.nome AS acquirente_nome,
+                acq.cognome AS acquirente_cognome,
+                ben.nome AS beneficiario_nome,
+                ben.cognome AS beneficiario_cognome
+            FROM 
+                buoni_prepagati b
+            JOIN 
+                clienti acq ON b.cliente_acquirente_id = acq.id
+            JOIN 
+                clienti ben ON b.cliente_beneficiario_id = ben.id
+            WHERE 
+                b.token_accesso = $1;
+        `;
+        const result = await db.query(query, [token]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Buono non trovato o link non valido." });
+        }
+
+        res.json(result.rows[0]);
+
+    } catch (err) {
+        console.error(`Errore nel recupero del buono pubblico con token ${token}:`, err.message);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+
 
 // ===========================================
 // ROTTE PROTETTE
@@ -1345,6 +1383,7 @@ app.get("/api/clienti/:id/buoni-acquistati", ensureAuthenticated, async (req, re
 
 
 // 2. API per CREARE un nuovo buono
+// --- SOSTITUISCI QUESTA API ---
 app.post("/api/buoni", ensureAuthenticated, async (req, res) => {
     const {
         acquirenteId,
@@ -1352,21 +1391,21 @@ app.post("/api/buoni", ensureAuthenticated, async (req, res) => {
         descrizione,
         note,
         tipoBuono,
-        serviziInclusi, // Array di oggetti per tipo 'quantita'
-        valoreIniziale // Numero per tipo 'valore'
+        serviziInclusi,
+        valoreIniziale
     } = req.body;
 
-    // Validazione base
     if (!acquirenteId || !beneficiarioId || !tipoBuono) {
         return res.status(400).json({ error: "Dati essenziali mancanti." });
     }
 
     try {
+        // La colonna token_accesso viene popolata automaticamente dal database
         const query = `
             INSERT INTO buoni_prepagati 
             (cliente_acquirente_id, cliente_beneficiario_id, descrizione, note, tipo_buono, servizi_inclusi, valore_iniziale_euro, valore_rimanente_euro)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            RETURNING *;
+            RETURNING *; 
         `;
         
         const values = [
@@ -1377,7 +1416,7 @@ app.post("/api/buoni", ensureAuthenticated, async (req, res) => {
             tipoBuono,
             tipoBuono === 'quantita' ? JSON.stringify(serviziInclusi) : null,
             tipoBuono === 'valore' ? valoreIniziale : null,
-            tipoBuono === 'valore' ? valoreIniziale : null // all'inizio, rimanente = iniziale
+            tipoBuono === 'valore' ? valoreIniziale : null
         ];
 
         const result = await db.query(query, values);

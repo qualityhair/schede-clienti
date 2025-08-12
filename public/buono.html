@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Tuo Buono Regalo - Quality Hair</title>
+    <!-- Stile direttamente nell'HTML per semplicità, non richiede file CSS esterni -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #1a1a1a; 
+            color: #f0f0f0; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container { 
+            max-width: 600px; 
+            width: 100%;
+            margin: auto; 
+            background-color: #2a2a2a; 
+            border-radius: 15px; 
+            padding: 30px; 
+            border-top: 5px solid #ffd700; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        .logo { max-width: 180px; margin-bottom: 20px; }
+        h1 { font-size: 2em; color: #ffd700; margin-top: 0; }
+        p { line-height: 1.6; color: #ccc; }
+        .card { background-color: #3a3a3a; border-radius: 10px; padding: 25px; margin-top: 25px; }
+        .card h3 { margin-top: 0; font-size: 1.4em; color: #fff; }
+        .servizio-item { margin-bottom: 25px; text-align: left; }
+        .progress-bar { display: flex; gap: 4px; margin-top: 8px; }
+        .progress-box { flex-grow: 1; height: 18px; background-color: #555; border-radius: 3px; transition: background-color 0.3s; }
+        .progress-box.used { background-color: #007bff; }
+        .servizio-conto { font-size: 0.9em; color: #aaa; text-align: right; margin-top: 5px; }
+        .credito-valore { font-size: 2.2em; font-weight: 600; color: #28a745; margin: 10px 0; }
+        .footer { margin-top: 30px; font-size: 0.9em; border-top: 1px solid #444; padding-top: 20px;}
+        .footer a { color: #ffd700; text-decoration: none; }
+        .status-badge { padding: 5px 12px; border-radius: 15px; font-weight: bold; color: white; }
+        .status-badge.attivo { background-color: #28a745; }
+        .status-badge.esaurito { background-color: #6c757d; }
+        #loading-view, #error-view { padding: 40px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Vista di caricamento, mostrata all'inizio -->
+        <div id="loading-view">
+            <img src="/img/logo-quality-hair.png" alt="Logo Quality Hair" class="logo">
+            <p>Caricamento del tuo buono in corso...</p>
+        </div>
+        
+        <!-- Vista del buono, nascosta all'inizio -->
+        <div id="buono-view" style="display: none;">
+            <img src="/img/logo-quality-hair.png" alt="Logo Quality Hair" class="logo">
+            <h1 id="titolo-saluto"></h1>
+            <p id="regalato-da"></p>
+
+            <div class="card">
+                <h3 id="descrizione-buono"></h3>
+                
+                <div id="dettagli-quantita" style="display: none;"></div>
+                <div id="dettagli-valore" style="display: none;">
+                    <p>Credito Rimanente:</p>
+                    <p class="credito-valore" id="valore-rimanente"></p>
+                    <p id="valore-iniziale"></p>
+                </div>
+            </div>
+
+            <p style="margin-top: 25px;"><strong>Stato:</strong> <span id="stato-buono" class="status-badge"></span></p>
+        </div>
+
+        <!-- Vista di errore, nascosta all'inizio -->
+        <div id="error-view" style="display: none;">
+            <img src="/img/logo-quality-hair.png" alt="Logo Quality Hair" class="logo">
+            <h1>Oops! Qualcosa è andato storto.</h1>
+            <p id="error-message">Non è stato possibile caricare il buono. Il link potrebbe essere errato o scaduto.</p>
+        </div>
+
+        <div class="footer">
+            <p>📍 Quality Hair - Indirizzo Fittizio 123, Città</p>
+            <p>📞 <a href="tel:0000000000">Chiama per prenotare il tuo prossimo appuntamento</a></p>
+        </div>
+    </div>
+
+    <!-- Il nuovo script che anima questa pagina -->
+    <script src="/js/visualizza-buono.js"></script>
+</body>
+</html>

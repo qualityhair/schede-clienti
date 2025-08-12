@@ -1959,6 +1959,30 @@ body {
 }
 
 
+/* Stile per la modale di avviso/prompt semplice */
+.simple-modal {
+    position: fixed;
+    z-index: 1002;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #3a3a3a;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    border-top: 4px solid #ffd700;
+    width: 90%;
+    max-width: 500px;
+}
+.simple-modal p {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+.simple-modal input {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */
