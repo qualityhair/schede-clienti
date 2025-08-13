@@ -1318,12 +1318,12 @@ app.delete("/api/relazioni/:id", ensureAuthenticated, async (req, res) => {
 // ===========================================
 
 // 1. API per RECUPERARE tutti i buoni di cui un cliente è BENEFICIARIO
+// --- SOSTITUISCI QUESTA INTERA API ---
 app.get("/api/clienti/:id/buoni", ensureAuthenticated, async (req, res) => {
-    const { id } = req.params; // ID del beneficiario
+    const { id } = req.params; 
 
     try {
-        // Selezioniamo i buoni dove il cliente è il beneficiario e che sono ancora attivi
-        // e recuperiamo anche nome e cognome di chi ha acquistato il buono
+        // MODIFICA: Aggiunto "AND b.stato = 'attivo'" per mostrare solo i buoni utilizzabili
         const query = `
             SELECT 
                 b.*,
@@ -1334,7 +1334,7 @@ app.get("/api/clienti/:id/buoni", ensureAuthenticated, async (req, res) => {
             JOIN 
                 clienti c ON b.cliente_acquirente_id = c.id
             WHERE 
-                b.cliente_beneficiario_id = $1 AND b.stato = 'attivo'
+                b.cliente_beneficiario_id = $1 AND b.stato = 'attivo' 
             ORDER BY 
                 b.data_acquisto DESC;
         `;
@@ -1347,16 +1347,79 @@ app.get("/api/clienti/:id/buoni", ensureAuthenticated, async (req, res) => {
     }
 });
 
+// --- AGGIUNGI QUESTA NUOVA API IN INDEX.JS ---
+
+// API per RECUPERARE TUTTI i buoni (attivi ed esauriti) di cui un cliente è BENEFICIARIO
+app.get("/api/clienti/:id/buoni/storico", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Questa query è identica alla precedente, MA SENZA il filtro su b.stato
+        const query = `
+            SELECT 
+                b.*,
+                c.nome AS acquirente_nome,
+                c.cognome AS acquirente_cognome
+            FROM 
+                buoni_prepagati b
+            JOIN 
+                clienti c ON b.cliente_acquirente_id = c.id
+            WHERE 
+                b.cliente_beneficiario_id = $1
+            ORDER BY 
+                b.stato ASC, b.data_acquisto DESC; -- Ordina per stato e poi per data
+        `;
+        const result = await db.query(query, [id]);
+        res.json(result.rows);
+
+    } catch (err) {
+        console.error(`Errore nel recupero storico buoni per cliente ${id}:`, err.message);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
 
 // --- INCOLLA QUESTA NUOVA API IN INDEX.JS ---
 
 // API per RECUPERARE tutti i buoni che un cliente ha ACQUISTATO per altri
+// --- SOSTITUISCI QUESTA INTERA API ---
 app.get("/api/clienti/:id/buoni-acquistati", ensureAuthenticated, async (req, res) => {
-    const { id } = req.params; // Questo è l'ID dell'ACQUIRENTE
+    const { id } = req.params;
 
     try {
-        // Selezioniamo i buoni dove il cliente corrente è l'acquirente
-        // e recuperiamo anche nome e cognome del beneficiario tramite una JOIN
+        // MODIFICA: Aggiunto "AND b.stato = 'attivo'" anche qui per coerenza
+        const query = `
+            SELECT 
+                b.*,
+                c.id AS beneficiario_id,
+                c.nome AS beneficiario_nome,
+                c.cognome AS beneficiario_cognome
+            FROM 
+                buoni_prepagati b
+            JOIN 
+                clienti c ON b.cliente_beneficiario_id = c.id
+            WHERE 
+                b.cliente_acquirente_id = $1 AND b.stato = 'attivo'
+            ORDER BY 
+                b.data_acquisto DESC;
+        `;
+        const result = await db.query(query, [id]);
+        res.json(result.rows);
+
+    } catch (err) {
+        console.error(`Errore nel recupero buoni acquistati da cliente ${id}:`, err.message);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// --- AGGIUNGI QUESTA NUOVA API IN INDEX.JS ---
+
+// API per RECUPERARE TUTTI i buoni (attivi ed esauriti) che un cliente ha ACQUISTATO
+app.get("/api/clienti/:id/buoni-acquistati/storico", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // Query identica alla precedente, MA SENZA il filtro su b.stato
         const query = `
             SELECT 
                 b.*,
@@ -1370,13 +1433,13 @@ app.get("/api/clienti/:id/buoni-acquistati", ensureAuthenticated, async (req, re
             WHERE 
                 b.cliente_acquirente_id = $1
             ORDER BY 
-                b.data_acquisto DESC;
+                b.stato ASC, b.data_acquisto DESC; -- Ordina per stato e poi per data
         `;
         const result = await db.query(query, [id]);
         res.json(result.rows);
 
     } catch (err) {
-        console.error(`Errore nel recupero buoni acquistati da cliente ${id}:`, err.message);
+        console.error(`Errore nel recupero storico buoni acquistati da cliente ${id}:`, err.message);
         res.status(500).json({ error: "Errore del server" });
     }
 });

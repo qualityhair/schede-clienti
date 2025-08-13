@@ -2046,7 +2046,19 @@ body {
     }
 }
 
+/* Stile per il link/interruttore "Mostra anche esauriti" */
+.link-toggle {
+    color: #ffd700; /* Giallo oro */
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: bold;
+    transition: color 0.2s ease;
+}
 
+.link-toggle:hover {
+    text-decoration: underline;
+    color: #fff; /* Bianco al passaggio del mouse */
+}
 
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */

@@ -155,7 +155,7 @@ const creditoBuonoAcquistoSpan = document.getElementById('credito-buono-acquisto
 const pagaConBuonoTrattamentoSezione = document.getElementById('paga-con-buono-trattamento-sezione');
 const pagaConBuonoTrattamentoCheckbox = document.getElementById('paga-con-buono-trattamento-checkbox');
 const creditoBuonoTrattamentoSpan = document.getElementById('credito-buono-trattamento');
-	
+const toggleStoricoBuoni = document.getElementById('toggle-storico-buoni');	
 
     // Variabili di stato
     let currentClientId = null;
@@ -847,12 +847,13 @@ async function handleDeleteRelazione(relazioneId) {
 // Funzione per caricare e mostrare i buoni nella scheda cliente
 
 // --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
-async function loadAndDisplayBuoni(clienteId) {
+async function loadAndDisplayBuoni(clienteId, mostraStorico = false) {
     buonoValoreDisponibile = null; // Resetta ad ogni caricamento
     buoniContainer.innerHTML = '<h3 class="panel-subtitle" style="margin-bottom: 10px;">Buoni Ricevuti</h3>';
     
     try {
-        const response = await fetch(`/api/clienti/${clienteId}/buoni`);
+               const endpoint = mostraStorico ? `/api/clienti/${clienteId}/buoni/storico` : `/api/clienti/${clienteId}/buoni`;
+        const response = await fetch(endpoint);
         const buoni = await handleApiResponse(response);
 
         if (!buoni || buoni.length === 0) {
@@ -913,10 +914,11 @@ async function loadAndDisplayBuoni(clienteId) {
 // --- INCOLLA QUESTA NUOVA FUNZIONE IN SCHEDA-CLIENTE.JS ---
 
 // Funzione per mostrare i buoni che il cliente ha ACQUISTATO per altri
-async function loadAndDisplayBuoniAcquistati(clienteId) {
+async function loadAndDisplayBuoniAcquistati(clienteId, mostraStorico = false) {
     buoniAcquistatiContainer.innerHTML = '<p class="loading-message">Caricamento...</p>';
     try {
-        const response = await fetch(`/api/clienti/${clienteId}/buoni-acquistati`);
+        const endpoint = mostraStorico ? `/api/clienti/${clienteId}/buoni-acquistati/storico` : `/api/clienti/${clienteId}/buoni-acquistati`;
+        const response = await fetch(endpoint);
         const buoni = await handleApiResponse(response);
 
         buoniAcquistatiContainer.innerHTML = '';
@@ -1649,8 +1651,8 @@ async function handleAddTrattamentoConBuono() {
             await loadClientData(currentClientId);
             await caricaRiepilogoAnalisi(currentClientId);
 			await loadAndDisplayRelazioni(currentClientId);
-			await loadAndDisplayBuoni(currentClientId);
-			await loadAndDisplayBuoniAcquistati(currentClientId);
+			await loadAndDisplayBuoni(currentClientId, false); // false = non mostrare lo storico
+			await loadAndDisplayBuoniAcquistati(currentClientId, false); // false = non mostrare lo storico
             
             const nuovaAnalisiIconBtn = document.getElementById('nuova-analisi-btn');
             if (nuovaAnalisiIconBtn) {
@@ -1666,8 +1668,7 @@ async function handleAddTrattamentoConBuono() {
     }
 
     // --- 6. EVENT LISTENERS ---
-    
-        // --- 6. EVENT LISTENERS ---
+   
     
     btnEliminaCliente.addEventListener('click', confirmDeleteClient);
     salvaNoteBtn.addEventListener('click', handleSalvaNote);
@@ -2187,6 +2188,19 @@ buoniContainer.addEventListener('click', (e) => {
         const link = `${window.location.origin}/buono.html?token=${token}`;
         showShareLinkModal(link);
     }
+});
+
+// --- LISTENER PER L'INTERRUTTORE DELLO STORICO BUONI ---
+toggleStoricoBuoni.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const mostraStorico = toggleStoricoBuoni.textContent.includes('Mostra');
+    
+    // Aggiorna il testo del link
+    toggleStoricoBuoni.textContent = mostraStorico ? 'Nascondi esauriti' : 'Mostra anche esauriti';
+    
+    // Ricarica entrambe le sezioni dei buoni con la nuova impostazione
+    await loadAndDisplayBuoni(currentClientId, mostraStorico);
+    await loadAndDisplayBuoniAcquistati(currentClientId, mostraStorico);
 });
 
     // --- 7. AVVIO ---
