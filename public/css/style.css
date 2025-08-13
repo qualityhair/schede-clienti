@@ -1983,6 +1983,71 @@ body {
     margin-bottom: 15px;
 }
 
+/* ============================================= */
+/* === STILI PER SEZIONE "PAGA CON BUONO"     === */
+/* ============================================= */
+
+.paga-con-buono-sezione {
+    background-color: rgba(255, 215, 0, 0.1); /* Sfondo leggermente dorato per evidenziare */
+    border: 1px solid #ffd700;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.paga-con-buono-sezione label {
+    font-weight: bold;
+    color: #ffd700; /* Testo dorato per coerenza */
+}
+
+.paga-con-buono-sezione span {
+    font-weight: normal;
+    color: #f0f0f0; /* Testo normale per il credito */
+}
+
+/* ======================================================= */
+/* === NUOVO LAYOUT A GRIGLIA PER LA SCHEDA CLIENTE      === */
+/* ======================================================= */
+
+/* Questa è la nuova griglia principale che si applica solo
+   al contenitore che abbiamo modificato nell'HTML. */
+.panel-grid-new {
+    display: grid;
+    /* Crea due colonne flessibili di uguale larghezza */
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+/* Questa classe speciale dice a un elemento della griglia
+   di occupare tutto lo spazio orizzontale disponibile. */
+.full-width-panel {
+    /* Si estende dalla prima linea della griglia (-1 è un modo per dire "fino all'ultima") */
+    grid-column: 1 / -1;
+}
+
+/* ======================================================= */
+/* === RESPONSIVITÀ PER IL NUOVO LAYOUT                  === */
+/* ======================================================= */
+
+/* Quando lo schermo è largo 992px o meno (tablet in verticale e cellulari),
+   cambiamo il layout per renderlo più leggibile. */
+@media (max-width: 992px) {
+    .panel-grid-new {
+        /* Trasformiamo la griglia in una singola colonna */
+        grid-template-columns: 1fr;
+    }
+
+    /* Su una griglia a colonna singola, la regola per estendere
+       un pannello non è più necessaria, quindi la annulliamo. */
+    .full-width-panel {
+        grid-column: auto;
+    }
+}
+
+
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */

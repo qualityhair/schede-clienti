@@ -1500,6 +1500,127 @@ app.post("/api/buoni/:buonoId/usa-servizio", ensureAuthenticated, async (req, re
     }
 });
 
+// ===========================================
+// === API SPECIALI PER PAGARE CON BUONI     ===
+// ===========================================
+
+// 1. API per creare un TRATTAMENTO pagandolo con un buono a valore
+app.post("/api/trattamenti/paga-con-buono", ensureAuthenticated, async (req, res) => {
+    const { trattamentoData, buonoId } = req.body;
+    
+    const client = await db.connect();
+    try {
+        await client.query('BEGIN');
+
+        // 1. Recupera il buono a valore e bloccalo
+        const buonoResult = await client.query("SELECT * FROM buoni_prepagati WHERE id = $1 AND tipo_buono = 'valore' FOR UPDATE", [buonoId]);
+        if (buonoResult.rows.length === 0) throw new Error("Buono a valore non trovato o non valido.");
+        
+        const buono = buonoResult.rows[0];
+        const prezzoTrattamento = parseFloat(trattamentoData.prezzo);
+        let valoreRimanente = parseFloat(buono.valore_rimanente_euro);
+
+        if (valoreRimanente < prezzoTrattamento) throw new Error("Credito insufficiente nel buono.");
+
+        // 2. Scala il credito
+        valoreRimanente -= prezzoTrattamento;
+        const nuovoStato = valoreRimanente <= 0 ? 'esaurito' : 'attivo';
+
+        // 3. Aggiorna il buono
+        await client.query(
+            "UPDATE buoni_prepagati SET valore_rimanente_euro = $1, stato = $2, updated_at = NOW() WHERE id = $3",
+            [valoreRimanente, nuovoStato, buonoId]
+        );
+
+        // 4. Crea il trattamento, impostandolo come PAGATO
+        await client.query(
+            `INSERT INTO trattamenti (cliente_id, tipo_trattamento, descrizione, data_trattamento, prezzo, note, pagato) 
+             VALUES ($1, $2, $3, $4, $5, $6, true)`,
+            [
+                trattamentoData.cliente_id, 
+                trattamentoData.tipo_trattamento, 
+                trattamentoData.descrizione,
+                trattamentoData.data_trattamento,
+                trattamentoData.prezzo,
+                `${trattamentoData.note || ''} (Pagato con Buono ID: ${buonoId})`.trim()
+            ]
+        );
+
+        await client.query('COMMIT');
+        res.status(201).json({ message: "Trattamento creato e pagato con buono." });
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error("Errore pagamento trattamento con buono:", err.message);
+        res.status(500).json({ error: err.message });
+    } finally {
+        client.release();
+    }
+});
+
+
+// 2. API per aggiungere un ACQUISTO pagandolo con un buono a valore
+app.post("/api/acquisti/paga-con-buono", ensureAuthenticated, async (req, res) => {
+    const { acquistoData, buonoId, clienteId } = req.body;
+    
+    const client = await db.connect();
+    try {
+        await client.query('BEGIN');
+
+        // 1. Recupera il buono a valore E lo storico acquisti del cliente, e blocca entrambe le righe
+        const buonoResult = await client.query("SELECT * FROM buoni_prepagati WHERE id = $1 AND tipo_buono = 'valore' FOR UPDATE", [buonoId]);
+        const clienteResult = await client.query("SELECT storico_acquisti FROM clienti WHERE id = $1 FOR UPDATE", [clienteId]);
+
+        if (buonoResult.rows.length === 0) throw new Error("Buono a valore non trovato o non valido.");
+        if (clienteResult.rows.length === 0) throw new Error("Cliente non trovato.");
+        
+        const buono = buonoResult.rows[0];
+        const prezzoAcquisto = parseFloat(acquistoData.prezzo_unitario) * parseInt(acquistoData.quantita);
+        let valoreRimanente = parseFloat(buono.valore_rimanente_euro);
+
+        if (valoreRimanente < prezzoAcquisto) throw new Error("Credito insufficiente nel buono.");
+
+        // 2. Scala il credito
+        valoreRimanente -= prezzoAcquisto;
+        const nuovoStato = valoreRimanente <= 0 ? 'esaurito' : 'attivo';
+
+        // 3. Aggiorna il buono
+        await client.query(
+            "UPDATE buoni_prepagati SET valore_rimanente_euro = $1, stato = $2, updated_at = NOW() WHERE id = $3",
+            [valoreRimanente, nuovoStato, buonoId]
+        );
+
+        // 4. Aggiunge l'acquisto allo storico, impostandolo come PAGATO
+        let storicoAcquisti = [];
+        try {
+            if (clienteResult.rows[0].storico_acquisti) {
+                storicoAcquisti = JSON.parse(clienteResult.rows[0].storico_acquisti);
+            }
+        } catch(e) { console.error("JSON storico acquisti corrotto, verrà sovrascritto"); }
+        
+        const nuovoAcquisto = {
+            ...acquistoData,
+            pagato: true, // L'acquisto è immediatamente pagato
+            note: `${acquistoData.note || ''} (Pagato con Buono ID: ${buonoId})`.trim()
+        };
+        storicoAcquisti.push(nuovoAcquisto);
+        
+        await client.query("UPDATE clienti SET storico_acquisti = $1 WHERE id = $2", [JSON.stringify(storicoAcquisti), clienteId]);
+
+        await client.query('COMMIT');
+        res.status(201).json({ message: "Acquisto aggiunto e pagato con buono." });
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error("Errore pagamento acquisto con buono:", err.message);
+        res.status(500).json({ error: err.message });
+    } finally {
+        client.release();
+    }
+});
+
+
+
 // --- Avvio server ---
 const port = process.env.PORT || 3000;
 app.listen(port, '0.0.0.0', () => {

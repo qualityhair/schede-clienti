@@ -19,7 +19,12 @@
             <button id="btnSuccessivo" class="btn btn-nav">Avanti ➡️</button>
         </div>
         
-        <div class="panel-grid">
+        <!-- ======================================================= -->
+        <!-- === NUOVA STRUTTURA A GRIGLIA PRINCIPALE            === -->
+        <!-- ======================================================= -->
+        <div class="panel-grid-new">
+            
+            <!-- PANNELLO DETTAGLI CLIENTE (COLONNA 1) -->
             <div class="panel client-details-panel">
                 <h2 class="panel-title profile-title-container">
                     <img id="profile-avatar" src="/img/default-avatar.png" alt="Avatar Cliente" class="profile-avatar">
@@ -36,46 +41,6 @@
                 <div class="panel-actions">
                     <button class="btn btn-primary" id="modificaDettagliBtn">✏️ Modifica Profilo</button>
                 </div>
-				
-				<hr style="border-color: #444; margin: 20px 0;">
-
-                <div class="panel-section">
-                    <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span>Clienti Correlati</span>
-                        <button class="btn btn-icon" id="gestisciRelazioniBtn" title="Gestisci Clienti Correlati">➕</button>
-                    </h3>
-                    <div id="relazioni-container">
-                        <p class="loading-message">Caricamento legami...</p>
-                    </div>
-                </div>
-
-                <!-- ======================================================= -->
-                <!-- === PANNELLO BUONI SPOSTATO QUI SOTTO               === -->
-                <!-- ======================================================= -->
-                <hr style="border-color: #444; margin: 20px 0;">
-                
-                <div class="panel-section">
-                    <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span>Buoni / Pacchetti Attivi</span>
-                        <button class="btn btn-icon" id="creaBuonoBtn" title="Crea Nuovo Buono">➕</button>
-                    </h3>
-                    <!-- SOSTITUISCI IL VECCHIO "panel-content" CON QUESTO NUOVO BLOCCO -->
-<div class="panel-content">
-    <div id="buoni-container">
-        <!-- I buoni ricevuti dal cliente verranno inseriti qui -->
-        <p class="loading-message">Caricamento buoni ricevuti...</p>
-    </div>
-    
-    <!-- NUOVA SEZIONE PER I BUONI ACQUISTATI, SPOSTATA QUI -->
-    <hr class="panel-divider" style="margin: 20px 0; border-color: #444;">
-    <h3 class="panel-subtitle" style="margin-bottom: 10px;">Buoni Acquistati per Altri</h3>
-    <div id="buoni-acquistati-container">
-        <p class="loading-message">Caricamento...</p>
-    </div>
-</div>
-<!-- FINE DEL BLOCCO DA INCOLLARE -->
-                </div>
-                <!-- ======================================================= -->
 
 				<hr style="border-color: #444; margin: 20px 0;">
 
@@ -87,9 +52,45 @@
 				    </div>
                 </div>
             </div>
-			
-			<!-- Pannello Riepilogo Analisi Tricologica -->
-            <div class="panel" id="analisi-tricologica-panel">
+
+            <!-- NUOVO PANNELLO RELAZIONI E BUONI (COLONNA 2) -->
+            <div class="panel">
+                <!-- Sezione Clienti Correlati -->
+                <div class="panel-section">
+                    <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>Clienti Correlati</span>
+                        <button class="btn btn-icon" id="gestisciRelazioniBtn" title="Gestisci Clienti Correlati">➕</button>
+                    </h3>
+                    <div id="relazioni-container">
+                        <p class="loading-message">Caricamento legami...</p>
+                    </div>
+                </div>
+
+                <hr style="border-color: #444; margin: 20px 0;">
+                
+                <!-- Sezione Buoni / Pacchetti -->
+                <div class="panel-section">
+                    <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span>Buoni / Pacchetti Attivi</span>
+                        <button class="btn btn-icon" id="creaBuonoBtn" title="Crea Nuovo Buono">➕</button>
+                    </h3>
+                    <div class="panel-content">
+                        <div id="buoni-container">
+                            <h4 class="panel-subtitle" style="margin-bottom: 10px; font-size: 1em;">Buoni Ricevuti</h4>
+                            <p class="loading-message">Caricamento buoni ricevuti...</p>
+                        </div>
+                        
+                        <hr class="panel-divider" style="margin: 20px 0; border-color: #444;">
+                        <h4 class="panel-subtitle" style="margin-bottom: 10px; font-size: 1em;">Buoni Acquistati per Altri</h4>
+                        <div id="buoni-acquistati-container">
+                            <p class="loading-message">Caricamento...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANNELLO ANALISI TRICO (RIGA 2, LARGHEZZA PIENA) -->
+            <div class="panel full-width-panel" id="analisi-tricologica-panel">
                 <h2 class="panel-title">
                     <span>Analisi Trico-Cosmetica</span>
                     <button class="btn btn-icon" id="nuova-analisi-btn" title="Aggiungi Nuova Analisi">➕</button>
@@ -113,8 +114,57 @@
                 </div>
             </div>
 
-            <!-- NUOVO PANNELLO STORICO FOTOGRAFICO -->
-            <div class="panel" id="photo-gallery-panel">
+            <!-- PANNELLO TRATTAMENTI (RIGA 3, LARGHEZZA PIENA) -->
+            <div class="panel full-width-panel treatments-panel">
+                <h2 class="panel-title">Servizi e Trattamenti
+                    <button class="btn btn-icon" id="aggiungiTrattamentoBtn" title="Aggiungi Nuovo Trattamento">➕</button>
+                </h2>
+                <div class="panel-content table-responsive">
+                    <table class="trattamenti data-table">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Descrizione</th>
+                                <th>Data</th>
+                                <th>Prezzo</th>
+                                <th>Pagato</th>
+                                <th>Note</th>
+                                <th>Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-trattamenti">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PANNELLO ACQUISTI (RIGA 4, LARGHEZZA PIENA) -->
+            <div class="panel full-width-panel purchases-panel">
+                <h2 class="panel-title">Acquisti Prodotti
+                    <button class="btn btn-icon" id="aggiungi-acquisto-btn" title="Aggiungi Nuovo Acquisto">➕</button>
+                </h2>
+                <div class="panel-content table-responsive">
+                    <table class="acquisti-table data-table">
+                        <thead>
+                            <tr>
+                                <th>Prodotto</th>
+                                <th>Data</th>
+                                <th>Prezzo Unit.</th>
+                                <th>Qtà</th>
+                                <th>Prezzo Tot.</th>
+                                <th>Pagato</th>
+                                <th>Note</th>
+                                <th>Azione</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-acquisti">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PANNELLO ARCHIVIO FOTO (RIGA 5, LARGHEZZA PIENA) -->
+            <div class="panel full-width-panel" id="photo-gallery-panel">
                 <h2 class="panel-title">
                     <span>Archivio Foto</span>
                     <button class="btn btn-icon" id="add-photo-btn" title="Aggiungi Nuova Foto">➕</button>
@@ -124,59 +174,8 @@
                     <p class="loading-message">Caricamento foto in corso...</p>
                 </div>
             </div>
-
-            <div class="two-column-stack"> 
-               <div class="panel treatments-panel">
-                    <h2 class="panel-title">Servizi e Trattamenti
-                        <button class="btn btn-icon" id="aggiungiTrattamentoBtn" title="Aggiungi Nuovo Trattamento">➕</button>
-                    </h2>
-                    <div class="panel-content table-responsive">
-                        <table class="trattamenti data-table">
-                            <thead>
-                                <tr>
-                                    <th>Tipo</th>
-                                    <th>Descrizione</th>
-                                    <th>Data</th>
-                                    <th>Prezzo</th>
-                                    <th>Pagato</th>
-                                    <th>Note</th>
-                                    <th>Azione</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lista-trattamenti">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- SOSTITUISCI IL VECCHIO "purchases-panel" CON QUESTO NUOVO BLOCCO -->
-<div class="panel purchases-panel">
-    <h2 class="panel-title">Acquisti Prodotti
-        <button class="btn btn-icon" id="aggiungi-acquisto-btn" title="Aggiungi Nuovo Acquisto">➕</button>
-    </h2>
-    <div class="panel-content table-responsive">
-        <table class="acquisti-table data-table">
-            <thead>
-                <tr>
-                    <th>Prodotto</th>
-                    <th>Data</th>
-                    <th>Prezzo Unit.</th>
-                    <th>Qtà</th>
-                    <th>Prezzo Tot.</th>
-                    <th>Pagato</th>
-                    <th>Note</th>
-                    <th>Azione</th>
-                </tr>
-            </thead>
-            <tbody id="lista-acquisti">
-            </tbody>
-        </table>
-    </div>
-
-
-</div>
-            </div> 
         </div>
+        <!-- === FINE NUOVA STRUTTURA A GRIGLIA === -->
 
         <div class="delete-client-section">
             <button id="btnEliminaCliente" class="btn btn-danger">Elimina Cliente</button>
@@ -186,7 +185,9 @@
     <script src="/js/scheda-cliente.js"></script>
     <script src="/js/navbar-loader.js"></script>
 
-    <!-- Tutte le modali -->
+
+
+    <!-- Codice completo delle modali per sicurezza -->
     <div id="addPhotoModal" class="modal">
         <div class="modal-content">
             <h3>Aggiungi Nuova Foto</h3>
@@ -232,14 +233,12 @@
             </div>
         </div>
     </div>
-
     <div id="viewPhotoModal" class="modal" style="--bg-color: rgba(0,0,0,0.9);">
         <div class="modal-content" style="background: none; box-shadow: none; padding: 0;">
             <img id="fullscreen-photo" src="" alt="Foto Cliente" style="max-width: 90vw; max-height: 90vh; object-fit: contain;">
             <button id="close-view-photo-btn" style="position: absolute; top: 15px; right: 25px; font-size: 2rem; color: white; background: none; border: none; cursor: pointer;">×</button>
         </div>
     </div>
-
     <div id="editPhotoModal" class="modal">
         <div class="modal-content">
             <h3>Modifica Dettagli Foto</h3>
@@ -263,7 +262,6 @@
             </form>
         </div>
     </div>
-
     <div id="addTrichoPhotoModal" class="modal">
         <div class="modal-content">
             <h3>Aggiungi Foto Trico</h3>
@@ -309,7 +307,6 @@
             </div>
         </div>
     </div>
-			
     <div id="modalAggiungiAcquisto" class="modal">
         <div class="modal-content">
             <h3>Aggiungi Nuovo Acquisto</h3>
@@ -330,7 +327,16 @@
                     <label for="quantita-acquisto">Quantità:</label>
                     <input type="number" id="quantita-acquisto" min="1" value="1" required class="input-field">
                 </div>
-                 <div class="form-group form-group-checkbox">
+                <div id="paga-con-buono-acquisto-sezione" class="paga-con-buono-sezione" style="display: none;">
+                    <hr class="panel-divider">
+                    <div class="form-group form-group-checkbox">
+                        <input type="checkbox" id="paga-con-buono-acquisto-checkbox">
+                        <label for="paga-con-buono-acquisto-checkbox">
+                            Usa credito da Buono Regalo <span id="credito-buono-acquisto"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group form-group-checkbox">
                     <input type="checkbox" id="pagato-acquisto">
                     <label for="pagato-acquisto">Già Pagato?</label>
                 </div>
@@ -345,7 +351,6 @@
             </form>
         </div>
     </div>
-
     <div id="addTrattamentoModal" class="modal">
         <div class="modal-content">
             <h2>Aggiungi Nuovo Trattamento</h2>
@@ -378,13 +383,22 @@
                     <label for="descrizioneTrattamento" class="form-label">Descrizione:</label>
                     <textarea id="descrizioneTrattamento" name="descrizioneTrattamento" class="textarea-field"></textarea>
                 </div>
-                <div class="form-group">
-                    <label for="noteTrattamento" class="form-label">Note (Opzionale):</label>
-                    <textarea id="noteTrattamento" class="textarea-field"></textarea>
+                <div id="paga-con-buono-trattamento-sezione" class="paga-con-buono-sezione" style="display: none;">
+                    <hr class="panel-divider">
+                    <div class="form-group form-group-checkbox">
+                        <input type="checkbox" id="paga-con-buono-trattamento-checkbox">
+                        <label for="paga-con-buono-trattamento-checkbox">
+                            Usa credito da Buono Regalo <span id="credito-buono-trattamento"></span>
+                        </label>
+                    </div>
                 </div>
                 <div class="form-group form-group-checkbox">
                     <input type="checkbox" id="pagato-trattamento">
                     <label for="pagato-trattamento">Già Pagato?</label>
+                </div>
+                <div class="form-group">
+                    <label for="noteTrattamento" class="form-label">Note (Opzionale):</label>
+                    <textarea id="noteTrattamento" class="textarea-field"></textarea>
                 </div>
                 <div class="modal-buttons">
                     <button type="submit" class="modal-button ok">Salva Trattamento</button>
@@ -393,7 +407,6 @@
             </form>
         </div>
     </div>
-
     <div id="modificaClienteModal" class="modal">
         <div class="modal-content">
             <h3>Modifica Dettagli Cliente</h3>
@@ -407,12 +420,10 @@
                     <label for="modifica-cognome">Cognome:</label>
                     <input type="text" id="modifica-cognome" required class="input-field">
                 </div>
-				
 				<div class="form-group">
 				    <label for="modifica-soprannome" class="form-label">Soprannome:</label>
 				    <input type="text" id="modifica-soprannome" class="input-field">
 				</div>
-				
                 <div class="form-group">
                     <label for="modifica-email">Email:</label>
                     <input type="email" id="modifica-email" class="input-field">
@@ -421,12 +432,10 @@
                     <label for="modifica-telefono">Telefono:</label>
                     <input type="tel" id="modifica-telefono" class="input-field">
                 </div>
-
                 <div class="form-group">
                     <label for="modifica-tags">Tag (separati da virgola):</label>
                     <input type="text" id="modifica-tags" class="input-field" placeholder="Es: Cliente VIP, Allergia Tinta, Caffè Amaro">
                 </div>
-
                 <div class="modal-buttons">
                     <button type="submit" class="modal-button ok">Salva Modifiche</button>
                     <button type="button" class="modal-button cancel" id="annullaModificaClienteBtn">Annulla</button>
@@ -434,18 +443,12 @@
             </form>
         </div>
     </div>
-    
     <div id="gestisciRelazioniModal" class="modal">
         <div class="modal-content">
             <h3>Gestisci Clienti Correlati</h3>
-            
             <h4>Legami Esistenti:</h4>
-            <div id="lista-relazioni-esistenti" class="lista-relazioni">
-                <!-- La lista dei legami con il bottone per eliminarli verrà inserita qui -->
-            </div>
-
+            <div id="lista-relazioni-esistenti" class="lista-relazioni"></div>
             <hr class="panel-divider">
-
             <h4>Aggiungi Nuovo Legame:</h4>
             <form id="formAggiungiRelazione" style="position: relative;">
                 <div class="form-group">
@@ -468,21 +471,15 @@
                     <button type="submit" class="modal-button ok">Aggiungi Legame</button>
                 </div>
             </form>
-            
             <div class="modal-buttons" style="margin-top: 20px;">
                 <button type="button" class="modal-button cancel" id="chiudiGestisciRelazioniModal">Chiudi</button>
             </div>
         </div>
     </div>
-    
-    <!-- ======================================================= -->
-    <!-- === NUOVA MODALE PER LA CREAZIONE DEI BUONI         === -->
-    <!-- ======================================================= -->
     <div id="creaBuonoModal" class="modal">
         <div class="modal-content large">
             <h3>Crea Nuovo Buono / Pacchetto</h3>
             <form id="formCreaBuono">
-
                 <div class="form-group">
                     <label for="buono-beneficiario-search" class="form-label">Per chi è il buono? (Beneficiario)</label>
                     <input type="text" id="buono-beneficiario-search" class="input-field" placeholder="Cerca cliente..." autocomplete="off">
@@ -490,14 +487,11 @@
                     <input type="hidden" id="buono-beneficiario-id" required>
                     <p class="form-hint">Il buono verrà acquistato da <strong id="buono-acquirente-nome"></strong>.</p>
                 </div>
-
                 <div class="form-group">
                     <label for="buono-descrizione" class="form-label">Descrizione (es. "Regalo Natale Mamma")</label>
                     <input type="text" id="buono-descrizione" class="input-field">
                 </div>
-
                 <hr class="panel-divider">
-
                 <div class="form-group">
                     <label class="form-label">Che tipo di buono è?</label>
                     <div class="radio-group">
@@ -507,29 +501,21 @@
                         <label for="tipo-valore">Buono Regalo (a valore €)</label>
                     </div>
                 </div>
-
-                <!-- Sezione che appare solo per i buoni a QUANTITÀ -->
                 <div id="buono-sezione-quantita">
                     <h4>Servizi Inclusi nel Pacchetto</h4>
-                    <div id="lista-servizi-buono">
-                        <!-- Righe di servizi verranno aggiunte qui -->
-                    </div>
+                    <div id="lista-servizi-buono"></div>
                     <button type="button" class="btn btn-secondary" id="aggiungi-servizio-buono-btn">Aggiungi Servizio</button>
                 </div>
-
-                <!-- Sezione che appare solo per i buoni a VALORE -->
                 <div id="buono-sezione-valore" style="display: none;">
                     <div class="form-group">
                         <label for="buono-valore-iniziale" class="form-label">Valore del Buono (€)</label>
                         <input type="number" id="buono-valore-iniziale" class="input-field" step="0.01" min="0">
                     </div>
                 </div>
-                
                 <div class="form-group">
                     <label for="buono-note">Note Aggiuntive</label>
                     <textarea id="buono-note" class="textarea-field"></textarea>
                 </div>
-
                 <div class="modal-buttons">
                     <button type="submit" class="modal-button ok">Crea Buono</button>
                     <button type="button" class="modal-button cancel" id="annullaCreaBuonoBtn">Annulla</button>
@@ -537,7 +523,5 @@
             </form>
         </div>
     </div>
-    <!-- ======================================================= -->
-
 </body>
 </html>

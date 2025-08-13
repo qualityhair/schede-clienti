@@ -146,6 +146,15 @@ const sezioneValore = document.getElementById('buono-sezione-valore');
 const listaServiziBuono = document.getElementById('lista-servizi-buono');
 const aggiungiServizioBuonoBtn = document.getElementById('aggiungi-servizio-buono-btn');
 const buonoValoreInizialeInput = document.getElementById('buono-valore-iniziale');	
+
+// --- RIFERIMENTI PER "PAGA CON BUONO" ---
+const pagaConBuonoAcquistoSezione = document.getElementById('paga-con-buono-acquisto-sezione');
+const pagaConBuonoAcquistoCheckbox = document.getElementById('paga-con-buono-acquisto-checkbox');
+const creditoBuonoAcquistoSpan = document.getElementById('credito-buono-acquisto');
+
+const pagaConBuonoTrattamentoSezione = document.getElementById('paga-con-buono-trattamento-sezione');
+const pagaConBuonoTrattamentoCheckbox = document.getElementById('paga-con-buono-trattamento-checkbox');
+const creditoBuonoTrattamentoSpan = document.getElementById('credito-buono-trattamento');
 	
 
     // Variabili di stato
@@ -158,6 +167,7 @@ const buonoValoreInizialeInput = document.getElementById('buono-valore-iniziale'
 	let capturedBlob = null; // Conterrà la foto scattata come oggetto Blob
 	let trichoStream = null;
 	let trichoCapturedBlob = null;
+	let buonoValoreDisponibile = null; // Conterrà i dati del buono a valore se presente
 
     // --- 2. FUNZIONI DI UTILITÀ ---
 
@@ -254,6 +264,23 @@ function showShareLinkModal(link) {
     document.getElementById('closeShareModalBtn').addEventListener('click', () => {
         modalDiv.remove();
     });
+}
+
+function setupPagaConBuonoUI(sezione, checkbox, spanCredito, checkboxPagato) {
+    if (buonoValoreDisponibile && parseFloat(buonoValoreDisponibile.valore_rimanente_euro) > 0) {
+        sezione.style.display = 'block';
+        spanCredito.textContent = `(€ ${parseFloat(buonoValoreDisponibile.valore_rimanente_euro).toFixed(2)})`;
+        
+        checkbox.onchange = () => {
+            // Se spunto "paga con buono", disabilito e deseleziono "già pagato"
+            checkboxPagato.disabled = checkbox.checked;
+            if (checkbox.checked) {
+                checkboxPagato.checked = false;
+            }
+        };
+    } else {
+        sezione.style.display = 'none';
+    }
 }
 
   // --- 3. FUNZIONI DI CARICAMENTO E VISUALIZZAZIONE DATI ---
@@ -819,8 +846,11 @@ async function handleDeleteRelazione(relazioneId) {
 
 // Funzione per caricare e mostrare i buoni nella scheda cliente
 
+// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
 async function loadAndDisplayBuoni(clienteId) {
+    buonoValoreDisponibile = null; // Resetta ad ogni caricamento
     buoniContainer.innerHTML = '<h3 class="panel-subtitle" style="margin-bottom: 10px;">Buoni Ricevuti</h3>';
+    
     try {
         const response = await fetch(`/api/clienti/${clienteId}/buoni`);
         const buoni = await handleApiResponse(response);
@@ -830,6 +860,10 @@ async function loadAndDisplayBuoni(clienteId) {
             return;
         }
 
+        // Cerca il PRIMO buono a valore attivo e salvalo per un uso futuro nelle modali
+        buonoValoreDisponibile = buoni.find(b => b.tipo_buono === 'valore' && b.stato === 'attivo' && parseFloat(b.valore_rimanente_euro) > 0);
+
+        // Cicla su TUTTI i buoni per mostrarli
         buoni.forEach(buono => {
             const div = document.createElement('div');
             div.className = `buono-item ${buono.stato === 'esaurito' ? 'stato-esaurito' : ''}`;
@@ -855,13 +889,13 @@ async function loadAndDisplayBuoni(clienteId) {
                 `;
             }
 
-            // [MODIFICA CHIAVE] Aggiungiamo il bottone link
+            // Aggiungiamo il bottone link per la condivisione
             div.innerHTML = `
                 <div class="buono-header">
                     <h4>${buono.descrizione || 'Buono Prepagato'}</h4>
-                    <div>
+                    <div style="text-align: right;">
                         <button class="btn-icon btn-share-buono" data-token="${buono.token_accesso}" title="Condividi Link Buono">🔗</button>
-                        <span>Acquistato da: ${buono.acquirente_nome} ${buono.acquirente_cognome}</span>
+                        <span style="font-size: 0.8em; color: #ccc;">Acquistato da: ${buono.acquirente_nome} ${buono.acquirente_cognome}</span>
                     </div>
                 </div>
                 <div class="buono-dettagli">
@@ -1307,14 +1341,22 @@ async function updateStatoPagamentoAcquisto(acquistoIndex, nuovoStato) {
     }
 
     // --- SOSTITUISCI LA VECCHIA handleAddAcquisto ---
+// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
 async function handleAddAcquisto(event) {
     event.preventDefault();
+    
+    // Se la checkbox "Paga con Buono" è spuntata, usa la nuova logica
+    if (pagaConBuonoAcquistoCheckbox.checked) {
+        await handleAddAcquistoConBuono();
+        return; // Ferma l'esecuzione qui
+    }
+
+    // Altrimenti, esegui la logica standard che già avevamo
     const prodotto = prodottoAcquistoInput.value.trim();
     const data = dataAcquistoInput.value;
     const prezzo_unitario = parseFloat(prezzoAcquistoInput.value);
     const quantita = parseInt(quantitaAcquistoInput.value);
     const note = noteAcquistoTextarea.value.trim();
-    // Leggiamo lo stato della nuova checkbox
     const pagato = pagatoAcquistoInput.checked;
 
     if (!prodotto || !data || isNaN(prezzo_unitario) || isNaN(quantita) || prezzo_unitario < 0 || quantita < 1) {
@@ -1322,25 +1364,16 @@ async function handleAddAcquisto(event) {
         return;
     }
 
-    // Creiamo l'oggetto acquisto includendo il valore di 'pagato'
-    const nuovoAcquisto = { 
-        prodotto, 
-        data, 
-        prezzo_unitario,
-        quantita, 
-        pagato, // <-- valore dinamico dalla checkbox
-        note 
-    };
-
+    const nuovoAcquisto = { prodotto, data, prezzo_unitario, quantita, pagato, note };
+    
     try {
         let storicoAcquisti = [];
         if (currentClienteData && currentClienteData.storico_acquisti) {
             try {
                 storicoAcquisti = JSON.parse(currentClienteData.storico_acquisti);
-            } catch (e) {
-                console.error("Storico acquisti malformato, verrà sovrascritto.", e);
-            }
+            } catch (e) { console.error("Storico acquisti malformato, verrà sovrascritto.", e); }
         }
+        
         storicoAcquisti.push(nuovoAcquisto);
         
         const response = await fetch(`/api/clienti/${currentClientId}/acquisti`, {
@@ -1356,7 +1389,8 @@ async function handleAddAcquisto(event) {
         
         showMessage("Acquisto aggiunto!", 'success');
         closeModal(modalAggiungiAcquisto, formAggiungiAcquisto);
-        loadClientData(currentClientId);
+        await loadClientData(currentClientId);
+
     } catch (error) {
         console.error("Errore aggiunta acquisto:", error);
         showMessage(`Errore: ${error.message}`, 'error');
@@ -1364,8 +1398,17 @@ async function handleAddAcquisto(event) {
 }
 
     // --- SOSTITUISCI LA VECCHIA handleAddTrattamento ---
+// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
 async function handleAddTrattamento(event) {
     event.preventDefault();
+
+    // Se la checkbox "Paga con Buono" è spuntata, usa la nuova logica
+    if (pagaConBuonoTrattamentoCheckbox.checked) {
+        await handleAddTrattamentoConBuono();
+        return; // Ferma l'esecuzione qui
+    }
+
+    // Altrimenti, esegui la logica standard
     if (!currentClientId) {
         showMessage("ID cliente mancante.", 'error');
         return;
@@ -1373,7 +1416,6 @@ async function handleAddTrattamento(event) {
     const tipo_trattamento = tipoTrattamentoInput.value.trim();
     const data_trattamento = dataTrattamentoInput.value;
     const prezzo_trattamento = parseFloat(prezzoTrattamentoInput.value);
-    // Leggiamo lo stato della nuova checkbox
     const pagato = pagatoTrattamentoInput.checked;
 
     if (isNaN(prezzo_trattamento) || prezzo_trattamento < 0) {
@@ -1388,7 +1430,6 @@ async function handleAddTrattamento(event) {
         const response = await fetch(`/api/trattamenti`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            // Aggiungiamo il campo 'pagato' all'oggetto inviato
             body: JSON.stringify({
                 cliente_id: currentClientId,
                 tipo_trattamento,
@@ -1396,7 +1437,7 @@ async function handleAddTrattamento(event) {
                 prezzo: prezzo_trattamento,
                 descrizione: descrizioneTrattamentoInput.value.trim(),
                 note: noteTrattamentoInput.value.trim(),
-                pagato // <-- valore dinamico dalla checkbox
+                pagato
             })
         });
         const data = await handleApiResponse(response);
@@ -1405,7 +1446,7 @@ async function handleAddTrattamento(event) {
         
         showMessage("Trattamento aggiunto!", 'success');
         closeModal(modalAggiungiTrattamento, formAddTrattamento);
-        loadClientData(currentClientId);
+        await loadClientData(currentClientId);
     } catch (error) {
         console.error("Errore aggiunta trattamento:", error);
         showMessage(`Errore: ${error.message}`, 'error');
@@ -1482,6 +1523,81 @@ async function handleAddTrattamento(event) {
     }
 }
 
+async function handleAddAcquistoConBuono() {
+    const acquistoData = {
+        prodotto: prodottoAcquistoInput.value.trim(),
+        data: dataAcquistoInput.value,
+        prezzo_unitario: parseFloat(prezzoAcquistoInput.value),
+        quantita: parseInt(quantitaAcquistoInput.value),
+        note: noteAcquistoTextarea.value.trim(),
+    };
+
+    if (!acquistoData.prodotto || !acquistoData.data || isNaN(acquistoData.prezzo_unitario) || isNaN(acquistoData.quantita)) {
+        return showMessage("Compila i campi dell'acquisto con valori validi.", 'error');
+    }
+
+    try {
+        const response = await fetch('/api/acquisti/paga-con-buono', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                acquistoData: acquistoData,
+                buonoId: buonoValoreDisponibile.id,
+                clienteId: currentClientId
+            })
+        });
+        const data = await handleApiResponse(response);
+        if (!response.ok) throw new Error(data.error || "Errore durante il pagamento con buono.");
+
+        showMessage("Acquisto aggiunto e pagato con buono!", "success");
+        closeModal(modalAggiungiAcquisto, formAggiungiAcquisto);
+        location.reload();  // Ricarica tutto
+
+    } catch(error) {
+        showMessage(`Errore: ${error.message}`, "error");
+    }
+}
+
+async function handleAddTrattamentoConBuono() {
+    const trattamentoData = {
+        cliente_id: currentClientId,
+        tipo_trattamento: tipoTrattamentoInput.value.trim(),
+        data_trattamento: dataTrattamentoInput.value,
+        prezzo: parseFloat(prezzoTrattamentoInput.value),
+        descrizione: descrizioneTrattamentoInput.value.trim(),
+        note: noteTrattamentoInput.value.trim(),
+    };
+
+    if (!trattamentoData.tipo_trattamento || !trattamentoData.data_trattamento || isNaN(trattamentoData.prezzo)) {
+        return showMessage("Compila i campi del trattamento con valori validi.", 'error');
+    }
+
+    try {
+        const response = await fetch('/api/trattamenti/paga-con-buono', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                trattamentoData: trattamentoData,
+                buonoId: buonoValoreDisponibile.id
+            })
+        });
+        const data = await handleApiResponse(response);
+        if (!response.ok) throw new Error(data.error || "Errore durante il pagamento con buono.");
+
+        showMessage("Trattamento aggiunto e pagato con buono!", "success");
+        closeModal(modalAggiungiTrattamento, formAddTrattamento);
+		        
+        // ============== AGGIUNGI QUESTA RIGA =================
+        console.log("PAGAMENTO CON BUONO RIUSCITO! Sto per ricaricare i dati. Versione: 1");
+        // ======================================================
+		
+         location.reload();  // Ricarica tutto
+        
+    } catch(error) {
+        showMessage(`Errore: ${error.message}`, "error");
+    }
+}
+
     // --- 5. GESTIONE PAGINAZIONE E AVVIO ---
 
     function updatePaginationButtons() {
@@ -1551,35 +1667,53 @@ async function handleAddTrattamento(event) {
 
     // --- 6. EVENT LISTENERS ---
     
+        // --- 6. EVENT LISTENERS ---
+    
     btnEliminaCliente.addEventListener('click', confirmDeleteClient);
     salvaNoteBtn.addEventListener('click', handleSalvaNote);
+    
     btnPrecedente.addEventListener('click', () => {
         if (currentIndex > 0) {
             currentIndex--;
             window.location.href = `/scheda-cliente.html?id=${searchResultsIds[currentIndex]}&searchIds=${encodeURIComponent(JSON.stringify(searchResultsIds))}&index=${currentIndex}`;
         }
     });
+    
     btnSuccessivo.addEventListener('click', () => {
         if (currentIndex < searchResultsIds.length - 1) {
             currentIndex++;
             window.location.href = `/scheda-cliente.html?id=${searchResultsIds[currentIndex]}&searchIds=${encodeURIComponent(JSON.stringify(searchResultsIds))}&index=${currentIndex}`;
         }
     });
-    aggiungiTrattamentoBtn.addEventListener('click', () => openModal(modalAggiungiTrattamento));
+
+    // Listener per TRATTAMENTI
+    aggiungiTrattamentoBtn.addEventListener('click', () => {
+        openModal(modalAggiungiTrattamento);
+        // Prepara la UI per pagare con buono, se disponibile
+        setupPagaConBuonoUI(pagaConBuonoTrattamentoSezione, pagaConBuonoTrattamentoCheckbox, creditoBuonoTrattamentoSpan, pagatoTrattamentoInput);
+    });
     cancelTrattamentoBtn.addEventListener('click', () => closeModal(modalAggiungiTrattamento, formAddTrattamento));
     formAddTrattamento.addEventListener('submit', handleAddTrattamento);
-    aggiungiAcquistoBtn.addEventListener('click', () => openModal(modalAggiungiAcquisto));
+
+    // Listener per ACQUISTI
+    aggiungiAcquistoBtn.addEventListener('click', () => {
+        openModal(modalAggiungiAcquisto);
+        // Prepara la UI per pagare con buono, se disponibile
+        setupPagaConBuonoUI(pagaConBuonoAcquistoSezione, pagaConBuonoAcquistoCheckbox, creditoBuonoAcquistoSpan, pagatoAcquistoInput);
+    });
     annullaAcquistoBtn.addEventListener('click', () => closeModal(modalAggiungiAcquisto, formAggiungiAcquisto));
     formAggiungiAcquisto.addEventListener('submit', handleAddAcquisto);
+
+    // Listener per MODIFICA CLIENTE
     modificaDettagliBtn.addEventListener('click', () => {
         if (currentClienteData) {
             modificaClienteIdInput.value = currentClienteData.id;
             modificaNomeInput.value = currentClienteData.nome;
             modificaCognomeInput.value = currentClienteData.cognome;
-			modificaSoprannomeInput.value = currentClienteData.soprannome || ''; // <-- AGGIUNGI QUESTA RIGA
+			modificaSoprannomeInput.value = currentClienteData.soprannome || '';
             modificaEmailInput.value = currentClienteData.email || '';
             modificaTelefonoInput.value = currentClienteData.telefono || '';
-			modificaTagsInput.value = (currentClienteData.tags || []).join(', '); // <--- AGGIUNGI QUESTA RIGA
+			modificaTagsInput.value = (currentClienteData.tags || []).join(', ');
             openModal(modificaClienteModal);
         } else {
             showMessage("Dati cliente non disponibili per la modifica.", 'info');
@@ -2005,6 +2139,15 @@ formCreaBuono.addEventListener('submit', async (e) => {
 
 // Utilizzo di un servizio da un buono (usa la delegazione di eventi)
 buoniContainer.addEventListener('click', async (e) => {
+    // Listener per il click sul bottone "Condividi Buono"
+    if (e.target.classList.contains('btn-share-buono')) {
+        const token = e.target.dataset.token;
+        const link = `${window.location.origin}/buono.html?token=${token}`;
+        showShareLinkModal(link);
+        return; // Esce per non eseguire il codice sottostante
+    }
+
+    // Listener per il click sul bottone "Usa 1"
     if (e.target.classList.contains('btn-usa-servizio')) {
         const buonoId = e.target.dataset.buonoId;
         const servizioNome = e.target.dataset.servizioNome;
@@ -2021,9 +2164,10 @@ buoniContainer.addEventListener('click', async (e) => {
             if (!response.ok) throw new Error(data.error || "Errore durante l'utilizzo del servizio.");
 
             showMessage("Servizio scalato dal pacchetto!", "success");
-            // Ricarica tutto per vedere le modifiche
+            
+            console.log("Sto per ricaricare i dati dopo aver usato un servizio...");
+            // Ricarica tutto per vedere le modifiche (sia ai buoni che ai trattamenti)
             await loadClientData(currentClientId);
-            await loadAndDisplayBuoni(currentClientId);
 
         } catch (error) {
             console.error("Errore utilizzo servizio:", error);
