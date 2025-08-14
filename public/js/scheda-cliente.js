@@ -967,17 +967,17 @@ function aggiungiRigaServizio() {
     div.className = 'servizio-row';
     div.innerHTML = `
         <select class="select-field servizio-nome">
-		<option value="Colore">Colore</option>
-		<option value="Colore e taglio">Colore e taglio</option>
-		<option value="Colore e schiariture">Colore e schiariture</option>
-		<option value="Permanente">Permanente</option>
-		<option value="Meches">Meches</option>
-		<option value="Taglio">Taglio</option>
-        <option value="Piega">Piega</option>
-        <option value="Taglio e barba">Taglio e barba</option>    
-        <option value="Barba">Barba</option>
-        <option value="Trattamento">Trattamento</option>
-		<option value="Altro">Altro</option>
+            <option value="Colore">Colore</option>
+            <option value="Colore e taglio">Colore e taglio</option>
+            <option value="Colore e schiariture">Colore e schiariture</option>
+            <option value="Permanente">Permanente</option>
+            <option value="Meches">Meches</option>
+            <option value="Taglio">Taglio</option>
+            <option value="Piega">Piega</option>
+            <option value="Taglio e barba">Taglio e barba</option>
+            <option value="Barba">Barba</option>
+            <option value="Trattamento">Trattamento</option>
+            <option value="Altro">Altro</option>
         </select>
         <input type="number" class="input-field servizio-quantita" value="1" min="1" placeholder="Qtà">
         <button type="button" class="btn-delete-relazione" onclick="this.parentElement.remove()">×</button>
