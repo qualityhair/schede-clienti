@@ -1,5 +1,17 @@
 require('dotenv').config(); // QUESTA DEVE ESSERE LA PRIMISSIMA RIGA DEL FILE
 
+// =======================================================
+// === CODICE DI DEBUG TEMPORANEO PER VEDERE LA PASSWORD ===
+// =======================================================
+if (process.env.NODE_ENV === 'production') {
+    console.log("!!! ATTENZIONE: STO STAMPANDO LA STRINGA DI CONNESSIONE AL DATABASE !!!");
+    console.log(process.env.DATABASE_URL);
+    console.log("!!! PUOI COPIARE LA PASSWORD E FERMARE IL DEPLOY !!!");
+    // process.exit(1); // Potremmo anche fermare l'app qui, ma per ora logghiamo e basta
+}
+// =======================================================
+
+
 const express = require("express");
 const { Pool } = require("pg");
 const path = require("path");
