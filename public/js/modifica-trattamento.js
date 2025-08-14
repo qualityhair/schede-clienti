@@ -81,72 +81,70 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Recupera i dettagli di un singolo trattamento per precompilare il form
+// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
 async function fetchTrattamentoDetails(id) {
     try {
         const response = await fetch(`/api/trattamenti/${id}`);
 
         if (response.status === 401) {
-            showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => {
-                redirectTo('/');
-            });
+            showCustomModal('Sessione scaduta o non autorizzato. Effettua nuovamente il login.', 'alert', () => redirectTo('/'));
             return;
         }
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Errore HTTP: ${response.status} - ${errorText}`);
         }
+        
         const trattamento = await response.json();
+
         if (trattamento) {
-            // Precompila il form
+            // ======================================================
+            // 1. POPOLA TUTTI I CAMPI IMMEDIATAMENTE. Questa è la priorità.
+            // ======================================================
             tipoTrattamentoSelect.value = trattamento.tipo_trattamento || '';
             descrizioneTextarea.value = trattamento.descrizione || '';
-            dataTrattamentoInput.value = trattamento.data_trattamento ? new Date(trattamento.data_trattamento).toISOString().split('T')[0] : '';
-            prezzoModificaTrattamentoInput.value = trattamento.prezzo !== undefined && trattamento.prezzo !== null ? parseFloat(trattamento.prezzo).toFixed(2) : ''; // AGGIUNTA
+            dataTrattamentoInput.value = trattamento.data_trattamento || ''; // La data arriva già formattata
+            prezzoModificaTrattamentoInput.value = trattamento.prezzo !== null ? parseFloat(trattamento.prezzo).toFixed(2) : '';
             noteTextarea.value = trattamento.note || '';
 
-            // Memorizza l'ID del cliente per il reindirizzamento
+            // Memorizza l'ID del cliente
             clienteId = trattamento.cliente_id;
-            // pageTitle.textContent = `Modifica Trattamento per ${trattamento.tipo_trattamento}`; // Vecchia riga
-
-            // ** LA TUA MODIFICA ESATTA È QUI **
-            // Ho spostato e modificato la logica del pageTitle qui
-            // per usare il nome del cliente recuperato per il bottone
+            
+            // ======================================================
+            // 2. ORA, come operazione secondaria, aggiorna il titolo.
+            // Se fallisce, i campi del form saranno comunque popolati.
+            // ======================================================
             if (clienteId) {
-                const clientResponse = await fetch(`/api/clienti/${clienteId}`);
-                if (clientResponse.ok) {
-                    const clientData = await clientResponse.json();
-                    if (clientData && clientData.nome && clientData.cognome) {
-                        // Aggiorna il titolo della pagina
-                        pageTitle.textContent = `Modifica Servizio di ${clientData.nome} ${clientData.cognome}`;
-                        // Aggiorna anche il testo del bottone "Annulla e Torna"
-                        backToSchedaBtn.textContent = `Annulla e Torna alla scheda di ${clientData.nome} ${clientData.cognome}`;
+                backToSchedaBtn.textContent = `Annulla e Torna alla Scheda Cliente`; // Testo di default
+                try {
+                    const clientResponse = await fetch(`/api/clienti/${clienteId}`);
+                    if (clientResponse.ok) {
+                        const clientData = await clientResponse.json();
+                        // json() su una risposta vuota lancia un errore, quindi dobbiamo gestire il caso in cui clientData.client non esista
+                        if (clientData && clientData.client && clientData.client.nome) {
+                            pageTitle.textContent = `Modifica Servizio di ${clientData.client.nome} ${clientData.client.cognome}`;
+                            backToSchedaBtn.textContent = `Annulla e Torna alla scheda di ${clientData.client.nome} ${clientData.client.cognome}`;
+                        } else {
+                           pageTitle.textContent = `Modifica Servizio`;
+                        }
                     } else {
-                        // Fallback per il titolo se il nome del cliente non è disponibile
-                        pageTitle.textContent = `Modifica Servizio`;
-                        backToSchedaBtn.textContent = `Annulla e Torna alla Scheda Cliente`;
+                         pageTitle.textContent = `Modifica Servizio`;
                     }
-                } else {
-                    // Fallback per il titolo se la chiamata al cliente fallisce
+                } catch (clientError) {
+                    console.error("Errore nel recuperare il nome del cliente per il titolo:", clientError);
                     pageTitle.textContent = `Modifica Servizio`;
-                    backToSchedaBtn.textContent = `Annulla e Torna alla Scheda Cliente`;
                 }
             } else {
-                // Fallback per il titolo se clienteId non è disponibile
                 pageTitle.textContent = `Modifica Servizio`;
-                backToSchedaBtn.textContent = `Annulla e Torna alla Scheda Cliente`;
+                backToSchedaBtn.textContent = `Annulla e Torna alla Lista Clienti`;
             }
 
-
         } else {
-            showCustomModal('Trattamento non trovato.', 'alert', () => {
-                redirectTo('/lista-clienti.html');
-            });
+            showCustomModal('Trattamento non trovato.', 'alert', () => redirectTo('/lista-clienti.html'));
         }
     } catch (error) {
         console.error('Errore nel recupero dettagli trattamento:', error);
-        showCustomModal(`Errore nel caricamento dei dettagli del trattamento: ${error.message}`, 'error', () => {
-            redirectTo('/lista-clienti.html'); // Torna alla lista se errore grave
-        });
+        showCustomModal(`Errore nel caricamento dei dettagli del trattamento: ${error.message}`, 'error', () => redirectTo('/lista-clienti.html'));
     }
 }
 

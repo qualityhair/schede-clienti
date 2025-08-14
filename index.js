@@ -1154,12 +1154,34 @@ const query = `
 
 
 // --- API TRATTAMENTI ---
+
 app.get("/api/trattamenti/:id", async (req, res) => {
     try {
-        const r = await db.query("SELECT * FROM trattamenti WHERE id=$1", [req.params.id]);
-        if (r.rows.length === 0) return res.status(404).json({ error: "Non trovato" });
+        // [MODIFICA CHIAVE] Ho reinserito TUTTI i campi necessari nella query
+        const query = `
+            SELECT 
+                id, 
+                cliente_id, 
+                tipo_trattamento, 
+                descrizione, 
+                TO_CHAR(data_trattamento, 'YYYY-MM-DD') AS data_trattamento, 
+                note, 
+                prezzo,
+                pagato 
+            FROM 
+                trattamenti 
+            WHERE 
+                id=$1
+        `;
+        const r = await db.query(query, [req.params.id]);
+
+        if (r.rows.length === 0) {
+            return res.status(404).json({ error: "Non trovato" });
+        }
         res.json(r.rows[0]);
+
     } catch (err) {
+        console.error(`Errore nel recupero trattamento ${req.params.id}:`, err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -1194,23 +1216,29 @@ app.post("/api/trattamenti", async (req, res) => {
 });
 
 // --- INCOLLA QUESTO BLOCCO AL POSTO DEL TUO CODICE ALLA RIGA 926 ---
+
 app.put("/api/trattamenti/:id", async (req, res) => {
     const { id } = req.params;
-    // Estraiamo anche 'pagato' dal corpo della richiesta
     const { tipo_trattamento, descrizione, data_trattamento, note, prezzo, pagato } = req.body;
     
-    // Sicurezza: ci assicuriamo che 'pagato' sia sempre un booleano
     const isPagato = Boolean(pagato);
 
+    // Aggiungiamo un controllo per assicurarci che la data non sia nulla
+    if (!data_trattamento) {
+        // Se la data è mancante, non procediamo
+        return res.status(400).json({ error: "La data del trattamento è obbligatoria." });
+    }
+    const dataCorretta = data_trattamento.split('T')[0];
+
     try {
-        // Aggiorniamo la query per includere la colonna 'pagato'
+        // [MODIFICA CHIAVE] Ho rimosso ", updated_at = NOW()" dalla query
         await db.query(
             "UPDATE trattamenti SET tipo_trattamento=$1, descrizione=$2, data_trattamento=$3, prezzo=$4, note=$5, pagato=$6 WHERE id=$7",
-            [tipo_trattamento, descrizione, data_trattamento, prezzo, note, isPagato, id]
+            [tipo_trattamento, descrizione, dataCorretta, prezzo, note, isPagato, id]
         );
         res.json({ message: "Trattamento aggiornato" });
     } catch (err) {
-        console.error(`Errore aggiornamento trattamento ${id}:`, err); // Log di errore
+        console.error(`Errore aggiornamento trattamento ${id}:`, err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -1220,6 +1248,33 @@ app.delete("/api/trattamenti/:id", async (req, res) => {
         await db.query("DELETE FROM trattamenti WHERE id=$1", [req.params.id]);
         res.json({ message: "Trattamento eliminato" });
     } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// --- INCOLLA QUESTA NUOVA API IN INDEX.JS ---
+
+// API specifica per aggiornare SOLO lo stato di pagamento di un trattamento
+app.patch("/api/trattamenti/:id/toggle-pagato", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    const { pagato } = req.body; // Riceve solo { "pagato": true } o { "pagato": false }
+
+    // Sicurezza: controlla che il valore 'pagato' sia stato inviato
+    if (pagato === undefined) {
+        return res.status(400).json({ error: "Stato 'pagato' mancante." });
+    }
+
+    try {
+        // Esegue un UPDATE che modifica SOLO la colonna 'pagato'
+        const result = await db.query("UPDATE trattamenti SET pagato = $1 WHERE id = $2", [Boolean(pagato), id]);
+        
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Trattamento non trovato." });
+        }
+
+        res.json({ message: "Stato pagamento aggiornato con successo." });
+    } catch (err) {
+        console.error(`Errore durante l'aggiornamento dello stato pagato per il trattamento ${id}:`, err.message);
         res.status(500).json({ error: err.message });
     }
 });

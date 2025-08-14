@@ -967,11 +967,17 @@ function aggiungiRigaServizio() {
     div.className = 'servizio-row';
     div.innerHTML = `
         <select class="select-field servizio-nome">
-            <option value="Taglio">Taglio</option>
-            <option value="Piega">Piega</option>
-            <option value="Colore">Colore</option>
-            <option value="Barba">Barba</option>
-            <option value="Trattamento">Trattamento</option>
+		<option value="Colore">Colore</option>
+		<option value="Colore e taglio">Colore e taglio</option>
+		<option value="Colore e schiariture">Colore e schiariture</option>
+		<option value="Permanente">Permanente</option>
+		<option value="Meches">Meches</option>
+		<option value="Taglio">Taglio</option>
+        <option value="Piega">Piega</option>
+        <option value="Taglio e barba">Taglio e barba</option>    
+        <option value="Barba">Barba</option>
+        <option value="Trattamento">Trattamento</option>
+		<option value="Altro">Altro</option>
         </select>
         <input type="number" class="input-field servizio-quantita" value="1" min="1" placeholder="Qtà">
         <button type="button" class="btn-delete-relazione" onclick="this.parentElement.remove()">×</button>
@@ -1197,49 +1203,33 @@ async function handleEditPhoto(event) {
 
     // --- 4. FUNZIONI DI GESTIONE (DELETE, SAVE, UPDATE, etc.) ---
 
+// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
 async function updateStatoPagamentoTrattamento(trattamentoId, nuovoStato) {
     showMessage("Aggiornamento in corso...", 'info');
 
     try {
-        // 1. Recuperiamo i dati completi del trattamento che stiamo per modificare.
-        // Questo è necessario perché il tuo backend si aspetta l'oggetto completo per la modifica.
-        const responseTrattamento = await fetch(`/api/trattamenti/${trattamentoId}`);
-        if (!responseTrattamento.ok) {
-            throw new Error('Impossibile recuperare i dati del trattamento da modificare.');
-        }
-        const trattamento = await responseTrattamento.json();
-
-        // 2. Aggiorniamo solo il campo 'pagato' con il nuovo valore (true/false) dalla checkbox.
-        trattamento.pagato = nuovoStato;
-
-        // 3. Inviamo l'intero oggetto aggiornato al backend.
-        const updateResponse = await fetch(`/api/trattamenti/${trattamentoId}`, {
-            method: 'PUT',
+        // Chiama la nuova API PATCH, inviando solo il nuovo stato
+        const response = await fetch(`/api/trattamenti/${trattamentoId}/toggle-pagato`, {
+            method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(trattamento)
+            body: JSON.stringify({ pagato: nuovoStato })
         });
-
-        // La funzione handleApiResponse gestisce già i possibili errori di rete/server.
-        const data = await handleApiResponse(updateResponse);
-        if (!updateResponse.ok) {
-            throw new Error(data.error || 'Errore durante l\'aggiornamento del trattamento.');
+        
+        const data = await handleApiResponse(response);
+        if (!response.ok) {
+            throw new Error(data.error || 'Errore durante l\'aggiornamento.');
         }
-
-        // 4. Se tutto va a buon fine, ricarichiamo i dati del cliente.
-        // Questo è il modo più semplice e sicuro per garantire che sia la tabella
-        // che il badge principale "Sospeso/Regolare" siano perfettamente sincronizzati.
-        await loadClientData(currentClientId);
-
-        // Mostriamo il messaggio di successo solo alla fine, quando l'utente vede l'interfaccia aggiornata.
+        
         showMessage("Stato pagamento aggiornato!", 'success');
+        
+        // Ricarichiamo i dati del cliente per aggiornare il badge "Regolare/Sospeso"
+        // Non usiamo location.reload() per un'esperienza più fluida
+        await loadClientData(currentClientId);
 
     } catch (error) {
         console.error("Errore nell'aggiornare lo stato di pagamento:", error);
         showMessage(`Errore: ${error.message}`, 'error');
-        
-        // In caso di errore, è una buona pratica ricaricare comunque i dati.
-        // Questo assicura che la checkbox torni allo stato reale presente nel database,
-        // evitando che l'utente veda uno stato che non è stato salvato.
+        // In caso di errore, ricarica tutto per sicurezza
         await loadClientData(currentClientId);
     }
 }
