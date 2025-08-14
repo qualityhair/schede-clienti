@@ -2060,6 +2060,48 @@ body {
     color: #fff; /* Bianco al passaggio del mouse */
 }
 
+/* ======================================================= */
+/* === STILI PER I FILTRI TEMPORALI (ANNO)             === */
+/* ======================================================= */
+
+/* Contenitore per la barra dei bottoni-filtro */
+.filter-controls {
+    display: flex;
+    flex-wrap: wrap; /* Permette ai bottoni di andare a capo se sono tanti */
+    gap: 10px; /* Spazio tra i bottoni */
+    margin-bottom: 15px; /* Spazio prima della tabella */
+    padding-bottom: 10px;
+    border-bottom: 1px solid #444; /* Separa visivamente i filtri dalla tabella */
+}
+
+/* Stile per ogni singolo bottone-filtro */
+.btn-filter-year {
+    background-color: #555;
+    color: #fff;
+    border: 1px solid #666;
+    padding: 5px 15px;
+    border-radius: 20px; /* Forma a "pillola" */
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+/* Effetto al passaggio del mouse */
+.btn-filter-year:hover {
+    background-color: #666;
+    border-color: #777;
+}
+
+/* Stile per il bottone ATTIVO (quello selezionato) */
+.btn-filter-year.active {
+    background-color: #FFD700; /* Il tuo giallo primario */
+    color: #1a1a1a;
+    border-color: #E6C200;
+    box-shadow: 0 1px 5px rgba(255, 215, 0, 0.2);
+}
+
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */

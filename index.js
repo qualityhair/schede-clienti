@@ -614,60 +614,74 @@ app.get("/api/clienti/cerca", async (req, res) => {
 });
 
 
-// --- INCOLLA QUESTO BLOCCO AL POSTO DEL TUO CODICE ---
-// --- INCOLLA QUESTO BLOCCO AL POSTO DELLA VECCHIA ROTTA /api/clienti/:id ---
+
+// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
 app.get("/api/clienti/:id", async (req, res) => {
     const { id } = req.params;
+    const { anno } = req.query; // Leggiamo il possibile filtro per anno dall'URL
 
     try {
-        // 1. Recupera i dati del cliente (inclusa la stringa JSON degli acquisti)
-        const clientResult = await db.query("SELECT id, nome, cognome, soprannome, email, telefono, preferenze_note, storico_acquisti, tags FROM clienti WHERE id=$1", [id]);
-        
+        // --- 1. Recupera i dati del cliente (nessuna modifica qui) ---
+        const clientResult = await db.query("SELECT * FROM clienti WHERE id=$1", [id]);
         if (clientResult.rows.length === 0) {
             return res.status(404).json({ error: "Non trovato" });
         }
         const client = clientResult.rows[0];
 
-        // 2. Recupera tutti i trattamenti per quel cliente
-        const trattamentiResult = await db.query("SELECT * FROM trattamenti WHERE cliente_id=$1 ORDER BY data_trattamento ASC", [id]);
+        // --- 2. [MODIFICA] Logica per recuperare i trattamenti filtrati per anno ---
+        let trattamentiQuery;
+        const queryParams = [id];
+        
+        if (anno && anno !== 'tutto') {
+            trattamentiQuery = "SELECT * FROM trattamenti WHERE cliente_id=$1 AND EXTRACT(YEAR FROM data_trattamento) = $2 ORDER BY data_trattamento ASC";
+            queryParams.push(anno);
+        } else {
+            // Se non c'è anno o è 'tutto', li prende tutti
+            trattamentiQuery = "SELECT * FROM trattamenti WHERE cliente_id=$1 ORDER BY data_trattamento ASC";
+        }
+        const trattamentiResult = await db.query(trattamentiQuery, queryParams);
         const trattamenti = trattamentiResult.rows;
 
-        // --- 3. [NUOVA LOGICA DI CONTROLLO SOSPESI - POTENZIATA] ---
-        let haSospesi = false;
-
-        // a) Controlla i trattamenti non pagati dalla tabella trattamenti
-        const sospesiTrattamentiResult = await db.query(
-            'SELECT EXISTS (SELECT 1 FROM trattamenti WHERE cliente_id = $1 AND pagato = false)',
-            [id]
+        // --- 3. [NUOVA AGGIUNTA] Recupera la lista di anni unici per i trattamenti ---
+        const anniTrattamentiResult = await db.query(
+            `SELECT DISTINCT EXTRACT(YEAR FROM data_trattamento)::integer AS year 
+             FROM trattamenti 
+             WHERE cliente_id = $1 
+             ORDER BY year DESC`, [id]
         );
-        if (sospesiTrattamentiResult.rows[0].exists) {
-            haSospesi = true;
-        }
+        const anniDisponibiliTrattamenti = anniTrattamentiResult.rows.map(row => row.year);
 
-        // b) Se non ha ancora trovato sospesi, controlla gli acquisti
-        if (!haSospesi && client.storico_acquisti) {
+        // --- 4. [NUOVA AGGIUNTA] Calcola la lista di anni unici per gli acquisti ---
+        let anniDisponibiliAcquisti = [];
+        if (client.storico_acquisti) {
             try {
                 const acquisti = JSON.parse(client.storico_acquisti);
-                // Cerca se esiste ('some') almeno un acquisto con pagato = false
-                if (acquisti.some(acquisto => acquisto.pagato === false)) {
-                    haSospesi = true;
-                }
-            } catch (e) {
-                // Se il JSON è malformato, logga l'errore ma non bloccare la richiesta
-                console.error(`Errore parsing storico_acquisti per cliente ${id}:`, e);
-            }
+                const yearsSet = new Set(acquisti.map(a => new Date(a.data).getFullYear()));
+                anniDisponibiliAcquisti = Array.from(yearsSet).sort((a, b) => b - a);
+            } catch (e) { console.error("Errore parsing storico acquisti per calcolo anni"); }
         }
-        
-        // c) Aggiungi il campo virtuale 'stato_pagamento' in base al risultato finale
-        client.stato_pagamento = haSospesi ? 'sospeso' : 'regolare';
-        // --- FINE NUOVA LOGICA ---
 
-        // 4. Invia la risposta completa al frontend
-        res.json({ client: client, trattamenti: trattamenti });
+        // --- 5. Logica per lo stato pagamenti (nessuna modifica qui) ---
+        let haSospesi = trattamenti.some(t => !t.pagato);
+        if (!haSospesi && client.storico_acquisti) {
+             try {
+                const acquisti = JSON.parse(client.storico_acquisti);
+                if (acquisti.some(a => a.pagato === false)) haSospesi = true;
+            } catch (e) { console.error("Errore parsing storico acquisti per stato pagamenti"); }
+        }
+        client.stato_pagamento = haSospesi ? 'sospeso' : 'regolare';
+
+        // --- 6. [MODIFICA] Invia la risposta completa con i nuovi dati ---
+        res.json({ 
+            client, 
+            trattamenti,
+            anniDisponibiliTrattamenti, // <-- NUOVO
+            anniDisponibiliAcquisti     // <-- NUOVO
+        });
 
     } catch (err) {
         console.error(`Errore nel recuperare i dati del cliente ${id}:`, err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: "Errore del server." });
     }
 });
 

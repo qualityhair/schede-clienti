@@ -156,6 +156,10 @@ const pagaConBuonoTrattamentoSezione = document.getElementById('paga-con-buono-t
 const pagaConBuonoTrattamentoCheckbox = document.getElementById('paga-con-buono-trattamento-checkbox');
 const creditoBuonoTrattamentoSpan = document.getElementById('credito-buono-trattamento');
 const toggleStoricoBuoni = document.getElementById('toggle-storico-buoni');	
+const trattamentiFilterControls = document.getElementById('trattamenti-filter-controls');
+const acquistiFilterControls = document.getElementById('acquisti-filter-controls');
+
+
 
     // Variabili di stato
     let currentClientId = null;
@@ -284,6 +288,39 @@ function setupPagaConBuonoUI(sezione, checkbox, spanCredito, checkboxPagato) {
 }
 
   // --- 3. FUNZIONI DI CARICAMENTO E VISUALIZZAZIONE DATI ---
+  
+  // --- AGGIUNGI QUESTA NUOVA FUNZIONE ---
+function createYearFilters(container, years, activeYear, type) {
+    container.innerHTML = '';
+    const allYears = ['tutto', ...years]; // Aggiunge "Mostra Tutto" all'inizio
+
+    allYears.forEach(year => {
+        const button = document.createElement('button');
+        button.className = 'btn-filter-year';
+        button.textContent = year === 'tutto' ? 'Mostra Tutto' : year;
+        button.dataset.year = year;
+
+        if (year.toString() === activeYear.toString()) {
+            button.classList.add('active');
+        }
+
+        button.addEventListener('click', () => {
+            if (type === 'trattamenti') {
+                // Per i trattamenti, ricarica i dati dal server con il nuovo filtro anno
+                loadClientData(currentClientId, year);
+            } else if (type === 'acquisti') {
+                // Per gli acquisti, filtra i dati già presenti
+                displayAcquisti(currentClienteData.storico_acquisti || '[]', year);
+                // Aggiorna lo stato attivo dei bottoni
+                container.querySelectorAll('.btn-filter-year').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.year === year.toString());
+                });
+            }
+        });
+        container.appendChild(button);
+    });
+}
+  
 
 // <--- AGGIUNGI QUESTA INTERA NUOVA FUNZIONE QUI ---
 function displayClientTags(tags = []) {
@@ -327,14 +364,15 @@ function displayStatoPagamento(stato) {
 }
 
 
-    async function loadClientData(clientId) {
+    // --- SOSTITUISCI LA TUA FUNZIONE loadClientData CON QUESTA ---
+async function loadClientData(clientId, anno = new Date().getFullYear().toString()) {
     if (!clientId) {
         showMessage("ID Cliente non fornito.", 'error');
         return;
     }
     try {
-        // --- PARTE 1: Recupera i dati principali del cliente ---
-        const clientResponse = await fetch(`/api/clienti/${clientId}`);
+        // [MODIFICA] Aggiungiamo il parametro 'anno' alla chiamata API principale
+        const clientResponse = await fetch(`/api/clienti/${clientId}?anno=${anno}`);
         const data = await handleApiResponse(clientResponse);
         if (!data || !clientResponse.ok) throw new Error(data?.error || "Errore caricamento dati cliente.");
         
@@ -346,10 +384,10 @@ function displayStatoPagamento(stato) {
 
         currentClienteData = client; // Salva i dati base
 
-        // --- PARTE 2 (NUOVA): Recupera le foto e imposta l'avatar ---
+        // --- PARTE 2 (invariata): Recupera le foto e imposta l'avatar ---
         const photoResponse = await fetch(`/api/clienti/${clientId}/photos`);
         const allPhotos = await handleApiResponse(photoResponse) || [];
-        currentClienteData.photos = allPhotos; // Salva le foto per un uso futuro
+        currentClienteData.photos = allPhotos; 
 
         const profilePhoto = allPhotos.find(p => (p.tags || []).includes('profilo'));
         
@@ -359,7 +397,7 @@ function displayStatoPagamento(stato) {
             profileAvatar.src = '/img/default-avatar.png';
         }
 
-        // --- PARTE 3: Popola il resto della pagina con i dati ---
+        // --- PARTE 3 (modificata): Popola il resto della pagina ---
         nomeCompletoSpan.textContent = `${client.nome} ${client.cognome}`;
         soprannomeSpan.textContent = client.soprannome || "N/A";
         emailSpan.textContent = client.email || "N/A";
@@ -367,10 +405,15 @@ function displayStatoPagamento(stato) {
         clienteNoteTextarea.value = client.preferenze_note || '';
         displayClientTags(client.tags);
 		displayStatoPagamento(client.stato_pagamento);
-        displayAcquisti(client.storico_acquisti);
+        
+        // [MODIFICA CHIAVE] Ora creiamo i filtri e poi popoliamo le tabelle
+        createYearFilters(trattamentiFilterControls, data.anniDisponibiliTrattamenti, anno, 'trattamenti');
         displayTrattamenti(data.trattamenti || []);
         
-        // --- PARTE 4: Avvia il caricamento delle gallerie ---
+        createYearFilters(acquistiFilterControls, data.anniDisponibiliAcquisti, anno, 'acquisti');
+        displayAcquisti(client.storico_acquisti || '[]', anno);
+        
+        // --- PARTE 4 (invariata): Avvia il caricamento delle gallerie ---
         loadStyleClientPhotos(clientId);
         loadTrichoClientPhotos(clientId);
 
@@ -432,25 +475,39 @@ function displayStatoPagamento(stato) {
     });
 }
 
-    function displayAcquisti(acquistiString) {
+    // --- SOSTITUISCI LA TUA FUNZIONE displayAcquisti CON QUESTA ---
+function displayAcquisti(acquistiString, anno) {
     listaAcquistiBody.innerHTML = '';
-    let acquisti = [];
+    let tuttiAcquisti = [];
     try {
-        acquisti = acquistiString ? JSON.parse(acquistiString) : [];
+        tuttiAcquisti = acquistiString ? JSON.parse(acquistiString) : [];
     } catch (e) {
         console.error("Errore parsing storico acquisti:", e);
     }
     
-    if (acquisti.length === 0) {
-        listaAcquistiBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Nessun acquisto registrato.</td></tr>';
+    // [MODIFICA CHIAVE] Filtra gli acquisti in base all'anno PRIMA di fare qualsiasi altra cosa
+    const acquistiFiltrati = tuttiAcquisti.filter(acquisto => {
+        const annoAcquisto = new Date(acquisto.data).getFullYear();
+        // Converte l'anno del filtro a numero per un confronto sicuro
+        const annoFiltroNumerico = parseInt(anno, 10);
+        
+        if (anno === 'tutto' || !anno) {
+            return true; // Mostra tutto se il filtro è 'tutto' o non definito
+        }
+        return annoAcquisto === annoFiltroNumerico;
+    });
+
+    if (acquistiFiltrati.length === 0) {
+        listaAcquistiBody.innerHTML = `<tr><td colspan="8" style="text-align: center;">Nessun acquisto registrato per ${anno === 'tutto' ? 'il periodo selezionato' : `l'anno ${anno}`}.</td></tr>`;
         return;
     }
 
-    // Ordiniamo qui per visualizzazione, ma l'indice originale è importante per le modifiche
-    const acquistiOrdinati = [...acquisti]
-        .map((acquisto, index) => ({ ...acquisto, originalIndex: index })) // Aggiungiamo l'indice originale
+    // [MODIFICA CHIAVE] Ora lavoriamo sull'array filtrato, ma manteniamo l'indice originale dall'array completo
+    const acquistiOrdinati = acquistiFiltrati
+        .map(acquisto => ({ ...acquisto, originalIndex: tuttiAcquisti.indexOf(acquisto) }))
         .sort((a, b) => new Date(a.data) - new Date(b.data));
 
+    // Il resto della funzione rimane identico, perché lavora su 'acquistiOrdinati'
     acquistiOrdinati.forEach(acquisto => {
         const isNewFormat = 'prezzo_unitario' in acquisto;
         
@@ -472,7 +529,6 @@ function displayStatoPagamento(stato) {
         pagatoCheckbox.type = 'checkbox';
         pagatoCheckbox.checked = isPagato;
         
-        // Per i vecchi acquisti, la checkbox è disabilitata
         pagatoCheckbox.disabled = !isNewFormat;
         pagatoCheckbox.title = isNewFormat 
             ? (isPagato ? 'Marcato come Pagato' : 'Marca come Pagato') 
@@ -480,7 +536,6 @@ function displayStatoPagamento(stato) {
         
         if (isNewFormat) {
             pagatoCheckbox.addEventListener('change', () => {
-                // Usiamo l'INDICE ORIGINALE non ordinato per modificare l'array giusto
                 updateStatoPagamentoAcquisto(acquisto.originalIndex, pagatoCheckbox.checked);
             });
         }
@@ -492,7 +547,7 @@ function displayStatoPagamento(stato) {
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "🗑️ Elimina";
         deleteButton.className = "btn btn-delete";
-        deleteButton.onclick = () => confirmDeleteAcquisto(acquisto.originalIndex); // Usiamo l'indice originale
+        deleteButton.onclick = () => confirmDeleteAcquisto(acquisto.originalIndex);
         actionCell.appendChild(deleteButton);
     });
 }
@@ -1607,55 +1662,59 @@ async function handleAddTrattamentoConBuono() {
         }
     }
 
-    async function getClientIdsFromSearch() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const clientIdParam = urlParams.get('id');
-        const searchIdsParam = urlParams.get('searchIds');
-        const initialIndexParam = urlParams.get('index');
+    // --- SOSTITUISCI LA TUA FUNZIONE getClientIdsFromSearch CON QUESTA ---
+async function getClientIdsFromSearch() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientIdParam = urlParams.get('id');
+    const searchIdsParam = urlParams.get('searchIds');
+    const initialIndexParam = urlParams.get('index');
 
-        if (searchIdsParam) {
-            try {
-                searchResultsIds = JSON.parse(searchIdsParam);
-                if (!Array.isArray(searchResultsIds) || searchResultsIds.some(isNaN)) {
-                    throw new Error("Dati di ricerca non validi.");
-                }
-                currentIndex = parseInt(initialIndexParam, 10) || 0;
-                if (currentIndex < 0 || currentIndex >= searchResultsIds.length) currentIndex = 0;
-                currentClientId = searchResultsIds[currentIndex];
-            } catch (e) {
-                console.error("Errore parsing searchIds:", e);
-                showMessage("Errore nei dati di ricerca. Carico singolo cliente.", 'error');
-                if (clientIdParam) {
-                    currentClientId = parseInt(clientIdParam, 10);
-                    searchResultsIds = [currentClientId];
-                    currentIndex = 0;
-                }
+    if (searchIdsParam) {
+        try {
+            searchResultsIds = JSON.parse(searchIdsParam);
+            if (!Array.isArray(searchResultsIds) || searchResultsIds.some(isNaN)) {
+                throw new Error("Dati di ricerca non validi.");
             }
-        } else if (clientIdParam) {
-            currentClientId = parseInt(clientIdParam, 10);
-            searchResultsIds = [currentClientId];
-            currentIndex = 0;
-        }
-
-        if (currentClientId) {
-            await loadClientData(currentClientId);
-            await caricaRiepilogoAnalisi(currentClientId);
-			await loadAndDisplayRelazioni(currentClientId);
-			await loadAndDisplayBuoni(currentClientId, false); // false = non mostrare lo storico
-			await loadAndDisplayBuoniAcquistati(currentClientId, false); // false = non mostrare lo storico
-            
-            const nuovaAnalisiIconBtn = document.getElementById('nuova-analisi-btn');
-            if (nuovaAnalisiIconBtn) {
-                nuovaAnalisiIconBtn.addEventListener('click', () => {
-                    window.location.href = `/nuova-analisi.html?clienteId=${currentClientId}`;
-                });
+            currentIndex = parseInt(initialIndexParam, 10) || 0;
+            if (currentIndex < 0 || currentIndex >= searchResultsIds.length) currentIndex = 0;
+            currentClientId = searchResultsIds[currentIndex];
+        } catch (e) {
+            console.error("Errore parsing searchIds:", e);
+            showMessage("Errore nei dati di ricerca. Carico singolo cliente.", 'error');
+            if (clientIdParam) {
+                currentClientId = parseInt(clientIdParam, 10);
+                searchResultsIds = [currentClientId];
+                currentIndex = 0;
             }
-            
-            updatePaginationButtons();
-        } else {
-            showMessage("Nessun ID cliente valido trovato.", 'error');
         }
+    } else if (clientIdParam) {
+        currentClientId = parseInt(clientIdParam, 10);
+        searchResultsIds = [currentClientId];
+        currentIndex = 0;
     }
+
+    if (currentClientId) {
+        // [MODIFICA] Chiamata a loadClientData che caricherà l'anno di default
+        await loadClientData(currentClientId); 
+
+        // [MODIFICHE SUCCESSIVE] Caricamento delle altre sezioni
+        await caricaRiepilogoAnalisi(currentClientId);
+        await loadAndDisplayRelazioni(currentClientId);
+        await loadAndDisplayBuoni(currentClientId, false);
+        await loadAndDisplayBuoniAcquistati(currentClientId, false);
+        
+        const nuovaAnalisiIconBtn = document.getElementById('nuova-analisi-btn');
+        if (nuovaAnalisiIconBtn) {
+            nuovaAnalisiIconBtn.addEventListener('click', () => {
+                window.location.href = `/nuova-analisi.html?clienteId=${currentClientId}`;
+            });
+        }
+        
+        updatePaginationButtons();
+    } else {
+        showMessage("Nessun ID cliente valido trovato.", 'error');
+    }
+}
 
     // --- 6. EVENT LISTENERS ---
    
