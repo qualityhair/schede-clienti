@@ -53,6 +53,7 @@ function calcolaTotale() {
 
 aggiungiServizioBtn.addEventListener('click', () => creaRigaServizio());
 
+// --- SOSTITUISCI QUESTO INTERO BLOCCO ---
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     trattamentoId = urlParams.get('id');
@@ -69,17 +70,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         clienteId = trattamento.cliente_id;
         backToSchedaBtn.onclick = () => window.location.href = `/scheda-cliente.html?id=${clienteId}`;
         
-        // Popola tutti i campi, inclusa la nuova descrizione
         dataInput.value = trattamento.data_trattamento;
-        descrizioneTextarea.value = trattamento.descrizione || ''; // NUOVO
+        descrizioneTextarea.value = trattamento.descrizione || '';
         noteTextarea.value = trattamento.note || '';
         pagatoCheckbox.checked = trattamento.pagato;
 
-        serviziContainer.innerHTML = '';
+        serviziContainer.innerHTML = ''; // Pulisce prima di aggiungere
+        
+        // [LOGICA CHIAVE] Controlla se esistono i dati nel NUOVO formato 'servizi'
         if (trattamento.servizi && trattamento.servizi.length > 0) {
             trattamento.servizi.forEach(servizio => creaRigaServizio(servizio));
         } else {
-            creaRigaServizio();
+            // Se non ci sono, significa che è un vecchio trattamento.
+            // Ricreiamo la riga usando i VECCHI campi per retrocompatibilità.
+            creaRigaServizio({
+                servizio: trattamento.tipo_trattamento,
+                prezzo: trattamento.prezzo
+            });
         }
         calcolaTotale();
 

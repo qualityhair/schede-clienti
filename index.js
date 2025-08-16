@@ -1169,19 +1169,20 @@ const query = `
 
 // --- API TRATTAMENTI ---
 
+// --- SOSTITUISCI QUESTA INTERA API IN INDEX.JS ---
 app.get("/api/trattamenti/:id", async (req, res) => {
     try {
-        // [MODIFICA CHIAVE] Ho reinserito TUTTI i campi necessari nella query
         const query = `
             SELECT 
                 id, 
                 cliente_id, 
-                tipo_trattamento, 
+                tipo_trattamento, -- Lo teniamo per retrocompatibilità momentanea
                 descrizione, 
                 TO_CHAR(data_trattamento, 'YYYY-MM-DD') AS data_trattamento, 
                 note, 
-                prezzo,
-                pagato 
+                prezzo,         -- Lo teniamo per retrocompatibilità momentanea
+                pagato,
+                servizi         -- [MODIFICA CHIAVE] Aggiunto il campo servizi
             FROM 
                 trattamenti 
             WHERE 
