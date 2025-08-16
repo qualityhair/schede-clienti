@@ -1649,6 +1649,7 @@ app.post("/api/buoni/:buonoId/usa-servizio", ensureAuthenticated, async (req, re
 // ===========================================
 
 // 1. API per creare un TRATTAMENTO pagandolo con un buono a valore
+// --- SOSTITUISCI QUESTA INTERA API ---
 app.post("/api/trattamenti/paga-con-buono", ensureAuthenticated, async (req, res) => {
     const { trattamentoData, buonoId } = req.body;
     
@@ -1676,17 +1677,17 @@ app.post("/api/trattamenti/paga-con-buono", ensureAuthenticated, async (req, res
             [valoreRimanente, nuovoStato, buonoId]
         );
 
-        // 4. Crea il trattamento, impostandolo come PAGATO
+        // 4. [MODIFICA CHIAVE] Crea il trattamento, INCLUDENDO L'ARRAY DEI SERVIZI
         await client.query(
-            `INSERT INTO trattamenti (cliente_id, tipo_trattamento, descrizione, data_trattamento, prezzo, note, pagato) 
-             VALUES ($1, $2, $3, $4, $5, $6, true)`,
+            `INSERT INTO trattamenti (cliente_id, tipo_trattamento, descrizione, data_trattamento, prezzo, note, pagato, servizi) 
+             VALUES ($1, NULL, $2, $3, $4, $5, true, $6)`, // Aggiunto servizi
             [
                 trattamentoData.cliente_id, 
-                trattamentoData.tipo_trattamento, 
                 trattamentoData.descrizione,
                 trattamentoData.data_trattamento,
                 trattamentoData.prezzo,
-                `${trattamentoData.note || ''} (Pagato con Buono ID: ${buonoId})`.trim()
+                `${trattamentoData.note || ''} (Pagato con Buono ID: ${buonoId})`.trim(),
+                JSON.stringify(trattamentoData.servizi) // <-- Passa l'array dei servizi
             ]
         );
 

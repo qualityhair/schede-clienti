@@ -1646,20 +1646,46 @@ async function handleAddAcquistoConBuono() {
     }
 }
 
+// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
+// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
 async function handleAddTrattamentoConBuono() {
-    const trattamentoData = {
-        cliente_id: currentClientId,
-        tipo_trattamento: tipoTrattamentoInput.value.trim(),
-        data_trattamento: dataTrattamentoInput.value,
-        prezzo: parseFloat(prezzoTrattamentoInput.value),
-        descrizione: descrizioneTrattamentoInput.value.trim(),
-        note: noteTrattamentoInput.value.trim(),
-    };
-
-    if (!trattamentoData.tipo_trattamento || !trattamentoData.data_trattamento || isNaN(trattamentoData.prezzo)) {
-        return showMessage("Compila i campi del trattamento con valori validi.", 'error');
+    // Raccoglie i dati dalla nuova modale multi-servizio
+    const righeServizi = serviziContainerModal.querySelectorAll('.servizio-row-modal');
+    if (righeServizi.length === 0) {
+        return showMessage("Aggiungi almeno un servizio.", "error");
     }
 
+    const servizi = [];
+    let prezzoTotale = 0;
+    for (const riga of righeServizi) {
+        const prezzoInput = riga.querySelector('.servizio-prezzo-modal');
+        const prezzo = parseFloat(prezzoInput.value);
+        if (isNaN(prezzo) || prezzo < 0) {
+            return showMessage("Tutti i servizi devono avere un prezzo valido.", "error");
+        }
+        servizi.push({
+            servizio: riga.querySelector('.servizio-nome-modal').value,
+            prezzo: prezzo
+        });
+        prezzoTotale += prezzo;
+    }
+
+    // [MODIFICA CHIAVE] Uso i riferimenti DOM corretti per la NUOVA modale.
+    // Gli ID sono 'dataTrattamento', 'descrizioneTrattamento' e 'noteTrattamento'.
+    const trattamentoData = {
+        cliente_id: currentClientId,
+        data_trattamento: document.getElementById('dataTrattamento').value,
+        descrizione: document.getElementById('descrizioneTrattamento').value.trim(),
+        servizi: servizi,
+        prezzo: prezzoTotale, 
+        note: document.getElementById('noteTrattamento').value.trim()
+    };
+
+    if (!trattamentoData.data_trattamento) {
+        return showMessage("Compila la data del trattamento.", "error");
+    }
+
+    // Il resto della funzione rimane invariato
     try {
         const response = await fetch('/api/trattamenti/paga-con-buono', {
             method: 'POST',
@@ -1672,17 +1698,14 @@ async function handleAddTrattamentoConBuono() {
         const data = await handleApiResponse(response);
         if (!response.ok) throw new Error(data.error || "Errore durante il pagamento con buono.");
 
-        showMessage("Trattamento aggiunto e pagato con buono!", "success");
+        showMessage("Appuntamento aggiunto e pagato con buono!", "success");
         closeModal(modalAggiungiTrattamento, formAddTrattamento);
-		        
-        // ============== AGGIUNGI QUESTA RIGA =================
-        console.log("PAGAMENTO CON BUONO RIUSCITO! Sto per ricaricare i dati. Versione: 1");
-        // ======================================================
-		
-         location.reload();  // Ricarica tutto
+        location.reload();
         
     } catch(error) {
         showMessage(`Errore: ${error.message}`, "error");
+        // Aggiungiamo un ricaricamento anche in caso di errore per resettare lo stato
+        setTimeout(() => location.reload(), 2000);
     }
 }
 // --- AGGIUNGI QUESTE 3 NUOVE FUNZIONI ---
