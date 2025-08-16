@@ -1209,25 +1209,25 @@ app.get("/api/clienti/:id/trattamenti", async (req, res) => {
     }
 });
 
-// --- SOSTITUISCI LA VECCHIA ROTTA POST /api/trattamenti ---
-// SOSTITUISCI QUESTA INTERA API
+
+// --- SOSTITUISCI LA TUA app.post("/api/trattamenti",...) CON QUESTA ---
 app.post("/api/trattamenti", async (req, res) => {
-    // Riceve i nuovi dati nel formato "appuntamento"
-    const { cliente_id, data_trattamento, servizi, pagato, note } = req.body;
+    // 1. Aggiunto 'descrizione' alla lista dei dati ricevuti
+    const { cliente_id, data_trattamento, descrizione, servizi, pagato, note } = req.body;
     
-    // Validazione
+    // Validazione (rimane uguale)
     if (!cliente_id || !data_trattamento || !servizi || !Array.isArray(servizi) || servizi.length === 0) {
         return res.status(400).json({ error: "Dati mancanti o non validi per creare il trattamento." });
     }
 
     try {
-        // Inserisce la nuova riga usando la colonna 'servizi' (JSONB)
-        // Le vecchie colonne 'tipo_trattamento' e 'prezzo' non vengono più usate
+        // 2. Aggiunta la colonna 'descrizione' nella query INSERT
         const query = `
-            INSERT INTO trattamenti (cliente_id, data_trattamento, servizi, pagato, note) 
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO trattamenti (cliente_id, data_trattamento, descrizione, servizi, pagato, note) 
+            VALUES ($1, $2, $3, $4, $5, $6)
         `;
-        await db.query(query, [cliente_id, data_trattamento, JSON.stringify(servizi), Boolean(pagato), note]);
+        // 3. Aggiunto il valore 'descrizione' nell'array dei parametri
+        await db.query(query, [cliente_id, data_trattamento, descrizione, JSON.stringify(servizi), Boolean(pagato), note]);
         
         res.status(201).json({ message: "Appuntamento aggiunto con successo" });
     } catch (err) {
@@ -1236,30 +1236,31 @@ app.post("/api/trattamenti", async (req, res) => {
     }
 });
 
-// --- INCOLLA QUESTO BLOCCO AL POSTO DEL TUO CODICE ALLA RIGA 926 ---
 
-// SOSTITUISCI QUESTA INTERA API
-// --- SOSTITUISCI QUESTA INTERA API ---
+// --- SOSTITUISCI LA TUA app.put("/api/trattamenti/:id",...) CON QUESTA ---
 app.put("/api/trattamenti/:id", async (req, res) => {
     const { id } = req.params;
-    const { data_trattamento, servizi, pagato, note } = req.body;
+    // 1. Aggiunto 'descrizione'
+    const { data_trattamento, descrizione, servizi, pagato, note } = req.body;
 
     if (!data_trattamento || !servizi || !Array.isArray(servizi) || servizi.length === 0) {
         return res.status(400).json({ error: "Dati mancanti o non validi per l'aggiornamento." });
     }
 
     try {
-        // [MODIFICA CHIAVE] Ho rimosso ", updated_at = NOW()" dalla query
+        // 2. Aggiunta la colonna 'descrizione' nella query UPDATE
         const query = `
             UPDATE trattamenti 
             SET 
                 data_trattamento = $1, 
-                servizi = $2, 
-                pagato = $3, 
-                note = $4
-            WHERE id = $5
+                descrizione = $2, 
+                servizi = $3, 
+                pagato = $4, 
+                note = $5
+            WHERE id = $6
         `;
-        await db.query(query, [data_trattamento, JSON.stringify(servizi), Boolean(pagato), note, id]);
+        // 3. Aggiunto il valore 'descrizione' nell'array dei parametri
+        await db.query(query, [data_trattamento, descrizione, JSON.stringify(servizi), Boolean(pagato), note, id]);
         
         res.json({ message: "Appuntamento aggiornato con successo" });
     } catch (err) {

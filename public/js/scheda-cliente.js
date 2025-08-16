@@ -438,12 +438,13 @@ async function loadClientData(clientId, anno = new Date().getFullYear().toString
 }
 
 
+
 // --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
-// --- SOSTITUISCI QUESTA INTERA FUNZIONE CON LA VERSIONE DEFINITIVA ---
 function displayTrattamenti(trattamenti) {
     listaTrattamentiBody.innerHTML = '';
+    // Cambiamo colspan a 7 per la nuova colonna Descrizione
     if (!trattamenti || trattamenti.length === 0) {
-        listaTrattamentiBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun trattamento registrato per questo periodo.</td></tr>';
+        listaTrattamentiBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nessun trattamento registrato per questo periodo.</td></tr>';
         return;
     }
     
@@ -453,32 +454,37 @@ function displayTrattamenti(trattamenti) {
         let serviziNomi = 'N/A';
         let prezzoTotale = 0;
 
-        // [LOGICA MIGLIORATA] Gestisce sia i dati nuovi che quelli migrati
         if (trattamento.servizi && trattamento.servizi.length > 0) {
             serviziNomi = trattamento.servizi.map(s => s.servizio).join(', ');
             prezzoTotale = trattamento.servizi.reduce((sum, s) => sum + parseFloat(s.prezzo || 0), 0);
         } else {
-            // Fallback per i dati ancora nel vecchio formato (se ce ne fossero)
+            // Fallback per i dati ancora nel vecchio formato
             serviziNomi = trattamento.tipo_trattamento || 'N/D';
             prezzoTotale = parseFloat(trattamento.prezzo || 0);
         }
         
+        // Colonna 1: Lista dei servizi
         row.insertCell().textContent = serviziNomi;
+        
+        // Colonna 2: Descrizione / Formula
+        row.insertCell().textContent = trattamento.descrizione || ''; 
+        
+        // Colonna 3: Data
         row.insertCell().textContent = new Date(trattamento.data_trattamento).toLocaleDateString('it-IT');
         
+        // Colonna 4: Prezzo Totale (con tooltip)
         const prezzoTotaleCell = row.insertCell();
         prezzoTotaleCell.textContent = `€ ${prezzoTotale.toFixed(2)}`;
         
-        // [LOGICA TOOLTIP CORRETTA] Si attiva solo se ci sono più servizi nel JSON
         if (trattamento.servizi && trattamento.servizi.length > 1) {
             const tooltipText = trattamento.servizi
                 .map(s => `${s.servizio}: € ${parseFloat(s.prezzo || 0).toFixed(2)}`)
                 .join('\n');
-            
             prezzoTotaleCell.title = tooltipText;
             prezzoTotaleCell.style.cursor = 'help';
         }
         
+        // Colonna 5: Pagato
         const pagatoCell = row.insertCell();
         pagatoCell.style.textAlign = 'center';
         const pagatoCheckbox = document.createElement('input');
@@ -489,8 +495,10 @@ function displayTrattamenti(trattamenti) {
         });
         pagatoCell.appendChild(pagatoCheckbox);
         
+        // Colonna 6: Note
         row.insertCell().textContent = trattamento.note || "N/A";
         
+        // Colonna 7: Azioni
         const actionCell = row.insertCell();
         const editButton = document.createElement("button");
         editButton.textContent = "✏️ Modifica";
@@ -1475,11 +1483,11 @@ async function handleAddAcquisto(event) {
 
     // --- SOSTITUISCI LA VECCHIA handleAddTrattamento ---
 
+// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
 async function handleAddTrattamento(event) {
     event.preventDefault();
 
     if (pagaConBuonoTrattamentoCheckbox.checked && buonoValoreDisponibile) {
-        // La logica per pagare con buono la adatteremo dopo, per ora la lasciamo
         await handleAddTrattamentoConBuono();
         return;
     }
@@ -1504,6 +1512,7 @@ async function handleAddTrattamento(event) {
     const datiTrattamento = {
         cliente_id: currentClientId,
         data_trattamento: dataTrattamentoInput.value,
+        descrizione: descrizioneTrattamentoInput.value.trim(),
         servizi: servizi,
         pagato: pagatoTrattamentoInput.checked,
         note: noteTrattamentoInput.value.trim()

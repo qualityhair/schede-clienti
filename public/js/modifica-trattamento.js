@@ -1,6 +1,5 @@
-// Incolla questo in /js/modifica-trattamento.js
+// Incolla questo intero blocco in /js/modifica-trattamento.js
     
-// Lista dei servizi (deve essere identica a quella in scheda-cliente.js)
 const LISTA_SERVIZI_DISPONIBILI = [
     "Colore", "Tonalizzazione", "Schiariture", "Meches", "Maschera", 
     "Permanente", "Taglio", "Piega", "Barba", "Trattamento", "Altro"
@@ -10,6 +9,7 @@ const LISTA_SERVIZI_DISPONIBILI = [
 const pageTitle = document.getElementById('pageTitle');
 const formModifica = document.getElementById('form-modifica-trattamento');
 const dataInput = document.getElementById('data_trattamento_modifica');
+const descrizioneTextarea = document.getElementById('descrizione_modifica'); // NUOVO
 const serviziContainer = document.getElementById('servizi-container-modifica');
 const aggiungiServizioBtn = document.getElementById('aggiungi-servizio-btn-modifica');
 const totaleSpan = document.getElementById('totale-trattamento-modifica');
@@ -20,10 +20,9 @@ const backToSchedaBtn = document.getElementById('backToSchedaBtn');
 let trattamentoId = null;
 let clienteId = null;
 
-// Funzioni di utilità (potrebbero essere in un file separato in futuro)
-function showMessage(message, type = 'info') { alert(message); } // Semplificata per ora
+// Funzione di utilità (semplificata per questa pagina)
+function showMessage(message, type = 'info') { alert(message); }
 
-// Funzione per creare una riga di servizio
 function creaRigaServizio(servizio = null) {
     const div = document.createElement('div');
     div.className = 'servizio-row-modal';
@@ -44,7 +43,6 @@ function creaRigaServizio(servizio = null) {
     serviziContainer.appendChild(div);
 }
 
-// Funzione per calcolare il totale
 function calcolaTotale() {
     let totale = 0;
     serviziContainer.querySelectorAll('.servizio-prezzo-modifica').forEach(input => {
@@ -53,10 +51,8 @@ function calcolaTotale() {
     totaleSpan.textContent = `€ ${totale.toFixed(2)}`;
 }
 
-// Event Listener per aggiungere una riga
 aggiungiServizioBtn.addEventListener('click', () => creaRigaServizio());
 
-// Caricamento dati all'avvio della pagina
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     trattamentoId = urlParams.get('id');
@@ -73,15 +69,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         clienteId = trattamento.cliente_id;
         backToSchedaBtn.onclick = () => window.location.href = `/scheda-cliente.html?id=${clienteId}`;
         
+        // Popola tutti i campi, inclusa la nuova descrizione
         dataInput.value = trattamento.data_trattamento;
+        descrizioneTextarea.value = trattamento.descrizione || ''; // NUOVO
         noteTextarea.value = trattamento.note || '';
         pagatoCheckbox.checked = trattamento.pagato;
 
-        serviziContainer.innerHTML = ''; // Pulisce prima di aggiungere
+        serviziContainer.innerHTML = '';
         if (trattamento.servizi && trattamento.servizi.length > 0) {
             trattamento.servizi.forEach(servizio => creaRigaServizio(servizio));
         } else {
-            creaRigaServizio(); // Aggiunge una riga vuota se non ci sono servizi
+            creaRigaServizio();
         }
         calcolaTotale();
 
@@ -91,7 +89,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// Gestione del salvataggio
 formModifica.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -107,8 +104,10 @@ formModifica.addEventListener('submit', async (e) => {
         });
     });
 
+    // Aggiunge la descrizione ai dati da inviare
     const datiAggiornati = {
         data_trattamento: dataInput.value,
+        descrizione: descrizioneTextarea.value.trim(), // NUOVO
         servizi: servizi,
         pagato: pagatoCheckbox.checked,
         note: noteTextarea.value.trim()
