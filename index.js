@@ -1210,47 +1210,58 @@ app.get("/api/clienti/:id/trattamenti", async (req, res) => {
 });
 
 // --- SOSTITUISCI LA VECCHIA ROTTA POST /api/trattamenti ---
+// SOSTITUISCI QUESTA INTERA API
 app.post("/api/trattamenti", async (req, res) => {
-    // Estraiamo anche il nuovo campo 'pagato'
-    const { cliente_id, tipo_trattamento, descrizione, data_trattamento, note, prezzo, pagato } = req.body;
+    // Riceve i nuovi dati nel formato "appuntamento"
+    const { cliente_id, data_trattamento, servizi, pagato, note } = req.body;
     
-    // Sicurezza: assicuriamoci che 'pagato' sia un booleano
-    const isPagato = Boolean(pagato);
+    // Validazione
+    if (!cliente_id || !data_trattamento || !servizi || !Array.isArray(servizi) || servizi.length === 0) {
+        return res.status(400).json({ error: "Dati mancanti o non validi per creare il trattamento." });
+    }
 
     try {
-        // Aggiungiamo la colonna 'pagato' e il suo valore alla query
-        await db.query(
-            "INSERT INTO trattamenti (cliente_id, tipo_trattamento, descrizione, data_trattamento, prezzo, note, pagato) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-            [cliente_id, tipo_trattamento, descrizione, data_trattamento, prezzo, note, isPagato]
-        );
-        res.status(201).json({ message: "Trattamento aggiunto" });
+        // Inserisce la nuova riga usando la colonna 'servizi' (JSONB)
+        // Le vecchie colonne 'tipo_trattamento' e 'prezzo' non vengono più usate
+        const query = `
+            INSERT INTO trattamenti (cliente_id, data_trattamento, servizi, pagato, note) 
+            VALUES ($1, $2, $3, $4, $5)
+        `;
+        await db.query(query, [cliente_id, data_trattamento, JSON.stringify(servizi), Boolean(pagato), note]);
+        
+        res.status(201).json({ message: "Appuntamento aggiunto con successo" });
     } catch (err) {
+        console.error("Errore durante la creazione del trattamento:", err.message);
         res.status(500).json({ error: err.message });
     }
 });
 
 // --- INCOLLA QUESTO BLOCCO AL POSTO DEL TUO CODICE ALLA RIGA 926 ---
 
+// SOSTITUISCI QUESTA INTERA API
+// --- SOSTITUISCI QUESTA INTERA API ---
 app.put("/api/trattamenti/:id", async (req, res) => {
     const { id } = req.params;
-    const { tipo_trattamento, descrizione, data_trattamento, note, prezzo, pagato } = req.body;
-    
-    const isPagato = Boolean(pagato);
+    const { data_trattamento, servizi, pagato, note } = req.body;
 
-    // Aggiungiamo un controllo per assicurarci che la data non sia nulla
-    if (!data_trattamento) {
-        // Se la data è mancante, non procediamo
-        return res.status(400).json({ error: "La data del trattamento è obbligatoria." });
+    if (!data_trattamento || !servizi || !Array.isArray(servizi) || servizi.length === 0) {
+        return res.status(400).json({ error: "Dati mancanti o non validi per l'aggiornamento." });
     }
-    const dataCorretta = data_trattamento.split('T')[0];
 
     try {
         // [MODIFICA CHIAVE] Ho rimosso ", updated_at = NOW()" dalla query
-        await db.query(
-            "UPDATE trattamenti SET tipo_trattamento=$1, descrizione=$2, data_trattamento=$3, prezzo=$4, note=$5, pagato=$6 WHERE id=$7",
-            [tipo_trattamento, descrizione, dataCorretta, prezzo, note, isPagato, id]
-        );
-        res.json({ message: "Trattamento aggiornato" });
+        const query = `
+            UPDATE trattamenti 
+            SET 
+                data_trattamento = $1, 
+                servizi = $2, 
+                pagato = $3, 
+                note = $4
+            WHERE id = $5
+        `;
+        await db.query(query, [data_trattamento, JSON.stringify(servizi), Boolean(pagato), note, id]);
+        
+        res.json({ message: "Appuntamento aggiornato con successo" });
     } catch (err) {
         console.error(`Errore aggiornamento trattamento ${id}:`, err);
         res.status(500).json({ error: err.message });

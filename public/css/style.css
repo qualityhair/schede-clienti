@@ -2102,6 +2102,71 @@ body {
 }
 
 
+/* ======================================================= */
+/* === STILI PER NUOVA MODALE TRATTAMENTI (MULTI-SERVIZIO) === */
+/* ======================================================= */
+
+/* Contenitore per le righe dei servizi aggiunti */
+#servizi-container-modal {
+    max-height: 200px; /* Altezza massima prima che appaia la scrollbar */
+    overflow-y: auto;  /* Aggiunge la scrollbar verticale se necessario */
+    padding: 10px;
+    background-color: #2a2a2a; /* Sfondo leggermente più scuro per separare */
+    border-radius: 6px;
+    margin-bottom: 15px; /* Spazio prima del bottone "Aggiungi" */
+}
+
+/* Stile per ogni singola riga di servizio (select + input + bottone) */
+.servizio-row-modal {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Spazio tra gli elementi nella riga */
+    margin-bottom: 10px;
+}
+
+.servizio-row-modal .select-field {
+    flex: 3; /* Il menu a tendina occupa più spazio */
+    margin: 0; /* Annulla i margini di default */
+}
+
+.servizio-row-modal .input-field {
+    flex: 1; /* Il campo prezzo occupa meno spazio */
+    margin: 0;
+}
+
+/* Stile per il bottone "x" per rimuovere la riga */
+.servizio-row-modal .btn-remove-servizio {
+    background: none;
+    border: none;
+    color: #ff4d4d;
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: 0 5px;
+    line-height: 1; /* Allinea meglio la 'x' verticalmente */
+}
+
+/* Sezione per il totale dell'appuntamento */
+.totale-sezione {
+    display: flex;
+    justify-content: flex-end;
+    align-items: baseline;
+    gap: 15px;
+    padding: 15px 0;
+    font-size: 1.2em;
+}
+
+.totale-sezione strong {
+    font-size: 1.5em;
+    color: #FFD700; /* Giallo oro per il totale */
+}
+
+/* Stile specifico per il bottone "Aggiungi Servizio" */
+#aggiungi-servizio-btn-modal {
+    display: block; /* Lo fa andare a tutta larghezza */
+    width: auto; /* Mantiene la larghezza automatica */
+    margin: 0 auto 15px auto; /* Centra il bottone e aggiunge spazio sotto */
+}
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */

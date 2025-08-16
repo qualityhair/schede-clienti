@@ -159,6 +159,14 @@ const toggleStoricoBuoni = document.getElementById('toggle-storico-buoni');
 const trattamentiFilterControls = document.getElementById('trattamenti-filter-controls');
 const acquistiFilterControls = document.getElementById('acquisti-filter-controls');
 
+const serviziContainerModal = document.getElementById('servizi-container-modal');
+const aggiungiServizioBtnModal = document.getElementById('aggiungi-servizio-btn-modal');
+const totaleTrattamentoModal = document.getElementById('totale-trattamento-modal');
+const trattamentoIdEditInput = document.getElementById('trattamento-id-edit');
+
+
+
+
 
 
     // Variabili di stato
@@ -173,7 +181,13 @@ const acquistiFilterControls = document.getElementById('acquisti-filter-controls
 	let trichoCapturedBlob = null;
 	let buonoValoreDisponibile = null; // Conterrà i dati del buono a valore se presente
 
-    // --- 2. FUNZIONI DI UTILITÀ ---
+// Lista centralizzata dei servizi disponibili
+const LISTA_SERVIZI_DISPONIBILI = [
+    "Colore", "Tonalizzazione", "Schiariture", "Meches", "Maschera", 
+    "Permanente", "Taglio", "Piega", "Barba", "Trattamento", "Altro"
+];
+
+// --- 2. FUNZIONI DI UTILITÀ ---
 
     function showMessage(message, type = 'info', onCloseCallback = null) {
         const messageDiv = document.createElement('div');
@@ -423,47 +437,65 @@ async function loadClientData(clientId, anno = new Date().getFullYear().toString
     }
 }
 
-    function displayTrattamenti(trattamenti) {
+
+// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
+// --- SOSTITUISCI QUESTA INTERA FUNZIONE CON LA VERSIONE DEFINITIVA ---
+function displayTrattamenti(trattamenti) {
     listaTrattamentiBody.innerHTML = '';
-    if (trattamenti.length === 0) {
-        // La tabella ora ha 7 colonne, quindi aggiorniamo colspan
-        listaTrattamentiBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nessun trattamento registrato.</td></tr>';
+    if (!trattamenti || trattamenti.length === 0) {
+        listaTrattamentiBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun trattamento registrato per questo periodo.</td></tr>';
         return;
     }
-
-    // L'ordinamento è già gestito dal backend, quindi questa riga non è più necessaria
-    // trattamenti.sort((a, b) => new Date(a.data_trattamento) - new Date(b.data_trattamento));
     
     trattamenti.forEach(trattamento => {
         const row = listaTrattamentiBody.insertRow();
         
-        row.insertCell().textContent = trattamento.tipo_trattamento;
-        row.insertCell().textContent = trattamento.descrizione || 'N/A';
-        row.insertCell().textContent = new Date(trattamento.data_trattamento).toLocaleDateString('it-IT');
-        row.insertCell().textContent = trattamento.prezzo ? `€ ${parseFloat(trattamento.prezzo).toFixed(2)}` : 'N/A';
+        let serviziNomi = 'N/A';
+        let prezzoTotale = 0;
 
-        // --- NUOVA CELLA PER LA CHECKBOX "PAGATO" ---
+        // [LOGICA MIGLIORATA] Gestisce sia i dati nuovi che quelli migrati
+        if (trattamento.servizi && trattamento.servizi.length > 0) {
+            serviziNomi = trattamento.servizi.map(s => s.servizio).join(', ');
+            prezzoTotale = trattamento.servizi.reduce((sum, s) => sum + parseFloat(s.prezzo || 0), 0);
+        } else {
+            // Fallback per i dati ancora nel vecchio formato (se ce ne fossero)
+            serviziNomi = trattamento.tipo_trattamento || 'N/D';
+            prezzoTotale = parseFloat(trattamento.prezzo || 0);
+        }
+        
+        row.insertCell().textContent = serviziNomi;
+        row.insertCell().textContent = new Date(trattamento.data_trattamento).toLocaleDateString('it-IT');
+        
+        const prezzoTotaleCell = row.insertCell();
+        prezzoTotaleCell.textContent = `€ ${prezzoTotale.toFixed(2)}`;
+        
+        // [LOGICA TOOLTIP CORRETTA] Si attiva solo se ci sono più servizi nel JSON
+        if (trattamento.servizi && trattamento.servizi.length > 1) {
+            const tooltipText = trattamento.servizi
+                .map(s => `${s.servizio}: € ${parseFloat(s.prezzo || 0).toFixed(2)}`)
+                .join('\n');
+            
+            prezzoTotaleCell.title = tooltipText;
+            prezzoTotaleCell.style.cursor = 'help';
+        }
+        
         const pagatoCell = row.insertCell();
         pagatoCell.style.textAlign = 'center';
         const pagatoCheckbox = document.createElement('input');
         pagatoCheckbox.type = 'checkbox';
         pagatoCheckbox.checked = trattamento.pagato;
-        pagatoCheckbox.title = trattamento.pagato ? 'Marcato come Pagato' : 'Marca come Pagato';
-        
-        // Quando l'utente clicca, chiamiamo la funzione per aggiornare il DB
         pagatoCheckbox.addEventListener('change', () => {
             updateStatoPagamentoTrattamento(trattamento.id, pagatoCheckbox.checked);
         });
         pagatoCell.appendChild(pagatoCheckbox);
-        // --- FINE NUOVA CELLA ---
-
+        
         row.insertCell().textContent = trattamento.note || "N/A";
         
         const actionCell = row.insertCell();
         const editButton = document.createElement("button");
         editButton.textContent = "✏️ Modifica";
         editButton.className = "btn btn-edit";
-        editButton.onclick = () => { window.location.href = `/modifica-trattamento.html?id=${trattamento.id}&clientId=${currentClientId}`; };
+        editButton.onclick = () => { window.location.href = `/modifica-trattamento.html?id=${trattamento.id}`; };
         actionCell.appendChild(editButton);
         
         const deleteButton = document.createElement("button");
@@ -1019,25 +1051,22 @@ async function loadAndDisplayBuoniAcquistati(clienteId, mostraStorico = false) {
 // Funzione per aggiungere una riga di servizio nella modale
 function aggiungiRigaServizio() {
     const div = document.createElement('div');
-    div.className = 'servizio-row';
+    div.className = 'servizio-row-modal'; // Usiamo la nuova classe CSS
+    
+    // Crea il menu a tendina dinamicamente
+    let selectOptions = LISTA_SERVIZI_DISPONIBILI.map(servizio => `<option value="${servizio}">${servizio}</option>`).join('');
+
     div.innerHTML = `
-        <select class="select-field servizio-nome">
-            <option value="Colore">Colore</option>
-            <option value="Colore e taglio">Colore e taglio</option>
-            <option value="Colore e schiariture">Colore e schiariture</option>
-            <option value="Permanente">Permanente</option>
-            <option value="Meches">Meches</option>
-            <option value="Taglio">Taglio</option>
-            <option value="Piega">Piega</option>
-            <option value="Taglio e barba">Taglio e barba</option>
-            <option value="Barba">Barba</option>
-            <option value="Trattamento">Trattamento</option>
-            <option value="Altro">Altro</option>
+        <select class="select-field servizio-nome-modal">
+            ${selectOptions}
         </select>
-        <input type="number" class="input-field servizio-quantita" value="1" min="1" placeholder="Qtà">
-        <button type="button" class="btn-delete-relazione" onclick="this.parentElement.remove()">×</button>
+        <input type="number" class="input-field servizio-prezzo-modal" value="" min="0" step="0.01" placeholder="Prezzo (€)" required>
+        <button type="button" class="btn-remove-servizio" onclick="this.parentElement.remove()">×</button>
     `;
-    listaServiziBuono.appendChild(div);
+    // Aggiungo un listener per ricalcolare il totale ogni volta che il prezzo cambia
+    div.querySelector('.servizio-prezzo-modal').addEventListener('input', calcolaTotaleTrattamentoModal);
+    
+    serviziContainerModal.appendChild(div);
 }
 
 
@@ -1387,7 +1416,7 @@ async function updateStatoPagamentoAcquisto(acquistoIndex, nuovoStato) {
         }
     }
 
-    // --- SOSTITUISCI LA VECCHIA handleAddAcquisto ---
+
 // --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
 async function handleAddAcquisto(event) {
     event.preventDefault();
@@ -1445,58 +1474,61 @@ async function handleAddAcquisto(event) {
 }
 
     // --- SOSTITUISCI LA VECCHIA handleAddTrattamento ---
-// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
+
 async function handleAddTrattamento(event) {
     event.preventDefault();
 
-    // Se la checkbox "Paga con Buono" è spuntata, usa la nuova logica
-    if (pagaConBuonoTrattamentoCheckbox.checked) {
+    if (pagaConBuonoTrattamentoCheckbox.checked && buonoValoreDisponibile) {
+        // La logica per pagare con buono la adatteremo dopo, per ora la lasciamo
         await handleAddTrattamentoConBuono();
-        return; // Ferma l'esecuzione qui
+        return;
     }
 
-    // Altrimenti, esegui la logica standard
-    if (!currentClientId) {
-        showMessage("ID cliente mancante.", 'error');
-        return;
+    const righeServizi = serviziContainerModal.querySelectorAll('.servizio-row-modal');
+    if (righeServizi.length === 0) {
+        return showMessage("Aggiungi almeno un servizio.", "error");
     }
-    const tipo_trattamento = tipoTrattamentoInput.value.trim();
-    const data_trattamento = dataTrattamentoInput.value;
-    const prezzo_trattamento = parseFloat(prezzoTrattamentoInput.value);
-    const pagato = pagatoTrattamentoInput.checked;
 
-    if (isNaN(prezzo_trattamento) || prezzo_trattamento < 0) {
-        showMessage("Inserisci un prezzo valido.", 'error');
-        return;
+    const servizi = [];
+    for (const riga of righeServizi) {
+        const prezzo = parseFloat(riga.querySelector('.servizio-prezzo-modal').value);
+        if (isNaN(prezzo) || prezzo < 0) {
+            return showMessage("Tutti i servizi devono avere un prezzo valido.", "error");
+        }
+        servizi.push({
+            servizio: riga.querySelector('.servizio-nome-modal').value,
+            prezzo: prezzo
+        });
     }
-    if (!tipo_trattamento || !data_trattamento) {
-        showMessage("Compila Tipo e Data.", 'error');
-        return;
+
+    const datiTrattamento = {
+        cliente_id: currentClientId,
+        data_trattamento: dataTrattamentoInput.value,
+        servizi: servizi,
+        pagato: pagatoTrattamentoInput.checked,
+        note: noteTrattamentoInput.value.trim()
+    };
+    
+    if (!datiTrattamento.data_trattamento) {
+        return showMessage("La data è obbligatoria.", "error");
     }
+
     try {
-        const response = await fetch(`/api/trattamenti`, {
+        const response = await fetch('/api/trattamenti', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                cliente_id: currentClientId,
-                tipo_trattamento,
-                data_trattamento,
-                prezzo: prezzo_trattamento,
-                descrizione: descrizioneTrattamentoInput.value.trim(),
-                note: noteTrattamentoInput.value.trim(),
-                pagato
-            })
+            body: JSON.stringify(datiTrattamento)
         });
         const data = await handleApiResponse(response);
-        if (!data) return;
-        if (!response.ok) throw new Error(data.error || "Errore aggiunta trattamento.");
-        
-        showMessage("Trattamento aggiunto!", 'success');
-        closeModal(modalAggiungiTrattamento, formAddTrattamento);
+        if (!response.ok) throw new Error(data.error || "Errore durante il salvataggio.");
+
+        showMessage("Appuntamento salvato con successo!", "success");
+        closeModal(modalAggiungiTrattamento);
         await loadClientData(currentClientId);
+
     } catch (error) {
-        console.error("Errore aggiunta trattamento:", error);
-        showMessage(`Errore: ${error.message}`, 'error');
+        console.error("Errore salvataggio trattamento:", error);
+        showMessage(`Errore: ${error.message}`, "error");
     }
 }
 
@@ -1644,6 +1676,46 @@ async function handleAddTrattamentoConBuono() {
         showMessage(`Errore: ${error.message}`, "error");
     }
 }
+// --- AGGIUNGI QUESTE 3 NUOVE FUNZIONI ---
+
+function calcolaTotaleTrattamentoModal() {
+    let totale = 0;
+    serviziContainerModal.querySelectorAll('.servizio-prezzo-modal').forEach(input => {
+        totale += parseFloat(input.value) || 0;
+    });
+    totaleTrattamentoModal.textContent = `€ ${totale.toFixed(2)}`;
+}
+
+function aggiungiRigaServizioModal() {
+    const div = document.createElement('div');
+    div.className = 'servizio-row-modal';
+    
+    let selectOptions = LISTA_SERVIZI_DISPONIBILI.map(servizio => `<option value="${servizio}">${servizio}</option>`).join('');
+
+    div.innerHTML = `
+        <select class="select-field servizio-nome-modal">
+            ${selectOptions}
+        </select>
+        <input type="number" class="input-field servizio-prezzo-modal" value="" min="0" step="0.01" placeholder="Prezzo (€)" required>
+        <button type="button" class="btn-remove-servizio" onclick="this.parentElement.remove(); calcolaTotaleTrattamentoModal();">×</button>
+    `;
+    
+    div.querySelector('.servizio-prezzo-modal').addEventListener('input', calcolaTotaleTrattamentoModal);
+    serviziContainerModal.appendChild(div);
+}
+
+function setupTrattamentoModal() {
+    formAddTrattamento.reset();
+    serviziContainerModal.innerHTML = '';
+    trattamentoIdEditInput.value = ''; // Assicura che sia vuoto per un nuovo inserimento
+    aggiungiRigaServizioModal(); // Aggiunge la prima riga
+    calcolaTotaleTrattamentoModal();
+    openModal(modalAggiungiTrattamento);
+    // La logica per pagare con buono viene chiamata qui dentro
+    setupPagaConBuonoUI(pagaConBuonoTrattamentoSezione, pagaConBuonoTrattamentoCheckbox, creditoBuonoTrattamentoSpan, pagatoTrattamentoInput);
+}
+
+
 
     // --- 5. GESTIONE PAGINAZIONE E AVVIO ---
 
@@ -1737,11 +1809,7 @@ async function getClientIdsFromSearch() {
     });
 
     // Listener per TRATTAMENTI
-    aggiungiTrattamentoBtn.addEventListener('click', () => {
-        openModal(modalAggiungiTrattamento);
-        // Prepara la UI per pagare con buono, se disponibile
-        setupPagaConBuonoUI(pagaConBuonoTrattamentoSezione, pagaConBuonoTrattamentoCheckbox, creditoBuonoTrattamentoSpan, pagatoTrattamentoInput);
-    });
+        aggiungiTrattamentoBtn.addEventListener('click', setupTrattamentoModal);
     cancelTrattamentoBtn.addEventListener('click', () => closeModal(modalAggiungiTrattamento, formAddTrattamento));
     formAddTrattamento.addEventListener('submit', handleAddTrattamento);
 
@@ -2251,6 +2319,10 @@ toggleStoricoBuoni.addEventListener('click', async (e) => {
     await loadAndDisplayBuoni(currentClientId, mostraStorico);
     await loadAndDisplayBuoniAcquistati(currentClientId, mostraStorico);
 });
+
+
+// Listener per il bottone "Aggiungi Servizio" nella modale
+aggiungiServizioBtnModal.addEventListener('click', aggiungiRigaServizioModal);
 
     // --- 7. AVVIO ---
     getClientIdsFromSearch();

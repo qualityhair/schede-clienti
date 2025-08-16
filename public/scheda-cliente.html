@@ -11,7 +11,7 @@
 <body>
     <div id="navbar"></div>
     <main class="container">
-
+        <h1 class="page-title">Scheda Cliente</h1>
 
         <div class="client-navigation-controls">
             <button id="btnPrecedente" class="btn btn-nav">⬅️ Indietro</button>
@@ -19,9 +19,6 @@
             <button id="btnSuccessivo" class="btn btn-nav">Avanti ➡️</button>
         </div>
         
-        <!-- ======================================================= -->
-        <!-- === NUOVA STRUTTURA A GRIGLIA PRINCIPALE            === -->
-        <!-- ======================================================= -->
         <div class="panel-grid-new">
             
             <!-- PANNELLO DETTAGLI CLIENTE (COLONNA 1) -->
@@ -85,14 +82,9 @@
                         <div id="buoni-acquistati-container">
                             <p class="loading-message">Caricamento...</p>
                         </div>
-						 <!-- ======================================================= -->
-						<!-- === NUOVO INTERRUTTORE PER MOSTRARE LO STORICO      === -->
-						<!-- ======================================================= -->
-						<div style="text-align: right; margin-top: 15px;">
-						<a href="#" id="toggle-storico-buoni" class="link-toggle">Mostra anche esauriti</a>
-						</div>
-						<!-- ======================================================= -->
-						</div>
+                        <div style="text-align: right; margin-top: 15px;">
+                            <a href="#" id="toggle-storico-buoni" class="link-toggle">Mostra anche esauriti</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -127,22 +119,14 @@
                 <h2 class="panel-title">Servizi e Trattamenti
                     <button class="btn btn-icon" id="aggiungiTrattamentoBtn" title="Aggiungi Nuovo Trattamento">➕</button>
                 </h2>
-				
-				<!-- ======================================================= -->
-				<!-- === INSERISCI QUESTO BLOCCO ESATTAMENTE QUI         === -->
-				<!-- ======================================================= -->
-				<div class="filter-controls" id="trattamenti-filter-controls">
-				<!-- I bottoni-filtro per i trattamenti verranno inseriti qui dal JS -->
-				</div>
-				<!-- ======================================================= -->
+                <div class="filter-controls" id="trattamenti-filter-controls"></div>
                 <div class="panel-content table-responsive">
                     <table class="trattamenti data-table">
                         <thead>
                             <tr>
-                                <th>Tipo</th>
-                                <th>Descrizione</th>
+                                <th>Servizi</th>
                                 <th>Data</th>
-                                <th>Prezzo</th>
+                                <th>Prezzo Tot.</th>
                                 <th>Pagato</th>
                                 <th>Note</th>
                                 <th>Azione</th>
@@ -159,14 +143,7 @@
                 <h2 class="panel-title">Acquisti Prodotti
                     <button class="btn btn-icon" id="aggiungi-acquisto-btn" title="Aggiungi Nuovo Acquisto">➕</button>
                 </h2>
-				<!-- ======================================================= -->
-				<!-- === INSERISCI QUESTO BLOCCO ESATTAMENTE QUI         === -->
-				<!-- ======================================================= -->
-				<div class="filter-controls" id="acquisti-filter-controls">
-				<!-- I bottoni-filtro per gli acquisti verranno inseriti qui dal JS -->
-				</div>
-				<!-- ======================================================= -->
-				
+                <div class="filter-controls" id="acquisti-filter-controls"></div>
                 <div class="panel-content table-responsive">
                     <table class="acquisti-table data-table">
                         <thead>
@@ -199,7 +176,6 @@
                 </div>
             </div>
         </div>
-        <!-- === FINE NUOVA STRUTTURA A GRIGLIA === -->
 
         <div class="delete-client-section">
             <button id="btnEliminaCliente" class="btn btn-danger">Elimina Cliente</button>
@@ -209,9 +185,6 @@
     <script src="/js/scheda-cliente.js"></script>
     <script src="/js/navbar-loader.js"></script>
 
-
-
-    <!-- Codice completo delle modali per sicurezza -->
     <div id="addPhotoModal" class="modal">
         <div class="modal-content">
             <h3>Aggiungi Nuova Foto</h3>
@@ -257,12 +230,14 @@
             </div>
         </div>
     </div>
+
     <div id="viewPhotoModal" class="modal" style="--bg-color: rgba(0,0,0,0.9);">
         <div class="modal-content" style="background: none; box-shadow: none; padding: 0;">
             <img id="fullscreen-photo" src="" alt="Foto Cliente" style="max-width: 90vw; max-height: 90vh; object-fit: contain;">
             <button id="close-view-photo-btn" style="position: absolute; top: 15px; right: 25px; font-size: 2rem; color: white; background: none; border: none; cursor: pointer;">×</button>
         </div>
     </div>
+
     <div id="editPhotoModal" class="modal">
         <div class="modal-content">
             <h3>Modifica Dettagli Foto</h3>
@@ -286,6 +261,7 @@
             </form>
         </div>
     </div>
+
     <div id="addTrichoPhotoModal" class="modal">
         <div class="modal-content">
             <h3>Aggiungi Foto Trico</h3>
@@ -331,6 +307,7 @@
             </div>
         </div>
     </div>
+			
     <div id="modalAggiungiAcquisto" class="modal">
         <div class="modal-content">
             <h3>Aggiungi Nuovo Acquisto</h3>
@@ -375,41 +352,34 @@
             </form>
         </div>
     </div>
+
     <div id="addTrattamentoModal" class="modal">
-        <div class="modal-content">
-            <h2>Aggiungi Nuovo Trattamento</h2>
+        <div class="modal-content large">
+            <h2>Nuovo Appuntamento / Servizi</h2>
             <form id="formAddTrattamento">
+                <input type="hidden" id="trattamento-id-edit" value="">
+                
                 <div class="form-group">
-                    <label for="tipoTrattamento" class="form-label">Tipo di Trattamento:</label>
-                    <select id="tipoTrattamento" name="tipoTrattamento" class="select-field" required>
-    <option value="">Seleziona un tipo di trattamento o servizio</option>
-    <option value="Colore">Colore</option>
-    <option value="Colore e taglio">Colore e taglio</option> <!-- CORRETTO -->
-    <option value="Colore e schiariture">Colore e schiariture</option>
-    <option value="Permanente">Permanente</option>
-    <option value="Meches">Meches</option>
-    <option value="Taglio">Taglio</option>
-    <option value="Piega">Piega</option>
-    <option value="Taglio e barba">Taglio e barba</option>
-    <option value="Barba">Barba</option>
-    <option value="Trattamento">Trattamento</option>
-    <option value="Altro">Altro</option>
-</select>
+                    <label for="dataTrattamento" class="form-label">Data Appuntamento:</label>
+                    <input type="date" id="dataTrattamento" class="input-field" required>
                 </div>
-                <div class="form-group">
-                    <label for="dataTrattamento" class="form-label">Data del Trattamento:</label>
-                    <input type="date" id="dataTrattamento" name="dataTrattamento" class="input-field" required>
+
+                <hr class="panel-divider">
+
+                <h4>Servizi Eseguiti</h4>
+                <div id="servizi-container-modal">
+                    <!-- Le righe dei servizi verranno aggiunte qui dal JS -->
                 </div>
-                <div class="form-group">
-                    <label for="prezzoTrattamento" class="form-label">Prezzo (€):</label>
-                    <input type="number" id="prezzoTrattamento" name="prezzoTrattamento" class="input-field" step="0.01" min="0" required>
+                <button type="button" class="btn btn-secondary" id="aggiungi-servizio-btn-modal">Aggiungi Servizio</button>
+
+                <hr class="panel-divider">
+
+                <div class="totale-sezione">
+                    <span>Totale Appuntamento:</span>
+                    <strong id="totale-trattamento-modal">€ 0.00</strong>
                 </div>
-                <div class="form-group">
-                    <label for="descrizioneTrattamento" class="form-label">Descrizione:</label>
-                    <textarea id="descrizioneTrattamento" name="descrizioneTrattamento" class="textarea-field"></textarea>
-                </div>
+
                 <div id="paga-con-buono-trattamento-sezione" class="paga-con-buono-sezione" style="display: none;">
-                    <hr class="panel-divider">
                     <div class="form-group form-group-checkbox">
                         <input type="checkbox" id="paga-con-buono-trattamento-checkbox">
                         <label for="paga-con-buono-trattamento-checkbox">
@@ -417,21 +387,25 @@
                         </label>
                     </div>
                 </div>
+
                 <div class="form-group form-group-checkbox">
                     <input type="checkbox" id="pagato-trattamento">
-                    <label for="pagato-trattamento">Già Pagato?</label>
+                    <label for="pagato-trattamento">Appuntamento già pagato</label>
                 </div>
+
                 <div class="form-group">
                     <label for="noteTrattamento" class="form-label">Note (Opzionale):</label>
                     <textarea id="noteTrattamento" class="textarea-field"></textarea>
                 </div>
+
                 <div class="modal-buttons">
-                    <button type="submit" class="modal-button ok">Salva Trattamento</button>
+                    <button type="submit" class="modal-button ok">Salva Appuntamento</button>
                     <button type="button" class="modal-button cancel" id="cancelTrattamentoBtn">Annulla</button>
                 </div>
             </form>
         </div>
     </div>
+    
     <div id="modificaClienteModal" class="modal">
         <div class="modal-content">
             <h3>Modifica Dettagli Cliente</h3>
@@ -468,6 +442,7 @@
             </form>
         </div>
     </div>
+    
     <div id="gestisciRelazioniModal" class="modal">
         <div class="modal-content">
             <h3>Gestisci Clienti Correlati</h3>
@@ -501,6 +476,7 @@
             </div>
         </div>
     </div>
+    
     <div id="creaBuonoModal" class="modal">
         <div class="modal-content large">
             <h3>Crea Nuovo Buono / Pacchetto</h3>
