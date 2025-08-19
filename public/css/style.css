@@ -156,6 +156,13 @@ body {
     box-shadow: 0 2px 8px rgba(255, 215, 0, 0.2);
 }
 
+/* Rende i bottoni (Modifica Profilo e Salva) ANCORA PIÙ PICCOLI */
+.panel-actions-multiple .btn {
+    padding: 4px 8px !important;    /* RIDOTTO per meno spazio interno */
+    font-size: 0.8em !important;   /* RIDOTTO per testo più piccolo */
+}
+
+
 /* Client List Table - Styles for dashboard client list */
 .client-table {
     width: 100%;
@@ -372,6 +379,15 @@ p strong { /* Usato per scheda-cliente */
     min-height: 120px;
     resize: vertical;
 }
+
+/* Regola specifica per ridurre l'altezza del campo note nel profilo cliente */
+.client-details-panel #cliente-note {
+    min-height: 50px;
+	width: 50%;
+}
+
+
+
 
 /* TABELLE (per scheda-cliente) */
 .data-table {
@@ -1612,8 +1628,8 @@ body {
 }
 
 .profile-avatar {
-    width: 80px;  /* Dimensione dell'avatar */
-    height: 80px; /* Dimensione dell'avatar */
+    width: 100px;  /* AUMENTATO da 80px */
+    height: 100px; /* AUMENTATO da 80px */
     border-radius: 50%; /* Lo rende perfettamente rotondo */
     object-fit: cover; /* Assicura che l'immagine riempia il cerchio senza deformarsi */
     border: 2px solid #FFD700; /* Bordo giallo, come il logo */
@@ -2018,6 +2034,7 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 25px;
     margin-bottom: 25px;
+	align-items: start;
 }
 
 /* Questa classe speciale dice a un elemento della griglia
@@ -2167,6 +2184,72 @@ body {
     margin: 0 auto 15px auto; /* Centra il bottone e aggiunge spazio sotto */
 }
 
+
+/* ============================================= */
+/* === NUOVO STILE PER BOTTONI AFFIANCATI      === */
+/* ============================================= */
+
+/* Contenitore per più bottoni in fondo a un pannello */
+.panel-actions-multiple {
+    margin-top: auto; /* Spinge il contenitore in fondo al pannello */
+    display: flex;
+    justify-content: flex-end; /* Allinea i bottoni a destra */
+    gap: 10px; /* Spazio tra i bottoni */
+}
+
+
+
+/* =================================================================== */
+/* === STILI PER LE TABELLE TRATTAMENTI E ACQUISTI                 === */
+/* =================================================================== */
+
+/* 1. Forza le intestazioni a rimanere su una sola riga */
+.trattamenti th,
+.acquisti-table th {
+    white-space: nowrap; /* Non manda il testo a capo */
+}
+
+/* 2. Allinea i bottoni di azione fianco a fianco */
+.trattamenti td:last-child,
+.acquisti-table td:last-child {
+    display: flex;      /* Attiva la modalità flexbox per allineare */
+    gap: 5px;           /* Aggiunge un piccolo spazio tra i bottoni */
+    align-items: center;/* Allinea i bottoni verticalmente al centro della cella */
+}
+
+/* 3. Stile per i bottoni (più piccoli, gialli e con larghezza automatica) */
+.trattamenti .btn,
+.acquisti-table .btn {
+    /* --- Stile Giallo --- */
+    background-color: #FFD700 !important;
+    color: #1a1a1a !important;
+    border: 1px solid #E6C200 !important;
+
+    /* --- Dimensioni Ridotte --- */
+    padding: 4px 8px !important;
+    font-size: 0.8em !important;
+
+    /* --- Regola FONDAMENTALE per l'affiancamento --- */
+    width: auto !important; /* Annulla il 'width: 100%' che potrebbe essere attivo su mobile */
+}
+
+/* 4. Effetto hover per i bottoni */
+.trattamenti .btn:hover,
+.acquisti-table .btn:hover {
+    background-color: #E6C200 !important;
+    border-color: #CCAA00 !important;
+}
+
+
+
+
+
+
+
+
+
+
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */
@@ -2246,3 +2329,6 @@ body {
     .detail-group label { color: #555555 !important; }
     .detail-group h3, .detail-group p, .detail-group span { color: #000000 !important; }
 }
+
+
+

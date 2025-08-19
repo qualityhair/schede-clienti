@@ -15,18 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const appointmentsListContainer = document.getElementById('lista-appuntamenti');
 	const newClientTagsInput = document.getElementById("new-client-tags");
 
-// Riferimenti per la modale di preparazione
-const prepareAppointmentModal = document.getElementById('prepare-appointment-modal');
-const prepCloseBtn = document.getElementById('prep-close-btn');
-const prepAvatar = document.getElementById('prep-avatar');
-const prepClientName = document.getElementById('prep-client-name');
-const prepClientTags = document.getElementById('prep-client-tags');
-const prepLastPhotoContainer = document.getElementById('prep-last-photo-container');
-const prepLastFormula = document.getElementById('prep-last-formula');
-const prepLastAnalysis = document.getElementById('prep-last-analysis');
-const prepFullCardBtn = document.getElementById('prep-full-card-btn');
-const prepWhatsappBtn = document.getElementById('prep-whatsapp-btn');
-const prepEmailBtn = document.getElementById('prep-email-btn');
 
 
 
@@ -200,171 +188,13 @@ function getAppointmentColor(app) {
 
 
 
-    // --- LOGICA PANNELLO "APPUNTAMENTI DI OGGI" ---
-
-    // Funzione per cercare un cliente dal titolo di un evento
-        // VERSIONE AGGIORNATA CHE APRE LA MODALE DI PREPARAZIONE
-async function searchClientFromEvent(rawTitle) {
-    const title = (rawTitle || '').trim();
-    if (!title) { showMessage('Titolo evento non valido.', 'error'); return; }
-
-    // Pulisce il nome per la ricerca
-    const parole = title.split(' ');
-    const nomeDaCercare = (parole.length > 1) ? `${parole[0]} ${parole[1]}` : parole[0];
-
-    try {
-        // Cerchiamo il cliente per trovare il suo ID
-        const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(nomeDaCercare)}`);
-        const clients = await handleApiResponse(response);
-
-        if (!clients || clients.length === 0) {
-            showMessage(`Nessun cliente trovato per "${nomeDaCercare}".`, 'info');
-            return;
-        }
-
-        // Se trova più clienti, per ora prendiamo il primo (il più pertinente)
-        const clienteId = clients[0].id;
-        
-        // Apriamo la modale di preparazione con l'ID del cliente trovato
-        openPreparationModal(clienteId);
-
-    } catch (error) {
-        console.error("Errore ricerca da evento:", error);
-        showMessage('Errore critico durante la ricerca da evento.', 'error');
-    }
-}
-
-// NUOVA FUNZIONE PER APRIRE E POPOLARE LA MODALE DI PREPARAZIONE
-async function openPreparationModal(clienteId) {
-    // Reset dei contenuti
-    prepAvatar.src = '/img/default-avatar.png';
-    prepClientName.textContent = 'Caricamento...';
-    prepClientTags.innerHTML = '';
-    prepLastPhotoContainer.innerHTML = '<p>...</p>';
-    prepLastFormula.innerHTML = '<strong>Formula Colore:</strong><p>...</p>';
-    prepLastAnalysis.innerHTML = '<p>...</p>';
-    prepWhatsappBtn.style.display = 'none';
-    prepEmailBtn.style.display = 'none';
-
-    openModal(prepareAppointmentModal);
-
-    try {
-        // --- 1. Recupera i dati principali e le foto del cliente ---
-        const clientResponse = await fetch(`/api/clienti/${clienteId}`);
-        const clientData = await handleApiResponse(clientResponse);
-        if (!clientData || !clientData.client) throw new Error('Dati cliente non trovati.');
-        
-        const photoResponse = await fetch(`/api/clienti/${clienteId}/photos`);
-        const allPhotos = await handleApiResponse(photoResponse) || [];
-
-        const cliente = clientData.client;
-
-        // --- 2. Popola l'header ---
-        prepClientName.textContent = `${cliente.nome} ${cliente.cognome}`;
-        prepFullCardBtn.href = `/scheda-cliente.html?id=${cliente.id}`;
-
-        const profilePhoto = allPhotos.find(p => (p.tags || []).includes('profilo'));
-        if (profilePhoto) {
-            prepAvatar.src = profilePhoto.url;
-        }
-
-        if (cliente.tags && cliente.tags.length > 0) {
-            cliente.tags.forEach(tag => {
-                const tagElement = document.createElement('span');
-                tagElement.className = 'client-tag';
-                tagElement.textContent = tag;
-                tagElement.dataset.tag = tag.toLowerCase().trim();
-                prepClientTags.appendChild(tagElement);
-            });
-        }
-
-// --- 3. Popola l'ultimo lavoro (foto e dettagli tecnici) ---
-            const lastStylePhoto = allPhotos.find(p => {
-                const tags = p.tags || [];
-                return !tags.includes('_trico') && !tags.includes('profilo');
-            });
-            if (lastStylePhoto) {
-                prepLastPhotoContainer.innerHTML = `<img src="${lastStylePhoto.url}" alt="Ultimo lavoro">`;
-            } else {
-                prepLastPhotoContainer.innerHTML = '<p>Nessuna foto "style" trovata.</p>';
-            }
-
-                       // --- NUOVA LOGICA: Mostra l'ultimo servizio effettuato (con stile) ---
-            const trattamenti = clientData.trattamenti || [];
-            if (trattamenti.length > 0) {
-                const ultimoTrattamento = trattamenti[0];
-                const dataFormattata = new Date(ultimoTrattamento.data_trattamento).toLocaleDateString('it-IT');
-                
-                // Usiamo una struttura a div con classi per un migliore styling
-                prepLastFormula.innerHTML = `
-                    <strong>Ultimo Servizio (${dataFormattata}):</strong>
-                    <div class="prep-last-service-details">
-                        <div class="detail-row">
-                            <strong>Tipo:</strong>
-                            <span>${ultimoTrattamento.tipo_trattamento}</span>
-                        </div>
-                        <div class="detail-row">
-                            <strong>Dettagli:</strong>
-                            <span>${ultimoTrattamento.descrizione || 'Nessuna descrizione.'}</span>
-                        </div>
-                    </div>
-                `;
-            } else {
-                prepLastFormula.innerHTML = '<strong>Ultimo Servizio:</strong><p>Nessun servizio registrato.</p>';
-            }
-            // --- FINE NUOVA LOGICA ---
-
-                    // --- 4. Popola l'ultima analisi (con stile e più dettagli) ---
-            const analysisResponse = await fetch(`/api/clienti/${clienteId}/analisi/riepilogo`);
-            const riepilogo = await handleApiResponse(analysisResponse);
-            if (riepilogo) {
-                // Usiamo la stessa struttura a div con classi dell'altro pannello
-                prepLastAnalysis.innerHTML = `
-                    <div class="prep-last-service-details">
-                        <div class="detail-row">
-                            <strong>Esigenza:</strong>
-                            <span>${riepilogo.esigenza_cliente || 'N/D'}</span>
-                        </div>
-                        <div class="detail-row">
-                            <strong>Diagnosi:</strong>
-                            <span>${riepilogo.diagnosi_primaria || 'N/D'}</span>
-                        </div>
-                        <div class="detail-row">
-                            <strong>Piano:</strong>
-                            <span>${riepilogo.piano_trattamenti || 'Nessun piano specificato.'}</span>
-                        </div>
-                    </div>
-                `;
-            } else {
-                prepLastAnalysis.innerHTML = '<p style="background-color: #2a2a2a; padding: 10px; border-radius: 6px;">Nessuna analisi trovata.</p>';
-            }
-            // --- FINE NUOVA LOGICA ---
-
-        // --- 5. Arma i bottoni di contatto ---
-        if (cliente.email) {
-            const subject = encodeURIComponent("Info sul tuo appuntamento");
-            prepEmailBtn.href = `https://mail.google.com/mail/?view=cm&fs=1&to=${cliente.email}&su=${subject}`;
-            prepEmailBtn.setAttribute('target', '_blank');
-            prepEmailBtn.style.display = 'inline-block';
-        }
-        if (cliente.telefono) {
-            const numeroPulito = cliente.telefono.replace(/\s+/g, '');
-            prepWhatsappBtn.href = `https://wa.me/${numeroPulito}`;
-            prepWhatsappBtn.setAttribute('target', '_blank');
-            prepWhatsappBtn.style.display = 'inline-block';
-        }
-
-    } catch (error) {
-        console.error('Errore durante la preparazione della scheda:', error);
-        showMessage('Impossibile caricare i dati di preparazione.', 'error');
-        closeModal(prepareAppointmentModal);
-    }
-}
-
 
     // Funzione per caricare e mostrare gli appuntamenti
-    async function fetchAndDisplayAppointments() {
+
+async function fetchAndDisplayAppointments() {
     const listElement = document.getElementById('lista-appuntamenti');
+    if (!listElement) return;
+
     try {
         const response = await fetch('/api/appuntamenti/oggi');
         const appointments = await handleApiResponse(response);
@@ -376,34 +206,54 @@ async function openPreparationModal(clienteId) {
             return;
         }
 
-        // Sostituisci il forEach esistente con questo
-appointments.forEach(app => {
-    const appointmentTime = new Date(app.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-    
-    // Ottieni entrambi i colori
-    const { backgroundColor, textColor } = getAppointmentColor(app);
+        appointments.forEach(app => {
+            const appointmentTime = new Date(app.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+            const { backgroundColor, textColor } = getAppointmentColor(app);
 
-    const listItem = document.createElement('li');
-    listItem.className = 'appointment-item clickable';
-    
-    // Applica entrambi gli stili
-    listItem.style.backgroundColor = backgroundColor;
-    listItem.style.color = textColor;
-    
-    // Selezioniamo gli span interni per applicare il colore del testo anche a loro
-    listItem.innerHTML = `
-        <span class="appointment-time">${appointmentTime}</span>
-        <span class="appointment-summary">${app.summary}</span>
-    `;
+            const listItem = document.createElement('li');
+            listItem.className = 'appointment-item clickable';
+            listItem.style.backgroundColor = backgroundColor;
+            
+            listItem.innerHTML = `
+                <span class="appointment-time" style="color: ${textColor};">${appointmentTime}</span>
+                <span class="appointment-summary" style="color: ${textColor};">${app.summary}</span>
+            `;
 
-    // Applica il colore del testo anche ai figli per specificità
-    listItem.querySelectorAll('span').forEach(span => {
-        span.style.color = textColor;
-    });
+            // Aggiungi l'evento click per la ricerca e il reindirizzamento
+            listItem.addEventListener('click', async () => {
+                const rawTitle = app.summary.trim();
+                const sigleDaRimuovere = ['tg', 'tn', 'tratt', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul', 'colore'];
+                
+                let searchTerm = rawTitle;
+                // Pulisce il titolo in modo più robusto
+                const parole = searchTerm.toLowerCase().split(' ');
+                const nomePulito = parole.filter(p => !sigleDaRimuovere.includes(p) && isNaN(p)).join(' ').trim();
 
-    listItem.addEventListener('click', () => searchClientFromEvent(app.summary));
-    listElement.appendChild(listItem);
-});
+                if (!nomePulito) {
+                    showMessage("Impossibile determinare un nome da cercare.", 'info');
+                    return;
+                }
+
+                try {
+                    const searchResponse = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(nomePulito)}`);
+                    const searchData = await handleApiResponse(searchResponse);
+                    if (!searchData) return;
+
+                    if (searchData.length === 1) {
+                        window.location.href = `/scheda-cliente.html?id=${searchData[0].id}`;
+                    } else if (searchData.length > 1) {
+                        const ids = searchData.map(c => c.id);
+                        window.location.href = `/scheda-cliente.html?id=${ids[0]}&searchIds=${encodeURIComponent(JSON.stringify(ids))}&index=0`;
+                    } else {
+                        showMessage(`Nessun cliente trovato per "${nomePulito}".`, 'info');
+                    }
+                } catch (error) {
+                    console.error('Errore durante la ricerca del cliente:', error);
+                    showMessage('Si è verificato un errore durante la ricerca.', 'error');
+                }
+            });
+            listElement.appendChild(listItem);
+        });
     } catch (error) {
         console.error('Errore caricamento appuntamenti:', error);
         listElement.innerHTML = '<li class="appointment-item error">Errore nel caricamento.</li>';
@@ -417,6 +267,6 @@ appointments.forEach(app => {
     if (searchInput) searchInput.addEventListener("keypress", e => { if (e.key === "Enter") handleSearchClient(); });
     if (addNewClientButton) addNewClientButton.addEventListener("click", handleAddNewClient);
     if (appointmentsListContainer) fetchAndDisplayAppointments();
-	if (prepCloseBtn) prepCloseBtn.addEventListener('click', () => closeModal(prepareAppointmentModal));
+	
 
 });

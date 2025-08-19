@@ -21,7 +21,6 @@
         
         <div class="panel-grid-new">
             
-            <!-- PANNELLO DETTAGLI CLIENTE (COLONNA 1) -->
             <div class="panel client-details-panel">
                 <h2 class="panel-title profile-title-container">
                     <img id="profile-avatar" src="/img/default-avatar.png" alt="Avatar Cliente" class="profile-avatar">
@@ -35,24 +34,22 @@
                         <span id="stato-pagamento-badge" class="status-badge">Caricamento...</span>
                     </p>
 				</div>
-                <div class="panel-actions">
-                    <button class="btn btn-primary" id="modificaDettagliBtn">✏️ Modifica Profilo</button>
-                </div>
 
 				<hr style="border-color: #444; margin: 20px 0;">
 
 				<div class="detail-group">
 				    <label for="cliente-note" class="form-label" style="font-size: 1.2em; color: #FFD700;">Note e Preferenze:</label>
-				    <textarea id="cliente-note" class="textarea-field" rows="5" placeholder="Aggiungi note su tagli, prodotti preferiti, allergie, conversazioni..."></textarea>
-				    <div class="panel-actions" style="margin-top: 15px;">
-				        <button id="salva-note-btn" class="btn btn-primary">Salva Note</button>
-				    </div>
+				    <textarea id="cliente-note" class="textarea-field" rows="2" placeholder="Aggiungi note..."></textarea>
+				</div>
+
+                <div class="panel-actions-multiple">
+				<button id="salva-note-btn" class="btn btn-primary">Salva Note</button>
+                    <button class="btn btn-primary" id="modificaDettagliBtn">✏️ Modifica Profilo</button>
+                    
                 </div>
             </div>
 
-            <!-- NUOVO PANNELLO RELAZIONI E BUONI (COLONNA 2) -->
             <div class="panel">
-                <!-- Sezione Clienti Correlati -->
                 <div class="panel-section">
                     <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center;">
                         <span>Clienti Correlati</span>
@@ -65,7 +62,6 @@
 
                 <hr style="border-color: #444; margin: 20px 0;">
                 
-                <!-- Sezione Buoni / Pacchetti -->
                 <div class="panel-section">
                     <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center;">
                         <span>Buoni / Pacchetti Attivi</span>
@@ -89,32 +85,6 @@
                 </div>
             </div>
 
-            <!-- PANNELLO ANALISI TRICO (RIGA 2, LARGHEZZA PIENA) -->
-            <div class="panel full-width-panel" id="analisi-tricologica-panel">
-                <h2 class="panel-title">
-                    <span>Analisi Trico-Cosmetica</span>
-                    <button class="btn btn-icon" id="nuova-analisi-btn" title="Aggiungi Nuova Analisi">➕</button>
-                </h2>
-                <div id="analisi-riepilogo-content">
-                    <p class="loading-message">Caricamento riepilogo analisi...</p>
-                </div>
-	
-                <hr style="border-color: #444; margin: 20px 0;">
-                <div class="panel" id="tricho-photo-gallery-panel" style="border: none; box-shadow: none; padding: 0; margin-top: 15px;">
-                    <h3 class="panel-title" style="font-size: 1.2em;">
-                        <span>Foto Analisi</span>
-                        <button class="btn btn-icon" id="add-tricho-photo-btn" title="Aggiungi Foto Trico">➕</button>
-                    </h3>
-                    <div id="tricho-photo-tags-filter-container" class="tags-filter-container"></div>
-                    <div class="panel-content" id="tricho-photo-gallery-content" style="padding: 0;"></div>
-                </div>
-
-                <div class="panel-actions">
-                    <a href="#" id="storico-analisi-btn" class="btn btn-nav" style="display: none;">Vedi Storico Completo</a>
-                </div>
-            </div>
-
-            <!-- PANNELLO TRATTAMENTI (RIGA 3, LARGHEZZA PIENA) -->
             <div class="panel full-width-panel treatments-panel">
                 <h2 class="panel-title">Servizi e Trattamenti
                     <button class="btn btn-icon" id="aggiungiTrattamentoBtn" title="Aggiungi Nuovo Trattamento">➕</button>
@@ -133,13 +103,11 @@
                                 <th>Azione</th>
                             </tr>
                         </thead>
-                        <tbody id="lista-trattamenti">
-                        </tbody>
+                        <tbody id="lista-trattamenti"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- PANNELLO ACQUISTI (RIGA 4, LARGHEZZA PIENA) -->
             <div class="panel full-width-panel purchases-panel">
                 <h2 class="panel-title">Acquisti Prodotti
                     <button class="btn btn-icon" id="aggiungi-acquisto-btn" title="Aggiungi Nuovo Acquisto">➕</button>
@@ -159,13 +127,34 @@
                                 <th>Azione</th>
                             </tr>
                         </thead>
-                        <tbody id="lista-acquisti">
-                        </tbody>
+                        <tbody id="lista-acquisti"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- PANNELLO ARCHIVIO FOTO (RIGA 5, LARGHEZZA PIENA) -->
+            <div class="panel full-width-panel" id="analisi-tricologica-panel">
+                <h2 class="panel-title">
+                    <span>Analisi Trico-Cosmetica</span>
+                    <button class="btn btn-icon" id="nuova-analisi-btn" title="Aggiungi Nuova Analisi">➕</button>
+                </h2>
+                <div id="analisi-riepilogo-content">
+                    <p class="loading-message">Caricamento riepilogo analisi...</p>
+                </div>
+	
+                <hr style="border-color: #444; margin: 20px 0;">
+                <div class="panel" id="tricho-photo-gallery-panel" style="border: none; box-shadow: none; padding: 0; margin-top: 15px;">
+                    <h3 class="panel-title" style="font-size: 1.2em;">
+                        <span>Foto Analisi</span>
+                        <button class="btn btn-icon" id="add-tricho-photo-btn" title="Aggiungi Foto Trico">➕</button>
+                    </h3>
+                    <div id="tricho-photo-tags-filter-container" class="tags-filter-container"></div>
+                    <div class="panel-content" id="tricho-photo-gallery-content" style="padding: 0;"></div>
+                </div>
+                <div class="panel-actions">
+                    <a href="#" id="storico-analisi-btn" class="btn btn-nav" style="display: none;">Vedi Storico Completo</a>
+                </div>
+            </div>
+
             <div class="panel full-width-panel" id="photo-gallery-panel">
                 <h2 class="panel-title">
                     <span>Archivio Foto</span>
@@ -185,6 +174,8 @@
 
     <script src="/js/scheda-cliente.js"></script>
     <script src="/js/navbar-loader.js"></script>
+    
+    <!-- Tutte le modali -->
 
     <div id="addPhotoModal" class="modal">
         <div class="modal-content">
