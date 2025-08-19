@@ -5,76 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catalogo Lavori</title>
     <link rel="stylesheet" href="/css/style.css">
-    <style>
-        /* Stili specifici per il catalogo */
-        .filter-bar {
-            background-color: #333;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .filter-group label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #ccc;
-        }
-        .filter-input {
-            width: 250px; /* Larghezza fissa per i campi di ricerca */
-        }
-
-        #photo-catalog-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-        }
-        .catalog-photo-item {
-            position: relative;
-            cursor: pointer;
-            overflow: hidden;
-            border-radius: 8px;
-        }
-        .catalog-photo-item img {
-            width: 100%;
-            display: block;
-            transition: transform 0.3s ease;
-        }
-        .catalog-photo-item:hover img {
-            transform: scale(1.05);
-        }
-        .photo-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-            color: white;
-            padding: 10px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            text-align: left;
-        }
-        .catalog-photo-item:hover .photo-overlay {
-            opacity: 1;
-        }
-        .photo-overlay h4 {
-            font-size: 1rem;
-            margin: 0 0 5px 0;
-            font-weight: 700;
-        }
-        .photo-overlay p {
-            font-size: 0.8rem;
-            margin: 0;
-            color: #ddd;
-        }
-    </style>
+    <!-- NOTA: Il blocco <style> interno è stato rimosso per pulizia. 
+         Tutti gli stili sono ora nel file style.css principale -->
 </head>
 <body>
     <div id="navbar"></div>
@@ -82,51 +14,87 @@
     <main class="container">
         <h1 class="page-title">Catalogo Lavori</h1>
         
-                <!-- Barra dei Filtri (Versione Aggiornata) -->
-                <!-- Barra dei Filtri (Versione a 2 Livelli) -->
-        <div class="filter-container">
-            <!-- Livello 1: Filtro per Tipo Galleria -->
-            <div class="category-filter-bar">
-                <div class="filter-group">
-                    <label>Tipo di Lavoro:</label>
-                    <div class="btn-group">
-                        <button class="btn-filter active" data-category="style">Lavori di Stile</button>
-                        <button class="btn-filter" data-category="trico">Foto Trico</button>
-                        <button class="btn-filter" data-category="all">Mostra Tutti</button>
+        <!-- ======================================= -->
+        <!-- === INIZIO NUOVO LAYOUT A 2 COLONNE === -->
+        <!-- ======================================= -->
+        <div class="catalog-layout">
+
+            <!-- 1. COLONNA LATERALE PER I FILTRI (SIDEBAR) -->
+            <aside class="catalog-sidebar">
+                
+                <div class="filter-container">
+                    <!-- Livello 1: Filtro per Tipo Galleria -->
+                    <div class="category-filter-bar">
+                        <div class="filter-group">
+                            <label>Tipo di Lavoro:</label>
+                            <div class="btn-group">
+                                <button class="btn-filter active" data-category="style">Lavori di Stile</button>
+                                <button class="btn-filter" data-category="trico">Foto Trico</button>
+                                <button class="btn-filter" data-category="all">Mostra Tutti</button>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <!-- Livello 2: Filtri di Ricerca -->
+                    <div class="search-filter-bar">
+                        <div class="filter-group">
+                            <label for="filter-cliente">Filtra per Cliente:</label>
+                            <input type="text" id="filter-cliente" class="input-field filter-input" placeholder="Cerca nome...">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-tag">Filtra per Tag:</label>
+                            <input type="text" id="filter-tag" class="input-field filter-input" placeholder="Cerca tag...">
+                        </div>
+                        <div class="filter-group">
+                            <label for="filter-didascalia">Filtra per Descrizione:</label>
+                            <input type="text" id="filter-didascalia" class="input-field filter-input" placeholder="Cerca descrizione...">
+                        </div>
+                        <button id="reset-filters-btn" class="btn btn-nav" style="margin-top: auto;">Reset</button>
                     </div>
                 </div>
+
+            </aside>
+
+            <!-- 2. AREA PRINCIPALE PER I CONTENUTI (GRIGLIA FOTO) -->
+            <div class="catalog-main">
+                <h2 id="filter-results-title" class="filter-results-title"></h2>
+        
+                <!-- Griglia delle Foto -->
+                <div id="photo-catalog-grid">
+                    <!-- Le foto verranno caricate qui dal JavaScript -->
+                </div>
             </div>
 
-            <!-- Livello 2: Filtri di Ricerca -->
-            <div class="search-filter-bar">
-                <div class="filter-group">
-                    <label for="filter-cliente">Filtra per Cliente:</label>
-                    <input type="text" id="filter-cliente" class="input-field filter-input" placeholder="Cerca nome...">
-                </div>
-                <div class="filter-group">
-                    <label for="filter-tag">Filtra per Tag:</label>
-                    <input type="text" id="filter-tag" class="input-field filter-input" placeholder="Cerca tag...">
-                </div>
-                <div class="filter-group">
-                    <label for="filter-didascalia">Filtra per Descrizione:</label>
-                    <input type="text" id="filter-didascalia" class="input-field filter-input" placeholder="Cerca descrizione...">
-                </div>
-                <button id="reset-filters-btn" class="btn btn-nav" style="margin-top: auto;">Reset</button>
-            </div>
+        </div>
+        <!-- ===================================== -->
+        <!-- === FINE NUOVO LAYOUT A 2 COLONNE === -->
+        <!-- ===================================== -->
+		
+		
+		<!-- ======================================================= -->
+<!-- === MODALE PER LA VISUALIZZAZIONE FOTO DEL CATALOGO === -->
+<!-- ======================================================= -->
+<div id="catalogViewPhotoModal" class="modal" style="--bg-color: rgba(0,0,0,0.9);">
+    <div class="modal-content" style="background: none; box-shadow: none; padding: 0; position: relative;">
+        
+        <!-- Immagine ingrandita -->
+<img id="catalog-fullscreen-photo" src="" alt="Foto Lavoro Ingrandita" style="max-width: 90vw; max-height: 90vh; object-fit: contain;">
+        
+        <!-- Bottone di chiusura in alto a destra -->
+        <button id="catalog-close-view-photo-btn" style="position: absolute; top: 15px; right: 25px; font-size: 2rem; color: white; background: none; border: none; cursor: pointer;">×</button>
+
+        <!-- Didascalia e bottone per andare alla scheda cliente -->
+        <div id="catalog-photo-info" style="position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); text-align: center; color: white; width: 100%;">
+            <p id="catalog-photo-didascalia" style="margin: 0 0 15px 0; font-style: italic; text-shadow: 1px 1px 2px black;"></p>
+            <a href="#" id="goto-client-btn" class="btn btn-primary" style="text-decoration: none;">Vai alla Scheda Cliente</a>
         </div>
 
+    </div>
+</div>
 
- 
-		<h2 id="filter-results-title" class="filter-results-title"></h2>
-
-
-        <!-- Griglia delle Foto -->
-        <div id="photo-catalog-grid">
-            <!-- Le foto verranno caricate qui dal JavaScript -->
-        </div>
     </main>
 
     <script src="/js/navbar-loader.js"></script>
-    <script src="/js/catalogo-app.js"></script> <!-- Creeremo questo nuovo file JS -->
+    <script src="/js/catalogo-app.js"></script>
 </body>
 </html>

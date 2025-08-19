@@ -21,7 +21,8 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
-    background-color: #2a2a2a; /* Grigio molto scuro per il contenuto principale */
+background-color: #2a2a2a; /* Fallback */
+background-image: radial-gradient(ellipse at top, #484848 0%, #1a1a1a 100%);
     border-radius: 10px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Ombra più pronunciata per il tema scuro */
     flex-grow: 1; /* Permette al container di espandersi */
@@ -2251,7 +2252,152 @@ body {
     vertical-align: middle;/* Allineamento verticale migliore */
 }
 
+/* =================================================================== */
+/* === 1. STILE "FROSTED GLASS" PER IL PANNELLO FILTRI             === */
+/* =================================================================== */
+.filter-container {
+    background-color: rgba(255, 255, 255, 0.05); /* Sfondo nero semi-trasparente */
+    -webkit-backdrop-filter: blur(10px); /* L'effetto sfocatura per Safari */
+    backdrop-filter: blur(10px);         /* L'effetto sfocatura per gli altri browser */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Bordo sottile che cattura la luce */
+    padding: 20px;
+    border-radius: 12px; /* Bordi un po' più arrotondati */
+}
 
+/* =================================================================== /
+/ === 2. ANIMAZIONE DI APPARIZIONE PER LE FOTO === /
+/ =================================================================== */
+/* Definiamo l'animazione */
+@keyframes fadeInUp {
+from {
+opacity: 0;
+transform: translateY(20px);
+}
+to {
+opacity: 1;
+transform: translateY(0);
+}
+}
+/* Applichiamo l'animazione a ogni foto nella griglia /
+.catalog-photo-item {
+/ Il nome dell'animazione, la durata, la curva di velocità e l'impostazione finale */
+animation: fadeInUp 0.5s ease-out forwards;
+}
+
+/* =================================================================== */
+/* === 3. SUPER HOVER EFFETTO PER L'OVERLAY DELLE FOTO             === */
+/* =================================================================== */
+
+.photo-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.95), transparent);
+    color: white;
+    padding: 20px; /* Più spazio interno per un look più arioso */
+    
+    /* Stato iniziale: invisibile e spostato in basso */
+    opacity: 0;
+    transform: translateY(100%);
+    transition: all 0.3s ease-out; /* Transizione fluida per tutte le proprietà */
+}
+
+.catalog-photo-item:hover .photo-overlay {
+    /* Stato finale: visibile e nella sua posizione corretta */
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.photo-overlay h4 {
+    font-size: 1.1em;
+    margin: 0 0 8px 0;
+    font-weight: 700;
+    color: #FFD700; /* Usiamo il tuo colore dorato per il nome del cliente! */
+}
+
+.photo-overlay p {
+    font-size: 0.8em;
+    margin: 0;
+    color: #dddddd;
+    font-style: italic; /* Rendiamo i tag leggermente diversi */
+}
+
+
+/* =================================================================== */
+/* === STILI PER LA PAGINA CATALOGO (LAYOUT A 2 COLONNE)           === */
+/* =================================================================== */
+
+/* 1. Struttura principale del layout */
+.catalog-layout {
+    display: grid;
+    grid-template-columns: 300px 1fr; 
+    gap: 30px;
+    align-items: start;
+}
+
+/* 2. Barra laterale dei filtri */
+.catalog-sidebar {
+    position: sticky;
+    top: 20px;
+}
+
+/* 3. Contenitore dei filtri (con lo stile metallico) */
+.catalog-sidebar .filter-container {
+    background-image: linear-gradient(to top, rgba(0,0,0,0.4) 0%, rgba(255,255,255,0.1) 100%);
+    border: 1px solid #555;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+/* 4. Adattamento degli elementi interni alla sidebar */
+.catalog-sidebar .filter-group label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ccc;
+}
+.catalog-sidebar .filter-input {
+    width: 100%;
+}
+
+/* 5. Griglia delle foto */
+#photo-catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+}
+.catalog-photo-item {
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 8px;
+    display: block; /* Necessario per i link <a> */
+}
+.catalog-photo-item img {
+    width: 100%;
+    display: block;
+    transition: transform 0.3s ease;
+}
+.catalog-photo-item:hover img {
+    transform: scale(1.05);
+}
+
+/* 6. RESPONSIVITÀ (Layout a colonna singola su schermi piccoli) */
+@media (max-width: 992px) {
+    .catalog-layout {
+        grid-template-columns: 1fr;
+    }
+    .catalog-sidebar {
+        position: static;
+        margin-bottom: 25px;
+    }
+}
 
 
 
