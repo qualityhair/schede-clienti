@@ -2240,7 +2240,16 @@ body {
     border-color: #CCAA00 !important;
 }
 
-
+/* =================================================================== */
+/* === STILE PER NOME CLIENTE NEI TITOLI DEI PANNELLI              === */
+/* =================================================================== */
+.panel-client-name {
+    color: #FFD700;       /* Colore giallo */
+    font-size: 0.7em;      /* Dimensione più piccola rispetto al titolo del pannello */
+    font-weight: 500;      /* Leggermente meno grassetto del titolo */
+    margin-left: 10px;     /* Un po' di spazio dal titolo principale */
+    vertical-align: middle;/* Allineamento verticale migliore */
+}
 
 
 

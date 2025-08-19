@@ -413,6 +413,13 @@ async function loadClientData(clientId, anno = new Date().getFullYear().toString
 
         // --- PARTE 3 (modificata): Popola il resto della pagina ---
         nomeCompletoSpan.textContent = `${client.nome} ${client.cognome}`;
+		
+		const nomeCliente = nomeCompletoSpan.textContent;
+		const spansNomePannelli = document.querySelectorAll('.panel-client-name');
+		spansNomePannelli.forEach(span => {
+		span.textContent = `(${nomeCliente})`;
+		});
+		
         soprannomeSpan.textContent = client.soprannome || "N/A";
         emailSpan.textContent = client.email || "N/A";
         telefonoSpan.textContent = client.telefono || "N/A";
