@@ -1163,6 +1163,21 @@ const query = `
 
 
 
+// API per forzare la sincronizzazione immediata con Google Calendar
+app.post("/api/sync-now", ensureAuthenticated, async (req, res) => {
+    console.log("Richiesta di sincronizzazione manuale ricevuta...");
+    try {
+        // Chiamiamo la stessa funzione che viene eseguita ogni 15 minuti
+        await syncGoogleCalendarEvents(); 
+        
+        console.log("Sincronizzazione manuale completata con successo.");
+        res.status(200).json({ message: "Sincronizzazione completata con successo!" });
+    } catch (error) {
+        console.error("Errore durante la sincronizzazione manuale:", error);
+        res.status(500).json({ error: "Si è verificato un errore durante la sincronizzazione." });
+    }
+});
+
 
 
 
