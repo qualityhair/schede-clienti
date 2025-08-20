@@ -268,5 +268,32 @@ async function fetchAndDisplayAppointments() {
     if (addNewClientButton) addNewClientButton.addEventListener("click", handleAddNewClient);
     if (appointmentsListContainer) fetchAndDisplayAppointments();
 	
+// ========================
+// PANNELLO MUSICA - DASHBOARD
+// ========================
+
+// Pulsanti
+// Pulsanti
+const btnRadio = document.getElementById('play-radiofreccia');
+const btnSpotify = document.getElementById('play-spotify');
+const btnPlayer = document.getElementById('play-player');
+
+// Apri Radiofreccia in nuova finestra
+btnRadio.addEventListener('click', () => {
+    window.open('https://ascoltareradio.com/freccia/', '_blank');
+});
+
+// Apri Spotify in nuova finestra
+btnSpotify.addEventListener('click', () => {
+    window.open('https://open.spotify.com/', '_blank');
+});
+
+// Apri Player Musica esterno
+btnPlayer.addEventListener('click', () => {
+    window.open('http://79.6.136.236:32400/web/index.html#!/server/6ebfb71d58fed1206d2c273ca1b96e2e9c3ead61/playlist?key=%2Fplaylists%2F19976&context=source%3Acontent.playlists~0~5', '_blank');
+});
+
+
+
 
 });
