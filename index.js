@@ -56,10 +56,9 @@ let authClient;
 let calendar;
 
 async function initGoogleCalendar() {
-  let authOptions = {
+    let authOptions = {
     scopes: [
-      'https://www.googleapis.com/auth/calendar.readonly',
-      'https://www.googleapis.com/auth/calendar.events.readonly'
+      'https://www.googleapis.com/auth/calendar.events' // Permesso completo (lettura e scrittura)
     ]
   };
 
@@ -1124,6 +1123,138 @@ app.get("/api/photos/all", ensureAuthenticated, async (req, res) => {
 
 
 // --- API CALENDARIO ---
+
+
+// NUOVA ROTTA per CREARE un evento (VERSIONE CON FUSO ORARIO ESPLICITO)
+// NUOVA ROTTA per CREARE un evento (VERSIONE CON COLORE)
+app.post("/api/events/create", ensureAuthenticated, async (req, res) => {
+    const { summary, start, end, colorId } = req.body; // <-- AGGIUNTO colorId
+
+    if (!summary || !start || !end) {
+        return res.status(400).json({ message: "Dati mancanti (titolo, inizio o fine)." });
+    }
+    console.log(`Ricevuta richiesta di creazione evento: "${summary}" con ColorID: ${colorId}`);
+    if (!calendar) {
+        return res.status(500).json({ message: "Errore: il client di Google Calendar non è pronto." });
+    }
+    try {
+        const startTime = new Date(start).toISOString();
+        const endTime = new Date(end).toISOString();
+        const googleEventResponse = await calendar.events.insert({
+            calendarId: process.env.GOOGLE_CALENDAR_ID,
+            requestBody: {
+                summary: summary,
+                start: { dateTime: startTime, timeZone: 'Europe/Rome' },
+                end: { dateTime: endTime, timeZone: 'Europe/Rome' },
+                colorId: colorId // <-- AGGIUNTO colorId
+            },
+        });
+
+        const eventData = googleEventResponse.data;
+        console.log(`Evento creato su Google Calendar con ID: ${eventData.id}`);
+        const eventStart = eventData.start ? (eventData.start.dateTime || eventData.start.date) : null;
+        const eventEnd = eventData.end ? (eventData.end.dateTime || eventData.end.date) : null;
+        const isAllDay = !!(eventData.start && eventData.start.date);
+
+        if (!eventStart || !eventEnd) { throw new Error("La risposta di Google non contiene date valide."); }
+
+        const query = `
+            INSERT INTO calendar_events (google_event_id, summary, description, location, start_time, end_time, creator_email, last_modified, is_all_day, color_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            ON CONFLICT (google_event_id) DO UPDATE SET summary = EXCLUDED.summary, start_time = EXCLUDED.start_time, end_time = EXCLUDED.end_time, last_modified = EXCLUDED.last_modified, color_id = EXCLUDED.color_id;
+        `;
+        const values = [
+            eventData.id, eventData.summary || 'Nessun titolo', eventData.description || null, eventData.location || null,
+            eventStart, eventEnd, eventData.creator ? eventData.creator.email : null, eventData.updated || new Date().toISOString(),
+            isAllDay, colorId || eventData.colorId || null // <-- MODIFICATO per usare il nostro colorId
+        ];
+
+        await db.query(query, values);
+        console.log(`Evento salvato anche nel database locale.`);
+        res.status(201).json({ status: "success", message: "Appuntamento creato con successo!" });
+    } catch (error) {
+        console.error("ERRORE DURANTE LA CREAZIONE DELL'EVENTO:", error.response ? JSON.stringify(error.response.data, null, 2) : error.message);
+        res.status(500).json({ message: "Errore del server durante la creazione dell'evento.", details: error.message });
+    }
+});
+
+// NUOVA ROTTA per CANCELLARE un evento
+app.delete("/api/events/:id", ensureAuthenticated, async (req, res) => {
+    const eventId = req.params.id; // Questo è l'ID di Google (es. a1b2c3d4...)
+
+    console.log(`Ricevuta richiesta di cancellazione per l'evento ID: ${eventId}`);
+
+    if (!calendar) {
+        return res.status(500).json({ message: "Errore: il client di Google Calendar non è pronto." });
+    }
+
+    try {
+        // 1. Cancelliamo l'evento da GOOGLE CALENDAR
+        await calendar.events.delete({
+            calendarId: process.env.GOOGLE_CALENDAR_ID,
+            eventId: eventId,
+        });
+        console.log(`Evento ${eventId} cancellato con successo da Google Calendar.`);
+
+        // 2. Cancelliamo l'evento dal nostro DATABASE locale
+        await db.query("DELETE FROM calendar_events WHERE google_event_id = $1", [eventId]);
+        console.log(`Evento ${eventId} cancellato anche dal database locale.`);
+
+        // 3. Rispondiamo al browser con successo
+        res.status(200).json({ status: "success", message: "Appuntamento cancellato con successo." });
+
+    } catch (error) {
+        console.error(`ERRORE CANCELLAZIONE EVENTO ${eventId}:`, error.message);
+        // Se l'errore è 404 o 410, l'evento era già stato cancellato. Lo gestiamo come un successo.
+        if (error.code === 404 || error.code === 410) {
+            console.log("Evento non trovato su Google (probabilmente già cancellato). Procedo a rimuoverlo dal DB locale.");
+            await db.query("DELETE FROM calendar_events WHERE google_event_id = $1", [eventId]);
+            return res.status(200).json({ status: "success", message: "Appuntamento già cancellato." });
+        }
+        res.status(500).json({ message: "Errore del server durante la cancellazione." });
+    }
+});
+
+// NUOVA ROTTA per MODIFICARE (UPDATE) un evento
+// NUOVA ROTTA per MODIFICARE (UPDATE) un evento (VERSIONE CON COLORE)
+app.put("/api/events/:id", ensureAuthenticated, async (req, res) => {
+    const eventId = req.params.id;
+    const { summary, start, end, colorId } = req.body; // <-- AGGIUNTO colorId
+
+    if (!summary || !start || !end) {
+        return res.status(400).json({ message: "Dati per la modifica mancanti." });
+    }
+    console.log(`Ricevuta richiesta di modifica per evento ${eventId}: "${summary}" con ColorID: ${colorId}`);
+    try {
+        const startTime = new Date(start).toISOString();
+        const endTime = new Date(end).toISOString();
+
+        const googleEventResponse = await calendar.events.patch({
+            calendarId: process.env.GOOGLE_CALENDAR_ID,
+            eventId: eventId,
+            requestBody: {
+                summary: summary,
+                start: { dateTime: startTime, timeZone: 'Europe/Rome' },
+                end: { dateTime: endTime, timeZone: 'Europe/Rome' },
+                colorId: colorId // <-- AGGIUNTO colorId
+            },
+        });
+
+        await db.query(
+            "UPDATE calendar_events SET summary = $1, start_time = $2, end_time = $3, color_id = $4, last_modified = NOW() WHERE google_event_id = $5",
+            [summary, startTime, endTime, colorId, eventId] // <-- AGGIUNTO colorId
+        );
+
+        console.log(`Evento ${eventId} aggiornato con successo ovunque.`);
+        res.status(200).json({ status: "success", data: googleEventResponse.data });
+    } catch (error) {
+        console.error(`ERRORE MODIFICA EVENTO ${eventId}:`, error.message);
+        res.status(500).json({ message: "Errore del server durante la modifica." });
+    }
+});
+
+
+
 app.get("/api/events", ensureAuthenticated, async (req, res) => {
     try {
         const result = await db.query("SELECT * FROM calendar_events ORDER BY start_time ASC");
