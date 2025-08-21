@@ -2423,8 +2423,65 @@ animation: fadeInUp 0.5s ease-out forwards;
     color: #333; /* testo scuro per contrasto */
 }
 
+/* ====================================================== */
+/* === STILI PER PANNELLI COLLASSABILI (versione Pro) === */
+/* ====================================================== */
 
+.collapsible-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
 
+.collapsible-header > .panel-title,
+.collapsible-header > h3.panel-subtitle {
+    margin-bottom: 0;
+    flex-grow: 1;
+}
+
+.collapsible-arrow {
+    font-size: 1.2em;
+    color: #FFD700;
+    transition: transform 0.3s ease;
+    margin-left: 15px;
+}
+
+.collapsible-content {
+    max-height: 2000px; /* Altezza 'virtuale' quando aperto */
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out;
+}
+
+/* --- STATO "CHIUSO" DEL PANNELLO --- */
+
+.collapsible-panel.closed .collapsible-content {
+    max-height: 0;
+}
+
+.collapsible-panel.closed .collapsible-arrow {
+    transform: rotate(-90deg);
+}
+
+/* --- QUESTA È LA REGOLA FONDAMENTALE CHE FA FUNZIONARE TUTTO --- */
+/* Quando il pannello è chiuso, azzera gli spazi interni del .panel-content */
+.collapsible-panel.closed .collapsible-content > .panel-content {
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    border: none;
+    /* Aggiungiamo anche una transizione per renderlo fluido */
+    transition: padding 0.4s ease-in-out, margin 0.4s ease-in-out;
+}
+
+/* Fix per i titoli dei pannelli Relazioni/Buoni */
+.panel-section .collapsible-header .panel-subtitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
 
 
 

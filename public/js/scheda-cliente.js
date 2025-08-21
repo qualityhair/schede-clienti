@@ -189,6 +189,32 @@ const LISTA_SERVIZI_DISPONIBILI = [
 
 // --- 2. FUNZIONI DI UTILITÀ ---
 
+// --- FUNZIONE PER GESTIRE I PANNELLI COLLASSABILI IN MODO INTELLIGENTE ---
+function setupCollapsiblePanel(panelSelector, data) {
+    const panel = document.querySelector(panelSelector);
+    if (!panel) return;
+
+    const header = panel.querySelector('.collapsible-header');
+    if (!header) return; // Sicurezza aggiuntiva
+    
+    // Controlliamo se i dati sono "vuoti"
+    const isEmpty = !data || (Array.isArray(data) && data.length === 0);
+
+    if (isEmpty) {
+        panel.classList.add('closed');
+    } else {
+        panel.classList.remove('closed');
+    }
+
+    if (!header.dataset.listenerAttached) {
+        header.addEventListener('click', () => {
+            panel.classList.toggle('closed');
+        });
+        header.dataset.listenerAttached = 'true';
+    }
+}
+
+
     function showMessage(message, type = 'info', onCloseCallback = null) {
         const messageDiv = document.createElement('div');
         messageDiv.textContent = message;
@@ -385,7 +411,7 @@ async function loadClientData(clientId, anno = new Date().getFullYear().toString
         return;
     }
     try {
-        // [MODIFICA] Aggiungiamo il parametro 'anno' alla chiamata API principale
+        // --- PARTE 1: Carica i dati principali del cliente ---
         const clientResponse = await fetch(`/api/clienti/${clientId}?anno=${anno}`);
         const data = await handleApiResponse(clientResponse);
         if (!data || !clientResponse.ok) throw new Error(data?.error || "Errore caricamento dati cliente.");
@@ -395,48 +421,46 @@ async function loadClientData(clientId, anno = new Date().getFullYear().toString
             showMessage("Cliente non trovato.", 'error');
             return;
         }
+        currentClienteData = client;
 
-        currentClienteData = client; // Salva i dati base
-
-        // --- PARTE 2 (invariata): Recupera le foto e imposta l'avatar ---
+        // --- PARTE 2: Popola l'interfaccia con i dati principali ---
         const photoResponse = await fetch(`/api/clienti/${clientId}/photos`);
         const allPhotos = await handleApiResponse(photoResponse) || [];
         currentClienteData.photos = allPhotos; 
-
         const profilePhoto = allPhotos.find(p => (p.tags || []).includes('profilo'));
-        
-        if (profilePhoto) {
-            profileAvatar.src = profilePhoto.url;
-        } else {
-            profileAvatar.src = '/img/default-avatar.png';
-        }
+        profileAvatar.src = profilePhoto ? profilePhoto.url : '/img/default-avatar.png';
 
-        // --- PARTE 3 (modificata): Popola il resto della pagina ---
         nomeCompletoSpan.textContent = `${client.nome} ${client.cognome}`;
-		
-		const nomeCliente = nomeCompletoSpan.textContent;
-		const spansNomePannelli = document.querySelectorAll('.panel-client-name');
-		spansNomePannelli.forEach(span => {
-		span.textContent = `(${nomeCliente})`;
-		});
-		
+        document.querySelectorAll('.panel-client-name').forEach(span => { span.textContent = `(${client.nome} ${client.cognome})`; });
         soprannomeSpan.textContent = client.soprannome || "N/A";
         emailSpan.textContent = client.email || "N/A";
         telefonoSpan.textContent = client.telefono || "N/A";
         clienteNoteTextarea.value = client.preferenze_note || '';
         displayClientTags(client.tags);
-		displayStatoPagamento(client.stato_pagamento);
+        displayStatoPagamento(client.stato_pagamento);
         
-        // [MODIFICA CHIAVE] Ora creiamo i filtri e poi popoliamo le tabelle
+        // --- PARTE 3: Mostra le tabelle, i filtri E GESTISCI I PANNELLI ---
+        
+        // Pannello Trattamenti
         createYearFilters(trattamentiFilterControls, data.anniDisponibiliTrattamenti, anno, 'trattamenti');
         displayTrattamenti(data.trattamenti || []);
-        
+        setupCollapsiblePanel('.treatments-panel', data.trattamenti); // <-- ECCO LA RIGA CHE AVEVO TOLTO
+
+        // Pannello Acquisti
         createYearFilters(acquistiFilterControls, data.anniDisponibiliAcquisti, anno, 'acquisti');
-        displayAcquisti(client.storico_acquisti || '[]', anno);
-        
-        // --- PARTE 4 (invariata): Avvia il caricamento delle gallerie ---
-        loadStyleClientPhotos(clientId);
-        loadTrichoClientPhotos(clientId);
+        const acquistiData = client.storico_acquisti ? JSON.parse(client.storico_acquisti) : [];
+        displayAcquisti(JSON.stringify(acquistiData), anno);
+        setupCollapsiblePanel('.purchases-panel', acquistiData); // <-- E L'ALTRA RIGA CHE AVEVO TOLTO
+
+        // --- PARTE 4: Carica tutte le sezioni "extra" in modo asincrono ---
+        await Promise.all([
+            loadStyleClientPhotos(clientId),
+            loadTrichoClientPhotos(clientId),
+            caricaRiepilogoAnalisi(clientId),
+            loadAndDisplayRelazioni(clientId),
+            loadAndDisplayBuoni(clientId, false),
+            loadAndDisplayBuoniAcquistati(clientId, false)
+        ]);
 
     } catch (error) {
         console.error("Errore in loadClientData:", error);
@@ -603,16 +627,16 @@ function displayAcquisti(acquistiString, anno) {
 	async function loadStyleClientPhotos(clientId) {
     const galleryContent = document.getElementById('photo-gallery-content');
     const filterContainer = document.getElementById('photo-tags-filter-container');
-
     galleryContent.innerHTML = '<p class="loading-message">Caricamento foto...</p>';
     filterContainer.innerHTML = '';
-
     try {
         const response = await fetch(`/api/clienti/${clientId}/photos`);
         const photos = await handleApiResponse(response);
-		const stylePhotos = photos.filter(p => !(p.tags || []).includes('_trico'));
-        galleryContent.innerHTML = '';
+        const stylePhotos = photos.filter(p => !(p.tags || []).includes('_trico'));
+        
+        setupCollapsiblePanel('#photo-gallery-panel', stylePhotos);
 
+        galleryContent.innerHTML = '';
         if (!stylePhotos || stylePhotos.length === 0) {
             galleryContent.innerHTML = '<p>Nessuna foto presente.</p>';
             return;
@@ -874,20 +898,20 @@ async function loadAndDisplayRelazioni(clienteId) {
         const response = await fetch(`/api/clienti/${clienteId}/relazioni`);
         const relazioni = await handleApiResponse(response);
 
+        // --- USA L'ID CORRETTO ---
+        setupCollapsiblePanel('#relazioni-panel-section', relazioni);
+
         relazioniContainer.innerHTML = '';
         if (!relazioni || relazioni.length === 0) {
             relazioniContainer.innerHTML = '<p>Nessun cliente correlato.</p>';
-            return;
+        } else {
+            relazioni.forEach(rel => {
+                const div = document.createElement('div');
+                div.className = 'relazione-item';
+                div.innerHTML = `<span>${rel.tipo_relazione}: <a href="/scheda-cliente.html?id=${rel.cliente_correlato_id}">${rel.cliente_correlato_nome} ${rel.cliente_correlato_cognome}</a></span>`;
+                relazioniContainer.appendChild(div);
+            });
         }
-
-        relazioni.forEach(rel => {
-            const div = document.createElement('div');
-            div.className = 'relazione-item';
-            div.innerHTML = `
-                <span>${rel.tipo_relazione}: <a href="/scheda-cliente.html?id=${rel.cliente_correlato_id}">${rel.cliente_correlato_nome} ${rel.cliente_correlato_cognome}</a></span>
-            `;
-            relazioniContainer.appendChild(div);
-        });
     } catch (error) {
         console.error("Errore caricamento relazioni:", error);
         relazioniContainer.innerHTML = '<p class="error-message">Errore caricamento.</p>';
@@ -950,72 +974,48 @@ async function handleDeleteRelazione(relazioneId) {
 
 // --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
 async function loadAndDisplayBuoni(clienteId, mostraStorico = false) {
-    buonoValoreDisponibile = null; // Resetta ad ogni caricamento
-    buoniContainer.innerHTML = '<h3 class="panel-subtitle" style="margin-bottom: 10px;">Buoni Ricevuti</h3>';
-    
+    buonoValoreDisponibile = null;
+    buoniContainer.innerHTML = '<h4 class="panel-subtitle" style="margin-bottom: 10px; font-size: 1em;">Buoni Ricevuti</h4>';
     try {
-               const endpoint = mostraStorico ? `/api/clienti/${clienteId}/buoni/storico` : `/api/clienti/${clienteId}/buoni`;
+        const endpoint = mostraStorico ? `/api/clienti/${clienteId}/buoni/storico` : `/api/clienti/${clienteId}/buoni`;
         const response = await fetch(endpoint);
         const buoni = await handleApiResponse(response);
 
-        if (!buoni || buoni.length === 0) {
-            buoniContainer.innerHTML += '<p>Nessun buono o pacchetto attivo ricevuto.</p>';
-            return;
+        // --- USA L'ID CORRETTO ---
+        if (!mostraStorico) {
+            setupCollapsiblePanel('#buoni-panel-section', buoni);
         }
 
-        // Cerca il PRIMO buono a valore attivo e salvalo per un uso futuro nelle modali
-        buonoValoreDisponibile = buoni.find(b => b.tipo_buono === 'valore' && b.stato === 'attivo' && parseFloat(b.valore_rimanente_euro) > 0);
-
-        // Cicla su TUTTI i buoni per mostrarli
-        buoni.forEach(buono => {
-            const div = document.createElement('div');
-            div.className = `buono-item ${buono.stato === 'esaurito' ? 'stato-esaurito' : ''}`;
-            
-            let dettagliHtml = '';
-            if (buono.tipo_buono === 'quantita') {
-                dettagliHtml = '<div class="buono-servizi-lista">';
-                buono.servizi_inclusi.forEach(s => {
-                    const rimanenti = s.totali - s.usati;
-                    dettagliHtml += `
-                        <div class="buono-servizio-item">
-                            <span>${s.servizio}: <strong>${rimanenti}</strong> / ${s.totali} rimanenti</span>
-                            ${rimanenti > 0 ? `<button class="btn btn-primary btn-usa-servizio" data-buono-id="${buono.id}" data-servizio-nome="${s.servizio}">Usa 1</button>` : '<span>Esaurito</span>'}
-                        </div>
-                    `;
-                });
-                dettagliHtml += '</div>';
-            } else if (buono.tipo_buono === 'valore') {
-                dettagliHtml = `
-                    <div class="buono-valore-info">
-                        <p>Credito residuo: <strong>€ ${parseFloat(buono.valore_rimanente_euro).toFixed(2)}</strong> / ${parseFloat(buono.valore_iniziale_euro).toFixed(2)}</p>
-                    </div>
-                `;
-            }
-
-            // Aggiungiamo il bottone link per la condivisione
-            div.innerHTML = `
-                <div class="buono-header">
-                    <h4>${buono.descrizione || 'Buono Prepagato'}</h4>
-                    <div style="text-align: right;">
-                        <button class="btn-icon btn-share-buono" data-token="${buono.token_accesso}" title="Condividi Link Buono">🔗</button>
-                        <span style="font-size: 0.8em; color: #ccc;">Acquistato da: ${buono.acquirente_nome} ${buono.acquirente_cognome}</span>
-                    </div>
-                </div>
-                <div class="buono-dettagli">
-                    ${dettagliHtml}
-                </div>
-            `;
-            buoniContainer.appendChild(div);
-        });
+        if (!buoni || buoni.length === 0) {
+            buoniContainer.innerHTML += '<p>Nessun buono o pacchetto ricevuto.</p>';
+        } else {
+            buonoValoreDisponibile = buoni.find(b => b.tipo_buono === 'valore' && b.stato === 'attivo' && parseFloat(b.valore_rimanente_euro) > 0);
+            buoni.forEach(buono => {
+                const div = document.createElement('div');
+                div.className = `buono-item ${buono.stato === 'esaurito' ? 'stato-esaurito' : ''}`;
+                // ... (il resto della logica interna non cambia)
+                let dettagliHtml = '';
+                if (buono.tipo_buono === 'quantita') {
+                    dettagliHtml = '<div class="buono-servizi-lista">';
+                    buono.servizi_inclusi.forEach(s => {
+                        const rimanenti = s.totali - s.usati;
+                        dettagliHtml += `<div class="buono-servizio-item"><span>${s.servizio}: <strong>${rimanenti}</strong> / ${s.totali} rimanenti</span>${rimanenti > 0 ? `<button class="btn btn-primary btn-usa-servizio" data-buono-id="${buono.id}" data-servizio-nome="${s.servizio}">Usa 1</button>` : '<span>Esaurito</span>'}</div>`;
+                    });
+                    dettagliHtml += '</div>';
+                } else if (buono.tipo_buono === 'valore') {
+                    dettagliHtml = `<div class="buono-valore-info"><p>Credito residuo: <strong>€ ${parseFloat(buono.valore_rimanente_euro).toFixed(2)}</strong> / ${parseFloat(buono.valore_iniziale_euro).toFixed(2)}</p></div>`;
+                }
+                div.innerHTML = `<div class="buono-header"><h4>${buono.descrizione || 'Buono Prepagato'}</h4><div style="text-align: right;"><button class="btn-icon btn-share-buono" data-token="${buono.token_accesso}" title="Condividi Link Buono">🔗</button><span style="font-size: 0.8em; color: #ccc;">Acquistato da: ${buono.acquirente_nome} ${buono.acquirente_cognome}</span></div></div><div class="buono-dettagli">${dettagliHtml}</div>`;
+                buoniContainer.appendChild(div);
+            });
+        }
     } catch (error) {
         console.error("Errore caricamento buoni:", error);
         buoniContainer.innerHTML += '<p class="error-message">Errore caricamento buoni.</p>';
     }
 }
 
-// --- INCOLLA QUESTA NUOVA FUNZIONE IN SCHEDA-CLIENTE.JS ---
-
-// Funzione per mostrare i buoni che il cliente ha ACQUISTATO per altri
+// QUESTA FUNZIONE MANCAVA, INCOLLALA
 async function loadAndDisplayBuoniAcquistati(clienteId, mostraStorico = false) {
     buoniAcquistatiContainer.innerHTML = '<p class="loading-message">Caricamento...</p>';
     try {
@@ -1031,15 +1031,13 @@ async function loadAndDisplayBuoniAcquistati(clienteId, mostraStorico = false) {
 
         buoni.forEach(buono => {
             const div = document.createElement('div');
-            // Usiamo le stesse classi CSS dei buoni ricevuti per avere uno stile coerente
             div.className = `buono-item ${buono.stato === 'esaurito' ? 'stato-esaurito' : ''}`;
-            
             let dettagliHtml = `<p>Beneficiario: <a href="/scheda-cliente.html?id=${buono.beneficiario_id}" title="Vai alla scheda di ${buono.beneficiario_nome}">${buono.beneficiario_nome} ${buono.beneficiario_cognome}</a></p>`;
 
             if (buono.tipo_buono === 'quantita') {
                 const serviziRimanenti = buono.servizi_inclusi.map(s => `${s.servizio} (${s.totali - s.usati}/${s.totali})`).join(', ');
                 dettagliHtml += `<p><strong>Servizi:</strong> ${serviziRimanenti}</p>`;
-            } else { // tipo_buono === 'valore'
+            } else {
                 dettagliHtml += `<p><strong>Credito:</strong> € ${parseFloat(buono.valore_rimanente_euro).toFixed(2)} / ${parseFloat(buono.valore_iniziale_euro).toFixed(2)}</p>`;
             }
 
@@ -1058,6 +1056,75 @@ async function loadAndDisplayBuoniAcquistati(clienteId, mostraStorico = false) {
     } catch (error) {
         console.error("Errore caricamento buoni acquistati:", error);
         buoniAcquistatiContainer.innerHTML = '<p class="error-message">Errore caricamento.</p>';
+    }
+}
+
+// --- INCOLLA QUESTA NUOVA FUNZIONE IN SCHEDA-CLIENTE.JS ---
+
+// Funzione per mostrare i buoni che il cliente ha ACQUISTATO per altri
+async function loadAndDisplayBuoni(clienteId, mostraStorico = false) {
+    buonoValoreDisponibile = null; // Resetta ad ogni caricamento
+    buoniContainer.innerHTML = '<h4 class="panel-subtitle" style="margin-bottom: 10px; font-size: 1em;">Buoni Ricevuti</h4>';
+    
+    try {
+        const endpoint = mostraStorico ? `/api/clienti/${clienteId}/buoni/storico` : `/api/clienti/${clienteId}/buoni`;
+        const response = await fetch(endpoint);
+        const buoni = await handleApiResponse(response);
+
+        if (!buoni || buoni.length === 0) {
+            buoniContainer.innerHTML += '<p>Nessun buono o pacchetto ricevuto.</p>';
+        } else {
+            // Cerca il PRIMO buono a valore attivo e salvalo per un uso futuro nelle modali
+            buonoValoreDisponibile = buoni.find(b => b.tipo_buono === 'valore' && b.stato === 'attivo' && parseFloat(b.valore_rimanente_euro) > 0);
+
+            // Cicla su TUTTI i buoni per mostrarli
+            buoni.forEach(buono => {
+                const div = document.createElement('div');
+                div.className = `buono-item ${buono.stato === 'esaurito' ? 'stato-esaurito' : ''}`;
+                
+                let dettagliHtml = '';
+                if (buono.tipo_buono === 'quantita') {
+                    dettagliHtml = '<div class="buono-servizi-lista">';
+                    buono.servizi_inclusi.forEach(s => {
+                        const rimanenti = s.totali - s.usati;
+                        dettagliHtml += `
+                            <div class="buono-servizio-item">
+                                <span>${s.servizio}: <strong>${rimanenti}</strong> / ${s.totali} rimanenti</span>
+                                ${rimanenti > 0 ? `<button class="btn btn-primary btn-usa-servizio" data-buono-id="${buono.id}" data-servizio-nome="${s.servizio}">Usa 1</button>` : '<span>Esaurito</span>'}
+                            </div>
+                        `;
+                    });
+                    dettagliHtml += '</div>';
+                } else if (buono.tipo_buono === 'valore') {
+                    dettagliHtml = `
+                        <div class="buono-valore-info">
+                            <p>Credito residuo: <strong>€ ${parseFloat(buono.valore_rimanente_euro).toFixed(2)}</strong> / ${parseFloat(buono.valore_iniziale_euro).toFixed(2)}</p>
+                        </div>
+                    `;
+                }
+
+                div.innerHTML = `
+                    <div class="buono-header">
+                        <h4>${buono.descrizione || 'Buono Prepagato'}</h4>
+                        <div style="text-align: right;">
+                            <button class="btn-icon btn-share-buono" data-token="${buono.token_accesso}" title="Condividi Link Buono">🔗</button>
+                            <span style="font-size: 0.8em; color: #ccc;">Acquistato da: ${buono.acquirente_nome} ${buono.acquirente_cognome}</span>
+                        </div>
+                    </div>
+                    <div class="buono-dettagli">
+                        ${dettagliHtml}
+                    </div>
+                `;
+                buoniContainer.appendChild(div);
+            });
+        }
+        
+        return buoni; // <-- Restituisce i dati caricati (o un array vuoto)
+
+    } catch (error) {
+        console.error("Errore caricamento buoni:", error);
+        buoniContainer.innerHTML += '<p class="error-message">Errore caricamento buoni.</p>';
+        return []; // Restituisce un array vuoto in caso di errore
     }
 }
 
@@ -1266,19 +1333,16 @@ async function handleEditPhoto(event) {
 	
 	
     
-    async function caricaRiepilogoAnalisi(clienteId) {
-        const contentDiv = document.getElementById('analisi-riepilogo-content');
-        const storicoBtn = document.getElementById('storico-analisi-btn');
-        const panel = document.getElementById('analisi-tricologica-panel');
-        if (!contentDiv || !storicoBtn || !panel) return;
+async function caricaRiepilogoAnalisi(clienteId) {
+    const contentDiv = document.getElementById('analisi-riepilogo-content');
+    const storicoBtn = document.getElementById('storico-analisi-btn');
+    try {
+        const response = await fetch(`/api/clienti/${clienteId}/analisi/riepilogo`);
+        const riepilogo = await handleApiResponse(response);
 
-        try {
-            const response = await fetch(`/api/clienti/${clienteId}/analisi/riepilogo`);
-            const riepilogo = await handleApiResponse(response);
-            if (riepilogo === null && !response.ok) throw new Error('Errore di rete');
-            contentDiv.innerHTML = '';
+        setupCollapsiblePanel('#analisi-tricologica-panel', riepilogo);
 
-            if (riepilogo) {
+        if (riepilogo) {
                 const dataFormattata = new Date(riepilogo.data_analisi).toLocaleDateString('it-IT');
                 contentDiv.innerHTML = `
     <div class="riepilogo-item"><strong>Data Ultima Analisi:</strong><span>${dataFormattata}</span></div>
@@ -1805,15 +1869,10 @@ async function getClientIdsFromSearch() {
     }
 
     if (currentClientId) {
-        // [MODIFICA] Chiamata a loadClientData che caricherà l'anno di default
+        // Ora questa funzione chiama SOLO le funzioni di caricamento.
+        // La logica per collassare i pannelli è GIA' DENTRO ogni funzione.
         await loadClientData(currentClientId); 
 
-        // [MODIFICHE SUCCESSIVE] Caricamento delle altre sezioni
-        await caricaRiepilogoAnalisi(currentClientId);
-        await loadAndDisplayRelazioni(currentClientId);
-        await loadAndDisplayBuoni(currentClientId, false);
-        await loadAndDisplayBuoniAcquistati(currentClientId, false);
-        
         const nuovaAnalisiIconBtn = document.getElementById('nuova-analisi-btn');
         if (nuovaAnalisiIconBtn) {
             nuovaAnalisiIconBtn.addEventListener('click', () => {

@@ -21,6 +21,7 @@
         
         <div class="panel-grid-new">
             
+            <!-- Pannello Profilo (non collassabile) -->
             <div class="panel client-details-panel">
                 <h2 class="panel-title profile-title-container">
                     <img id="profile-avatar" src="/img/default-avatar.png" alt="Avatar Cliente" class="profile-avatar">
@@ -34,40 +35,51 @@
                         <span id="stato-pagamento-badge" class="status-badge">Caricamento...</span>
                     </p>
 				</div>
-
 				<hr style="border-color: #444; margin: 20px 0;">
-
 				<div class="detail-group">
 				    <label for="cliente-note" class="form-label" style="font-size: 1.2em; color: #FFD700;">Note e Preferenze:</label>
 				    <textarea id="cliente-note" class="textarea-field" rows="2" placeholder="Aggiungi note..."></textarea>
 				</div>
-
                 <div class="panel-actions-multiple">
-				<button id="salva-note-btn" class="btn btn-primary">Salva Note</button>
+				    <button id="salva-note-btn" class="btn btn-primary">Salva Note</button>
                     <button class="btn btn-primary" id="modificaDettagliBtn">✏️ Modifica Profilo</button>
-                    
                 </div>
             </div>
 
+             <!-- ========================================================== -->
+            <!-- === PANNELLO DESTRO - === -->
+            <!-- ========================================================== -->
             <div class="panel">
-                <div class="panel-section">
-                    <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span>Clienti Correlati</span>
-                        <button class="btn btn-icon" id="gestisciRelazioniBtn" title="Gestisci Clienti Correlati">➕</button>
-                    </h3>
-                    <div id="relazioni-container">
-                        <p class="loading-message">Caricamento legami...</p>
+
+                <!-- Sezione Clienti Correlati -->
+                <div class="panel-section collapsible-panel" id="relazioni-panel-section">
+                    <div class="collapsible-header">
+                        <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span>Clienti Correlati</span>
+                            <button class="btn btn-icon" id="gestisciRelazioniBtn" title="Gestisci Clienti Correlati">➕</button>
+                        </h3>
+                        <span class="collapsible-arrow">▼</span>
+                    </div>
+                    <div class="collapsible-content">
+                        <div id="relazioni-container" style="padding-top: 15px;">
+                            <p class="loading-message">Caricamento legami...</p>
+                        </div>
                     </div>
                 </div>
 
                 <hr style="border-color: #444; margin: 20px 0;">
                 
-                <div class="panel-section">
-                    <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span>Buoni / Pacchetti Attivi</span>
-                        <button class="btn btn-icon" id="creaBuonoBtn" title="Crea Nuovo Buono">➕</button>
-                    </h3>
-                    <div class="panel-content">
+                <!-- Sezione Buoni / Pacchetti Attivi -->
+                <div class="panel-section collapsible-panel" id="buoni-panel-section">
+                    <div class="collapsible-header">
+                        <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span>Buoni / Pacchetti Attivi</span>
+                            <button class="btn btn-icon" id="creaBuonoBtn" title="Crea Nuovo Buono">➕</button>
+                        </h3>
+                        <span class="collapsible-arrow">▼</span>
+                    </div>
+                    <div class="collapsible-content" style="padding-top: 15px;">
+                        <!-- IL DIV "panel-content" È STATO RIMOSSO DA QUI -->
                         <div id="buoni-container">
                             <h4 class="panel-subtitle" style="margin-bottom: 10px; font-size: 1em;">Buoni Ricevuti</h4>
                             <p class="loading-message">Caricamento buoni ricevuti...</p>
@@ -83,89 +95,115 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="panel full-width-panel treatments-panel">
-<h2 class="panel-title">
-    <span>Servizi e Trattamenti <span class="panel-client-name"></span></span>
-    <button class="btn btn-icon" id="aggiungiTrattamentoBtn" title="Aggiungi Nuovo Trattamento">➕</button>
-</h2>
-                <div class="filter-controls" id="trattamenti-filter-controls"></div>
-                <div class="panel-content table-responsive">
-                    <table class="trattamenti data-table">
-                        <thead>
-                            <tr>
-                                <th>Servizi</th>
-								<th>Descrizione</th>
-                                <th>Data</th>
-                                <th>Prezzo Tot.</th>
-                                <th>Pagato</th>
-                                <th>Note</th>
-                                <th>Azione</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lista-trattamenti"></tbody>
-                    </table>
+            </div>
+            <!-- ========================================================== -->
+            <!-- ==================== FINE PANNELLO DESTRO ================== -->
+            <!-- ========================================================== -->
+
+            <!-- Pannello Servizi e Trattamenti (ora collassabile) -->
+            <div class="panel full-width-panel treatments-panel collapsible-panel">
+                <div class="collapsible-header">
+                    <h2 class="panel-title">
+                        <span>Servizi e Trattamenti <span class="panel-client-name"></span></span>
+                        <button class="btn btn-icon" id="aggiungiTrattamentoBtn" title="Aggiungi Nuovo Trattamento">➕</button>
+                    </h2>
+                    <span class="collapsible-arrow">▼</span>
                 </div>
-            </div>
-
-            <div class="panel full-width-panel purchases-panel">
-<h2 class="panel-title">
-    <span>Acquisti Prodotti <span class="panel-client-name"></span></span>
-    <button class="btn btn-icon" id="aggiungi-acquisto-btn" title="Aggiungi Nuovo Acquisto">➕</button>
-</h2>
-                <div class="filter-controls" id="acquisti-filter-controls"></div>
-                <div class="panel-content table-responsive">
-                    <table class="acquisti-table data-table">
-                        <thead>
-                            <tr>
-                                <th>Prodotto</th>
-                                <th>Data</th>
-                                <th>Prezzo Unit.</th>
-                                <th>Qtà</th>
-                                <th>Prezzo Tot.</th>
-                                <th>Pagato</th>
-                                <th>Note</th>
-                                <th>Azione</th>
-                            </tr>
-                        </thead>
-                        <tbody id="lista-acquisti"></tbody>
-                    </table>
+                <div class="collapsible-content">
+                    <div class="filter-controls" id="trattamenti-filter-controls"></div>
+                    <div class="panel-content table-responsive">
+                        <table class="trattamenti data-table">
+                            <thead>
+                                <tr>
+                                    <th>Servizi</th>
+                                    <th>Descrizione</th>
+                                    <th>Data</th>
+                                    <th>Prezzo Tot.</th>
+                                    <th>Pagato</th>
+                                    <th>Note</th>
+                                    <th>Azione</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-trattamenti"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <div class="panel full-width-panel" id="analisi-tricologica-panel">
-                <h2 class="panel-title">
-<h2 class="panel-title">
-    <span>Analisi Trico-Cosmetica <span class="panel-client-name"></span></span>
-    <button class="btn btn-icon" id="nuova-analisi-btn" title="Aggiungi Nuova Analisi">➕</button>
-</h2>
-                <div id="analisi-riepilogo-content">
-                    <p class="loading-message">Caricamento riepilogo analisi...</p>
+            <!-- Pannello Acquisti Prodotti (ora collassabile) -->
+            <div class="panel full-width-panel purchases-panel collapsible-panel">
+                <div class="collapsible-header">
+                    <h2 class="panel-title">
+                        <span>Acquisti Prodotti <span class="panel-client-name"></span></span>
+                        <button class="btn btn-icon" id="aggiungi-acquisto-btn" title="Aggiungi Nuovo Acquisto">➕</button>
+                    </h2>
+                    <span class="collapsible-arrow">▼</span>
                 </div>
-	
-                <hr style="border-color: #444; margin: 20px 0;">
-                <div class="panel" id="tricho-photo-gallery-panel" style="border: none; box-shadow: none; padding: 0; margin-top: 15px;">
-                    <h3 class="panel-title" style="font-size: 1.2em;">
-                        <span>Foto Analisi</span>
-                        <button class="btn btn-icon" id="add-tricho-photo-btn" title="Aggiungi Foto Trico">➕</button>
-                    </h3>
-                    <div id="tricho-photo-tags-filter-container" class="tags-filter-container"></div>
-                    <div class="panel-content" id="tricho-photo-gallery-content" style="padding: 0;"></div>
-                </div>
-                <div class="panel-actions">
-                    <a href="#" id="storico-analisi-btn" class="btn btn-nav" style="display: none;">Vedi Storico Completo</a>
+                <div class="collapsible-content">
+                    <div class="filter-controls" id="acquisti-filter-controls"></div>
+                    <div class="panel-content table-responsive">
+                        <table class="acquisti-table data-table">
+                            <thead>
+                                <tr>
+                                    <th>Prodotto</th>
+                                    <th>Data</th>
+                                    <th>Prezzo Unit.</th>
+                                    <th>Qtà</th>
+                                    <th>Prezzo Tot.</th>
+                                    <th>Pagato</th>
+                                    <th>Note</th>
+                                    <th>Azione</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-acquisti"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <div class="panel full-width-panel" id="photo-gallery-panel">
-<h2 class="panel-title">
-    <span>Archivio Foto <span class="panel-client-name"></span></span>
-    <button class="btn btn-icon" id="add-photo-btn" title="Aggiungi Nuova Foto">➕</button>
-</h2>
-                <div id="photo-tags-filter-container" class="tags-filter-container"></div>
-                <div class="panel-content" id="photo-gallery-content">
-                    <p class="loading-message">Caricamento foto in corso...</p>
+            <!-- Pannello Analisi Trico-Cosmetica (ora collassabile) -->
+            <div class="panel full-width-panel collapsible-panel" id="analisi-tricologica-panel">
+                <div class="collapsible-header">
+                    <h2 class="panel-title">
+                        <span>Analisi Trico-Cosmetica <span class="panel-client-name"></span></span>
+                        <button class="btn btn-icon" id="nuova-analisi-btn" title="Aggiungi Nuova Analisi">➕</button>
+                    </h2>
+                    <span class="collapsible-arrow">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <div id="analisi-riepilogo-content">
+                        <p class="loading-message">Caricamento riepilogo analisi...</p>
+                    </div>
+                    <hr style="border-color: #444; margin: 20px 0;">
+                    <div class="panel" id="tricho-photo-gallery-panel" style="border: none; box-shadow: none; padding: 0; margin-top: 15px;">
+                        <h3 class="panel-title" style="font-size: 1.2em;">
+                            <span>Foto Analisi</span>
+                            <button class="btn btn-icon" id="add-tricho-photo-btn" title="Aggiungi Foto Trico">➕</button>
+                        </h3>
+                        <div id="tricho-photo-tags-filter-container" class="tags-filter-container"></div>
+                        <div class="panel-content" id="tricho-photo-gallery-content" style="padding: 0;"></div>
+                    </div>
+                    <div class="panel-actions">
+                        <a href="#" id="storico-analisi-btn" class="btn btn-nav" style="display: none;">Vedi Storico Completo</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pannello Archivio Foto (ora collassabile) -->
+            <div class="panel full-width-panel collapsible-panel" id="photo-gallery-panel">
+                <div class="collapsible-header">
+                    <h2 class="panel-title">
+                        <span>Archivio Foto <span class="panel-client-name"></span></span>
+                        <button class="btn btn-icon" id="add-photo-btn" title="Aggiungi Nuova Foto">➕</button>
+                    </h2>
+                    <span class="collapsible-arrow">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <div id="photo-tags-filter-container" class="tags-filter-container"></div>
+                    <div class="panel-content" id="photo-gallery-content">
+                        <p class="loading-message">Caricamento foto in corso...</p>
+                    </div>
                 </div>
             </div>
         </div>
