@@ -190,29 +190,62 @@ const LISTA_SERVIZI_DISPONIBILI = [
 // --- 2. FUNZIONI DI UTILITÀ ---
 
 // --- FUNZIONE PER GESTIRE I PANNELLI COLLASSABILI IN MODO INTELLIGENTE ---
-function setupCollapsiblePanel(panelSelector, data) {
-    const panel = document.querySelector(panelSelector);
-    if (!panel) return;
+// --- Gestione pannelli collassabili unificata ---
+function initCollapsiblePanels() {
+  const panels = document.querySelectorAll('.collapsible-panel');
 
+  panels.forEach(panel => {
     const header = panel.querySelector('.collapsible-header');
-    if (!header) return; // Sicurezza aggiuntiva
-    
-    // Controlliamo se i dati sono "vuoti"
-    const isEmpty = !data || (Array.isArray(data) && data.length === 0);
+    const arrow  = panel.querySelector('.collapsible-arrow');
 
-    if (isEmpty) {
-        panel.classList.add('closed');
-    } else {
-        panel.classList.remove('closed');
-    }
+    if (!header) return;
 
+    // Imposta stato iniziale freccia
+    arrow.textContent = panel.classList.contains('closed') ? '▼' : '▲';
+
+    // Aggiungi listener una sola volta
     if (!header.dataset.listenerAttached) {
-        header.addEventListener('click', () => {
-            panel.classList.toggle('closed');
-        });
-        header.dataset.listenerAttached = 'true';
+      header.addEventListener('click', (event) => {
+        // Ignora click su bottoni dentro l’header (es: ➕ creaBuonoBtn)
+        if (event.target.closest('button, .btn, [data-no-collapse]')) {
+          return;
+        }
+
+        panel.classList.toggle('closed');
+        arrow.textContent = panel.classList.contains('closed') ? '▼' : '▲';
+      });
+
+      header.dataset.listenerAttached = 'true';
     }
+  });
 }
+
+// --- Imposta aperto/chiuso in base ai dati ---
+function setPanelStateByData(panelSelector, data) {
+  const panel = document.querySelector(panelSelector);
+  if (!panel) return;
+
+  const isEmpty = !data || (Array.isArray(data) && data.length === 0);
+  panel.classList.toggle('closed', isEmpty);
+
+  const header = panel.querySelector('.collapsible-header');
+  const arrow  = panel.querySelector('.collapsible-arrow');
+  if (header && arrow) {
+    arrow.textContent = panel.classList.contains('closed') ? '▼' : '▲';
+  }
+}
+
+// Alias per compatibilità col vecchio codice
+function setupCollapsiblePanel(panelSelector, data) {
+  setPanelStateByData(panelSelector, data);
+}
+
+
+
+// Chiamala quando il DOM è pronto
+document.addEventListener('DOMContentLoaded', initCollapsiblePanels);
+
+
 
 
     function showMessage(message, type = 'info', onCloseCallback = null) {
@@ -970,9 +1003,6 @@ async function handleDeleteRelazione(relazioneId) {
 // === FUNZIONI PER GESTIONE BUONI PREPAGATI           ===
 // =======================================================
 
-// Funzione per caricare e mostrare i buoni nella scheda cliente
-
-// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
 async function loadAndDisplayBuoni(clienteId, mostraStorico = false) {
     buonoValoreDisponibile = null;
     buoniContainer.innerHTML = '<h4 class="panel-subtitle" style="margin-bottom: 10px; font-size: 1em;">Buoni Ricevuti</h4>';
@@ -981,10 +1011,10 @@ async function loadAndDisplayBuoni(clienteId, mostraStorico = false) {
         const response = await fetch(endpoint);
         const buoni = await handleApiResponse(response);
 
-        // --- USA L'ID CORRETTO ---
-        if (!mostraStorico) {
-            setupCollapsiblePanel('#buoni-panel-section', buoni);
-        }
+        // --- INSERISCI LA CHIAMATA QUI ---
+        // La chiamata a setupCollapsiblePanel deve avvenire una volta sola
+        // dopo che i dati sono stati caricati correttamente.
+        setupCollapsiblePanel('#buoni-panel-section', buoni);
 
         if (!buoni || buoni.length === 0) {
             buoniContainer.innerHTML += '<p>Nessun buono o pacchetto ricevuto.</p>';
@@ -993,7 +1023,7 @@ async function loadAndDisplayBuoni(clienteId, mostraStorico = false) {
             buoni.forEach(buono => {
                 const div = document.createElement('div');
                 div.className = `buono-item ${buono.stato === 'esaurito' ? 'stato-esaurito' : ''}`;
-                // ... (il resto della logica interna non cambia)
+                
                 let dettagliHtml = '';
                 if (buono.tipo_buono === 'quantita') {
                     dettagliHtml = '<div class="buono-servizi-lista">';
@@ -2421,6 +2451,38 @@ toggleStoricoBuoni.addEventListener('click', async (e) => {
 
 // Listener per il bottone "Aggiungi Servizio" nella modale
 aggiungiServizioBtnModal.addEventListener('click', aggiungiRigaServizioModal);
+
+
+// ---- Collapsible universale con delegazione (fixa anche il pannello Buoni) ----
+(function initCollapsibles() {
+  const updateArrow = (header, isClosed) => {
+    const arrow = header.querySelector('.collapsible-arrow');
+    if (arrow) arrow.textContent = isClosed ? '▼' : '▲';
+  };
+
+  // Stato iniziale frecce coerente con .closed
+  document.querySelectorAll('.collapsible-panel').forEach(panel => {
+    const header = panel.querySelector('.collapsible-header');
+    if (header) updateArrow(header, panel.classList.contains('closed'));
+  });
+
+  // Unico listener per tutti i pannelli
+  document.addEventListener('click', (e) => {
+    const header = e.target.closest('.collapsible-header');
+    if (!header) return;
+
+    // Non collassare se il click è su un bottone/controllo interno all'header
+    if (e.target.closest('button, .btn, [data-no-collapse]')) return;
+
+    const panel = header.closest('.collapsible-panel');
+    if (!panel) return;
+
+    panel.classList.toggle('closed');
+    updateArrow(header, panel.classList.contains('closed'));
+  });
+})();
+
+
 
     // --- 7. AVVIO ---
     getClientIdsFromSearch();
