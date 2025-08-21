@@ -1,5 +1,5 @@
 // Codice COMPLETO e CORRETTO per public/js/calendario-logic.js
-// Contiene sia il caricamento degli eventi, sia l'apertura del nuovo modal.
+// Contiene la logica corretta per la gestione del colore "Nessuno"
 
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
     const syncButton = document.getElementById('syncButton');
     
-    // Elementi del Modal per le azioni (quello che c'era già)
+    // Elementi del Modal per le azioni
     const modalElement = document.getElementById('eventActionModal');
     const modalTitle = document.getElementById('modalEventTitle');
     const btnGoToClient = document.getElementById('btnGoToClient');
@@ -15,12 +15,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnDeleteEvent = document.getElementById('btnDeleteEvent');
     const eventModal = new bootstrap.Modal(modalElement);
     
-    // Elementi del Modal NUOVO (per l'aggiunta)
+    // Elementi del Modal per l'aggiunta
     const addEventModalEl = document.getElementById('addEventModal');
     const addEventModal = new bootstrap.Modal(addEventModalEl);
-	
-	const editEventModalEl = document.getElementById('editEventModal');
-	const editEventModal = new bootstrap.Modal(editEventModalEl);
+
+    // Elementi del Modal per la modifica
+    const editEventModalEl = document.getElementById('editEventModal');
+    const editEventModal = new bootstrap.Modal(editEventModalEl);
 
 
     // --- FASE 2: CONFIGURAZIONE DI FULLCALENDAR ---
@@ -40,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
         selectable: true,
         displayEventTime: false,
 
-        // Funzione per creare un nuovo evento (MODIFICATA per usare il nostro modal)
         select: function(selectionInfo) {
             document.getElementById('addEventForm').reset();
             const startStr = new Date(selectionInfo.start.getTime() - (selectionInfo.start.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
@@ -51,14 +51,8 @@ document.addEventListener('DOMContentLoaded', function() {
             calendar.unselect();
         },
 
-        // Funzione che si attiva al click su un evento (ORIGINALE)
         eventClick: function(info) {
             modalTitle.textContent = info.event.title;
-            const googleEventId = info.event.id.replace('@google.com', '');
-            const calendarId = 'qualityhairbolzano@gmail.com';
-            const encodedEventDetails = btoa(`${googleEventId} ${calendarId}`).replace(/=/g, '');
-            const googleEditUrl = `https://calendar.google.com/calendar/event?eid=${encodedEventDetails}`;
-
             btnGoToClient.onclick = async () => {
                 eventModal.hide();
                 const rawTitle = info.event.title.trim();
@@ -82,99 +76,69 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else { alert(`Nessuna corrispondenza trovata.`); }
                 } catch (error) { console.error("Errore ricerca cliente:", error); alert('Errore durante la ricerca.'); }
             };
-
-                                   btnEditInGoogle.onclick = () => {
+            btnEditInGoogle.onclick = () => {
                 eventModal.hide();
-                
                 const startStr = new Date(info.event.start.getTime() - (info.event.start.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
                 const endStr = new Date(info.event.end.getTime() - (info.event.end.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-
                 document.getElementById('editEventId').value = info.event.id;
                 document.getElementById('editEventTitle').value = info.event.title;
                 document.getElementById('editEventStart').value = startStr;
                 document.getElementById('editEventEnd').value = endStr;
-
-                // --- NUOVA LOGICA PER IL COLORE ---
                 const currentColorId = info.event.extendedProps.colorId || "";
-                const radioToCheck = document.querySelector(`input[name="operatorColorEdit"][value="${currentColorId}"]`);
-                if (radioToCheck) {
-                    radioToCheck.checked = true;
-                }
-                // --- FINE NUOVA LOGICA ---
-                
+                const radioToCheck = document.querySelector(`input[name="operatorColorEdit"][value="${currentColorId}"]`) || document.getElementById('op_default_edit');
+                if (radioToCheck) { radioToCheck.checked = true; }
                 editEventModal.show();
             };
-
-                        btnDeleteEvent.onclick = async () => {
+            btnDeleteEvent.onclick = async () => {
                 if (confirm(`Sei sicuro di voler cancellare definitivamente l'appuntamento "${info.event.title}"?`)) {
                     try {
                         const eventId = info.event.id;
-                        
-                        // Invia l'ordine di cancellazione al nostro server
-                        const response = await fetch(`/api/events/${eventId}`, {
-                            method: 'DELETE'
-                        });
-
-                        if (!response.ok) {
-                            throw new Error('La richiesta di cancellazione è fallita.');
-                        }
-
-                        // Se tutto è andato bene, chiudi la finestra e ricarica il calendario
+                        const response = await fetch(`/api/events/${eventId}`, { method: 'DELETE' });
+                        if (!response.ok) { throw new Error('La richiesta di cancellazione è fallita.'); }
                         eventModal.hide();
                         calendar.refetchEvents();
-
                     } catch (error) {
                         console.error("Errore durante la cancellazione:", error);
                         alert("Impossibile cancellare l'appuntamento. Riprova.");
                     }
                 }
             };
-            
             eventModal.show();
         },
 
-        // Funzione per caricare gli eventi (ORIGINALE)
         events: function(fetchInfo, successCallback, failureCallback) {
              fetch('/api/events')
                 .then(response => response.json())
                 .then(data => {
-                     const googleColorMap = { '1': '#a4bdfc', '2': '#7ae7bf', '3': '#dbadff', '4': '#ff887c', '5': '#fbd75b', '6': '#ffb878', '7': '#46d6db', '8': '#e1e1e1', '9': '#5484ed', '10': '#51b749', '11': '#dc2127' };
-                    const coloreTino = '#46d6db';
-                    const coloreSandro = '#81C784';
-                    const coloreClienti = '#81C784';
-                    const coloreGenerale = '#FF9800';
+                    const googleColorMap = { 
+                        '1': '#a4bdfc', '2': '#81C784', '3': '#dbadff', '4': '#ff887c', '5': '#fbd75b', 
+                        '6': '#ffb878', '7': '#46d6db', '8': '#e1e1e1', '9': '#5484ed', '10': '#51b749', '11': '#dc2127' 
+                    };
+                    const coloreGenerale = googleColorMap['6']; // ARANCIONE
                     const sigleTrattamenti = [ 'tg', 'tn', 'tratt', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul' ];
                     const events = data.map(event => {
                         let coloreDaUsare = null;
                         let testoColore = 'white';
+                        const titolo = event.summary ? event.summary.toLowerCase() : '';
+                        
                         if (event.color_id && googleColorMap[event.color_id]) {
                             coloreDaUsare = googleColorMap[event.color_id];
-                            testoColore = ['#fbd75b', '#ffb878', '#e1e1e1'].includes(coloreDaUsare.toLowerCase()) ? '#000000' : 'white';
+                        } else if (sigleTrattamenti.some(sigla => titolo.endsWith(' ' + sigla) || titolo.endsWith(sigla) || titolo.includes(' ' + sigla + ' '))) {
+                            coloreDaUsare = googleColorMap['2'];
                         } else {
-                            const titolo = event.summary ? event.summary.toLowerCase() : '';
                             coloreDaUsare = coloreGenerale;
-                            if (sigleTrattamenti.some(sigla => titolo.endsWith(' ' + sigla) || titolo.endsWith(sigla) || titolo.includes(' ' + sigla + ' '))) {
-                                coloreDaUsare = coloreClienti;
-                                testoColore = '#000000';
-                            }
-                            if (titolo.includes('sandro')) coloreDaUsare = coloreSandro;
-                            if (titolo.includes('tino')) coloreDaUsare = coloreTino;
                         }
-                                            return { 
-                        id: event.google_event_id, 
-                        title: event.summary, 
-                        start: event.start_time, 
-                        end: event.end_time, 
-                        allDay: event.is_all_day, 
-                        color: coloreDaUsare, 
-                        textColor: testoColore, 
-                        extendedProps: { 
-                            description: event.description, 
-                            location: event.location, 
-                            creator_email: event.creator_email,
-                            colorId: event.color_id // <-- AGGIUNGI QUESTA RIGA
-                        } 
-                    };
+
+                        const coloriConTestoNero = ['#fbd75b', '#ffb878', '#e1e1e1', '#81C784'];
+                        if (coloriConTestoNero.includes(coloreDaUsare.toLowerCase())) {
+                            testoColore = '#000000';
+                        }
+                        
+                        return { 
+                            id: event.google_event_id, title: event.summary, start: event.start_time, end: event.end_time, allDay: event.is_all_day, 
+                            color: coloreDaUsare, textColor: testoColore, 
+                            extendedProps: { description: event.description, location: event.location, creator_email: event.creator_email, colorId: event.color_id } 
+                        };
                     });
                     successCallback(events);
                 })
@@ -182,8 +146,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-
-    // --- FASE 3: AVVIO E LISTENER AGGIUNTIVI ---
     calendar.render();
 
     syncButton.addEventListener('click', async () => {
@@ -203,84 +165,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-        // --- FASE 4: GESTIONE SALVATAGGIO NUOVO EVENTO (VERSIONE FINALE) ---
     document.getElementById('btnSaveEvent').addEventListener('click', async function() {
-        // 1. Recuperiamo i dati dal modulo
-          const eventData = {
-        summary: document.getElementById('eventTitle').value,
-        start: document.getElementById('eventStart').value,
-        end: document.getElementById('eventEnd').value,
-        colorId: document.querySelector('input[name="operatorColorAdd"]:checked').value
-    };
+        const checkedRadio = document.querySelector('input[name="operatorColorAdd"]:checked');
+        const selectedColorId = checkedRadio ? checkedRadio.value : "";
+        const finalColorId = selectedColorId === "" ? "6" : selectedColorId;
 
-        // 2. Controlliamo che il titolo ci sia
+        const eventData = {
+            summary: document.getElementById('eventTitle').value,
+            start: document.getElementById('eventStart').value,
+            end: document.getElementById('eventEnd').value,
+            colorId: finalColorId
+        };
         if (!eventData.summary || !eventData.start) {
             alert('Per favore, inserisci almeno un titolo per l\'appuntamento.');
             return;
         }
-
         try {
-            // 3. INVIAMO I DATI AL SERVER con una richiesta POST
             const response = await fetch('/api/events/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(eventData) // Convertiamo i dati in formato JSON
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(eventData)
             });
-
-            // 4. Controlliamo la risposta del server
             if (!response.ok) {
-                // Se il server risponde con un errore, lo mostriamo
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'Errore durante il salvataggio.');
             }
-
-            // 5. Se tutto è andato bene...
-            addEventModal.hide(); // Chiudiamo la finestra
-            calendar.refetchEvents(); // E diciamo al calendario di ricaricare TUTTI gli eventi dal server
-
+            addEventModal.hide();
+            calendar.refetchEvents();
         } catch (error) {
-            // In caso di errore di rete o dal server, mostriamo un allarme
             console.error('Errore salvataggio evento:', error);
             alert(`Impossibile salvare l'appuntamento: ${error.message}`);
         }
     });
-	
-	
-	// --- FASE 5: GESTIONE SALVATAGGIO MODIFICHE EVENTO ---
-document.getElementById('btnSaveChanges').addEventListener('click', async function() {
-    const eventId = document.getElementById('editEventId').value;
-       const eventData = {
-        summary: document.getElementById('editEventTitle').value,
-        start: document.getElementById('editEventStart').value,
-        end: document.getElementById('editEventEnd').value,
-        colorId: document.querySelector('input[name="operatorColorEdit"]:checked').value
-    };
 
-    if (!eventData.summary || !eventData.start) {
-        alert('Il titolo e le date sono obbligatori.');
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/events/${eventId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(eventData)
-        });
-
-        if (!response.ok) {
-            throw new Error('Salvataggio delle modifiche fallito.');
+    document.getElementById('btnSaveChanges').addEventListener('click', async function() {
+        const eventId = document.getElementById('editEventId').value;
+        const checkedRadio = document.querySelector('input[name="operatorColorEdit"]:checked');
+        const selectedColorId = checkedRadio ? checkedRadio.value : "";
+        const finalColorId = selectedColorId === "" ? "6" : selectedColorId;
+        
+        const eventData = {
+            summary: document.getElementById('editEventTitle').value,
+            start: document.getElementById('editEventStart').value,
+            end: document.getElementById('editEventEnd').value,
+            colorId: finalColorId
+        };
+        if (!eventData.summary || !eventData.start) {
+            alert('Il titolo e le date sono obbligatori.');
+            return;
         }
-
-        editEventModal.hide();
-        calendar.refetchEvents();
-
-    } catch (error) {
-        console.error("Errore durante la modifica:", error);
-        alert("Impossibile salvare le modifiche. Riprova.");
-    }
-});
+        try {
+            const response = await fetch(`/api/events/${eventId}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(eventData)
+            });
+            if (!response.ok) { throw new Error('Salvataggio delle modifiche fallito.'); }
+            editEventModal.hide();
+            calendar.refetchEvents();
+        } catch (error) {
+            console.error("Errore durante la modifica:", error);
+            alert("Impossibile salvare le modifiche. Riprova.");
+        }
+    });
 
 });
