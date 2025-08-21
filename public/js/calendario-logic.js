@@ -30,10 +30,37 @@ document.addEventListener('DOMContentLoaded', function() {
         locale: 'it',
         firstDay: 1,
         headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-        },
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek,syncButton' // <-- Aggiunto qui
+    },
+
+    // --- QUESTA È LA NUOVA PARTE ---
+    customButtons: {
+        syncButton: {
+            text: 'Sincronizza', // Testo del pulsante
+            click: async function() {
+                // La stessa logica di prima, ma messa qui
+                const syncBtn = document.querySelector('.fc-syncButton-button');
+                const originalText = syncBtn.textContent;
+                syncBtn.textContent = 'Sinc...';
+                syncBtn.disabled = true;
+                try {
+                    await fetch('/api/sync-now', { method: 'POST' });
+                    calendar.refetchEvents();
+                    syncBtn.textContent = 'Fatto!';
+                } catch (error) {
+                    console.error('Errore sincronizzazione:', error);
+                    syncBtn.textContent = 'Errore!';
+                } finally {
+                    setTimeout(() => {
+                        syncBtn.textContent = originalText;
+                        syncBtn.disabled = false;
+                    }, 2000);
+                }
+            }
+        }
+    },
         slotMinTime: '08:00:00',
         slotMaxTime: '20:00:00',
         navLinks: true,
@@ -106,6 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
             eventModal.show();
         },
 
+               // Funzione per caricare gli eventi (CON LOGICA CORRETTA PER NOMI NEL TITOLO)
         events: function(fetchInfo, successCallback, failureCallback) {
              fetch('/api/events')
                 .then(response => response.json())
@@ -116,19 +144,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     };
                     const coloreGenerale = googleColorMap['6']; // ARANCIONE
                     const sigleTrattamenti = [ 'tg', 'tn', 'tratt', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul' ];
+                    
                     const events = data.map(event => {
                         let coloreDaUsare = null;
                         let testoColore = 'white';
                         const titolo = event.summary ? event.summary.toLowerCase() : '';
                         
+                        // --- LOGICA AGGIORNATA CON LA REGOLA MANCANTE ---
                         if (event.color_id && googleColorMap[event.color_id]) {
+                            // 1. La scelta dell'operatore ha la priorità
                             coloreDaUsare = googleColorMap[event.color_id];
+                        } else if (titolo.includes('tino')) {
+                            // 2. Se il titolo contiene 'tino', usa il suo colore
+                            coloreDaUsare = googleColorMap['7'];
+                        } else if (titolo.includes('sandro')) {
+                            // 3. Se il titolo contiene 'sandro', usa il suo colore (ECCO LA REGOLA MANCANTE)
+                            coloreDaUsare = googleColorMap['2'];
                         } else if (sigleTrattamenti.some(sigla => titolo.endsWith(' ' + sigla) || titolo.endsWith(sigla) || titolo.includes(' ' + sigla + ' '))) {
+                            // 4. Altrimenti, controlla le sigle dei trattamenti
                             coloreDaUsare = googleColorMap['2'];
                         } else {
+                            // 5. Se nessuna regola corrisponde, usa il colore generale
                             coloreDaUsare = coloreGenerale;
                         }
 
+                        // Regola finale per il colore del testo (rimane invariata)
                         const coloriConTestoNero = ['#fbd75b', '#ffb878', '#e1e1e1', '#81C784'];
                         if (coloriConTestoNero.includes(coloreDaUsare.toLowerCase())) {
                             testoColore = '#000000';
@@ -148,22 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     calendar.render();
 
-    syncButton.addEventListener('click', async () => {
-        const originalText = syncButton.innerHTML;
-        syncButton.innerHTML = 'Sincronizzazione in corso...';
-        syncButton.disabled = true;
-        try {
-            const response = await fetch('/api/sync-now', { method: 'POST' });
-            if (!response.ok) throw new Error('Errore dal server.');
-            calendar.refetchEvents();
-            syncButton.innerHTML = 'Completata!';
-            setTimeout(() => { syncButton.innerHTML = originalText; syncButton.disabled = false; }, 2000);
-        } catch (error) {
-            console.error('Errore sincronizzazione:', error);
-            syncButton.innerHTML = 'Errore!';
-            setTimeout(() => { syncButton.innerHTML = originalText; syncButton.disabled = false; }, 3000);
-        }
-    });
+    
 
     document.getElementById('btnSaveEvent').addEventListener('click', async function() {
         const checkedRadio = document.querySelector('input[name="operatorColorAdd"]:checked');

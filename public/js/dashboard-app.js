@@ -143,46 +143,52 @@ function closeModal(modalElement, formToReset = null) {
     }
 }
 
-// ==========================================================
-// === LOGICA DI COLORAZIONE (COPIATA DA CALENDARIO.HTML) ===
-// ==========================================================
-// Sostituisci la vecchia getAppointmentColor con questa
-function getAppointmentColor(app) {
-    const googleColorMap = {
-        '1': '#a4bdfc', '2': '#7ae7bf', '3': '#dbadff', '4': '#ff887c',
-        '5': '#fbd75b', '6': '#ffb878', '7': '#46d6db', '8': '#e1e1e1',
-        '9': '#5484ed', '10': '#51b749', '11': '#dc2127'
-    };
-    
-    // Colori di default
-    let backgroundColor = '#FF9800'; // Mandarino (Generale)
-    let textColor = '#FFFFFF';       // Bianco
 
-    // Logica Google Calendar
+// =======================================================
+// === LOGICA DI COLORAZIONE (AGGIORNATA E CORRETTA) ===
+// =======================================================
+function getAppointmentColor(app) {
+    // La nostra mappa dei colori personalizzata, identica a quella del calendario
+    const googleColorMap = { 
+        '1': '#a4bdfc', 
+        '2': '#81C784',  // <-- Colore Sandro/Clienti
+        '3': '#dbadff', 
+        '4': '#ff887c', 
+        '5': '#fbd75b', 
+        '6': '#ffb878',  // <-- Colore Arancione ("Nessuno")
+        '7': '#46d6db',  // <-- Colore Tino
+        '8': '#e1e1e1', 
+        '9': '#5484ed', 
+        '10': '#51b749', 
+        '11': '#dc2127' 
+    };
+
+    const coloreGenerale = googleColorMap['6']; // Arancione di default
+    const sigleTrattamenti = [ 'tg', 'tn', 'tratt', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul' ];
+
+    let backgroundColor = coloreGenerale;
+    let textColor = '#FFFFFF'; // Default testo bianco
+    const titolo = app.summary ? app.summary.toLowerCase() : '';
+
+    // Logica unificata e pulita
     if (app.color_id && googleColorMap[app.color_id]) {
+        // Se c'è un colorId (da scelta operatore), usa la mappa
         backgroundColor = googleColorMap[app.color_id];
-        // Se il colore è chiaro, usa testo nero, altrimenti bianco (la tua logica!)
-        const coloriChiari = ['#fbd75b', '#ffb878', '#e1e1e1', '#a4bdfc', '#7ae7bf'];
-        if (coloriChiari.includes(backgroundColor.toLowerCase())) {
-            textColor = '#000000';
-        }
+    } else if (sigleTrattamenti.some(sigla => titolo.endsWith(' ' + sigla) || titolo.endsWith(sigla) || titolo.includes(' ' + sigla + ' '))) {
+        // Altrimenti, se il titolo contiene una sigla, usa il verde clienti
+        backgroundColor = googleColorMap['2']; // Usa il verde clienti/Sandro dalla mappa
     } else {
-        // Logica personalizzata
-        const titolo = app.summary ? app.summary.toLowerCase() : '';
-        const sigleTrattamenti = ['tg', 'tn', 'tratt', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul'];
-        
-        if (titolo.includes('tino')) {
-            backgroundColor = '#46d6db'; // Pavone
-            textColor = '#FFFFFF';
-        } else if (titolo.includes('sandro')) {
-            backgroundColor = '#81C784'; // Salvia
-            textColor = '#FFFFFF';
-        } else if (sigleTrattamenti.some(sigla => titolo.endsWith(' ' + sigla) || titolo.endsWith(sigla) || titolo.includes(' ' + sigla + ' '))) {
-            backgroundColor = '#81C784'; // Salvia
-            textColor = '#000000';
-        }
+        // Altrimenti, usa il colore generale (Arancione)
+        backgroundColor = coloreGenerale;
     }
 
+    // REGOLA FINALE PER IL COLORE DEL TESTO
+    // Se il colore di sfondo è uno di questi, il testo diventa nero.
+    const coloriConTestoNero = ['#fbd75b', '#ffb878', '#e1e1e1', '#81C784'];
+    if (coloriConTestoNero.includes(backgroundColor.toLowerCase())) {
+        textColor = '#000000';
+    }
+    
     return { backgroundColor, textColor };
 }
 
