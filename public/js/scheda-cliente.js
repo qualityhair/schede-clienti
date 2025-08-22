@@ -925,14 +925,18 @@ async function loadTrichoClientPhotos(clientId) {
 // =======================================================
 
 // Funzione per caricare e mostrare le relazioni nella scheda cliente
+// VERSIONE CORRETTA - Sostituisci la tua con questa
+
 async function loadAndDisplayRelazioni(clienteId) {
     relazioniContainer.innerHTML = '<p class="loading-message">Caricamento...</p>';
     try {
         const response = await fetch(`/api/clienti/${clienteId}/relazioni`);
         const relazioni = await handleApiResponse(response);
 
-        // --- USA L'ID CORRETTO ---
-        setupCollapsiblePanel('#relazioni-panel-section', relazioni);
+        // Questa riga interna non è più necessaria perché gestiamo tutto all'esterno,
+        // ma la lasciamo per coerenza con il tuo codice originale.
+        // NOTA: L'ID corretto dal tuo HTML è '#relazioni-panel', non '#relazioni-panel-section'.
+        setupCollapsiblePanel('#relazioni-panel', relazioni); 
 
         relazioniContainer.innerHTML = '';
         if (!relazioni || relazioni.length === 0) {
@@ -945,9 +949,18 @@ async function loadAndDisplayRelazioni(clienteId) {
                 relazioniContainer.appendChild(div);
             });
         }
+
+        // ---> MODIFICA CHIAVE 1: Aggiungi questo return <---
+        // Restituisce i dati caricati (pieni o vuoti)
+        return relazioni;
+
     } catch (error) {
         console.error("Errore caricamento relazioni:", error);
         relazioniContainer.innerHTML = '<p class="error-message">Errore caricamento.</p>';
+        
+        // ---> MODIFICA CHIAVE 2: Aggiungi questo return <---
+        // Restituisce un array vuoto in caso di errore
+        return [];
     }
 }
 
@@ -1046,6 +1059,8 @@ async function loadAndDisplayBuoni(clienteId, mostraStorico = false) {
 }
 
 // QUESTA FUNZIONE MANCAVA, INCOLLALA
+// VERSIONE CORRETTA - Sostituisci la tua con questa
+
 async function loadAndDisplayBuoniAcquistati(clienteId, mostraStorico = false) {
     buoniAcquistatiContainer.innerHTML = '<p class="loading-message">Caricamento...</p>';
     try {
@@ -1056,7 +1071,8 @@ async function loadAndDisplayBuoniAcquistati(clienteId, mostraStorico = false) {
         buoniAcquistatiContainer.innerHTML = '';
         if (!buoni || buoni.length === 0) {
             buoniAcquistatiContainer.innerHTML = '<p>Nessun buono acquistato per altri clienti.</p>';
-            return;
+            // MODIFICA CHIAVE 1: Restituisce l'array vuoto invece di nulla.
+            return buoni; 
         }
 
         buoni.forEach(buono => {
@@ -1083,78 +1099,69 @@ async function loadAndDisplayBuoniAcquistati(clienteId, mostraStorico = false) {
             buoniAcquistatiContainer.appendChild(div);
         });
 
+        // MODIFICA CHIAVE 2: Aggiungi questo return alla fine del blocco 'try'.
+        return buoni;
+
     } catch (error) {
         console.error("Errore caricamento buoni acquistati:", error);
         buoniAcquistatiContainer.innerHTML = '<p class="error-message">Errore caricamento.</p>';
+        // Restituisce un array vuoto anche in caso di errore.
+        return [];
     }
 }
 
 // --- INCOLLA QUESTA NUOVA FUNZIONE IN SCHEDA-CLIENTE.JS ---
 
 // Funzione per mostrare i buoni che il cliente ha ACQUISTATO per altri
+// VERSIONE FINALE E CORRETTA - Sostituisci la tua con questa
+
 async function loadAndDisplayBuoni(clienteId, mostraStorico = false) {
     buonoValoreDisponibile = null; // Resetta ad ogni caricamento
-    buoniContainer.innerHTML = '<h4 class="panel-subtitle" style="margin-bottom: 10px; font-size: 1em;">Buoni Ricevuti</h4>';
+    buoniContainer.innerHTML = ''; // Pulisce TUTTO il contenitore all'inizio
     
     try {
         const endpoint = mostraStorico ? `/api/clienti/${clienteId}/buoni/storico` : `/api/clienti/${clienteId}/buoni`;
         const response = await fetch(endpoint);
         const buoni = await handleApiResponse(response);
 
+        // --- USA L'ID CORRETTO DAL TUO HTML: #buoni-ricevuti-panel ---
+        setupCollapsiblePanel('#buoni-ricevuti-panel', buoni);
+
         if (!buoni || buoni.length === 0) {
-            buoniContainer.innerHTML += '<p>Nessun buono o pacchetto ricevuto.</p>';
+            buoniContainer.innerHTML = '<p>Nessun buono o pacchetto ricevuto.</p>';
         } else {
-            // Cerca il PRIMO buono a valore attivo e salvalo per un uso futuro nelle modali
             buonoValoreDisponibile = buoni.find(b => b.tipo_buono === 'valore' && b.stato === 'attivo' && parseFloat(b.valore_rimanente_euro) > 0);
 
-            // Cicla su TUTTI i buoni per mostrarli
             buoni.forEach(buono => {
                 const div = document.createElement('div');
                 div.className = `buono-item ${buono.stato === 'esaurito' ? 'stato-esaurito' : ''}`;
                 
                 let dettagliHtml = '';
+                // ... (tutta la logica per creare il dettaglio del buono rimane identica) ...
                 if (buono.tipo_buono === 'quantita') {
                     dettagliHtml = '<div class="buono-servizi-lista">';
                     buono.servizi_inclusi.forEach(s => {
                         const rimanenti = s.totali - s.usati;
-                        dettagliHtml += `
-                            <div class="buono-servizio-item">
-                                <span>${s.servizio}: <strong>${rimanenti}</strong> / ${s.totali} rimanenti</span>
-                                ${rimanenti > 0 ? `<button class="btn btn-primary btn-usa-servizio" data-buono-id="${buono.id}" data-servizio-nome="${s.servizio}">Usa 1</button>` : '<span>Esaurito</span>'}
-                            </div>
-                        `;
+                        dettagliHtml += `<div class="buono-servizio-item"><span>${s.servizio}: <strong>${rimanenti}</strong> / ${s.totali} rimanenti</span>${rimanenti > 0 ? `<button class="btn btn-primary btn-usa-servizio" data-buono-id="${buono.id}" data-servizio-nome="${s.servizio}">Usa 1</button>` : '<span>Esaurito</span>'}</div>`;
                     });
                     dettagliHtml += '</div>';
                 } else if (buono.tipo_buono === 'valore') {
-                    dettagliHtml = `
-                        <div class="buono-valore-info">
-                            <p>Credito residuo: <strong>€ ${parseFloat(buono.valore_rimanente_euro).toFixed(2)}</strong> / ${parseFloat(buono.valore_iniziale_euro).toFixed(2)}</p>
-                        </div>
-                    `;
+                    dettagliHtml = `<div class="buono-valore-info"><p>Credito residuo: <strong>€ ${parseFloat(buono.valore_rimanente_euro).toFixed(2)}</strong> / ${parseFloat(buono.valore_iniziale_euro).toFixed(2)}</p></div>`;
                 }
 
-                div.innerHTML = `
-                    <div class="buono-header">
-                        <h4>${buono.descrizione || 'Buono Prepagato'}</h4>
-                        <div style="text-align: right;">
-                            <button class="btn-icon btn-share-buono" data-token="${buono.token_accesso}" title="Condividi Link Buono">🔗</button>
-                            <span style="font-size: 0.8em; color: #ccc;">Acquistato da: ${buono.acquirente_nome} ${buono.acquirente_cognome}</span>
-                        </div>
-                    </div>
-                    <div class="buono-dettagli">
-                        ${dettagliHtml}
-                    </div>
-                `;
+                // QUI NON C'È PIÙ IL TITOLO DUPLICATO
+                div.innerHTML = `<div class="buono-header"><h4>${buono.descrizione || 'Buono Prepagato'}</h4><div style="text-align: right;"><button class="btn-icon btn-share-buono" data-token="${buono.token_accesso}" title="Condividi Link Buono">🔗</button><span style="font-size: 0.8em; color: #ccc;">Acquistato da: ${buono.acquirente_nome} ${buono.acquirente_cognome}</span></div></div><div class="buono-dettagli">${dettagliHtml}</div>`;
+                
                 buoniContainer.appendChild(div);
             });
         }
         
-        return buoni; // <-- Restituisce i dati caricati (o un array vuoto)
+        return buoni;
 
     } catch (error) {
         console.error("Errore caricamento buoni:", error);
-        buoniContainer.innerHTML += '<p class="error-message">Errore caricamento buoni.</p>';
-        return []; // Restituisce un array vuoto in caso di errore
+        buoniContainer.innerHTML = '<p class="error-message">Errore caricamento buoni.</p>';
+        return [];
     }
 }
 
@@ -1902,6 +1909,17 @@ async function getClientIdsFromSearch() {
         // Ora questa funzione chiama SOLO le funzioni di caricamento.
         // La logica per collassare i pannelli è GIA' DENTRO ogni funzione.
         await loadClientData(currentClientId); 
+		
+		// --- QUESTE RIGHE GESTISCONO I PANNELLI NUOVI ---
+        const relazioni = await loadAndDisplayRelazioni(currentClientId);
+        setupCollapsiblePanel('#relazioni-panel', relazioni);
+            
+        const buoniRicevuti = await loadAndDisplayBuoni(currentClientId, false);
+        setupCollapsiblePanel('#buoni-ricevuti-panel', buoniRicevuti);
+            
+        const buoniAcquistati = await loadAndDisplayBuoniAcquistati(currentClientId, false);
+        setupCollapsiblePanel('#buoni-acquistati-panel', buoniAcquistati);
+        // --- FINE --
 
         const nuovaAnalisiIconBtn = document.getElementById('nuova-analisi-btn');
         if (nuovaAnalisiIconBtn) {
@@ -2436,17 +2454,37 @@ buoniContainer.addEventListener('click', (e) => {
 });
 
 // --- LISTENER PER L'INTERRUTTORE DELLO STORICO BUONI ---
-toggleStoricoBuoni.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const mostraStorico = toggleStoricoBuoni.textContent.includes('Mostra');
-    
-    // Aggiorna il testo del link
-    toggleStoricoBuoni.textContent = mostraStorico ? 'Nascondi esauriti' : 'Mostra anche esauriti';
-    
-    // Ricarica entrambe le sezioni dei buoni con la nuova impostazione
-    await loadAndDisplayBuoni(currentClientId, mostraStorico);
-    await loadAndDisplayBuoniAcquistati(currentClientId, mostraStorico);
-});
+    // --- LISTENER PER GLI INTERRUTTORI DELLO STORICO BUONI (VERSIONE CORRETTA E COMPLETA) ---
+
+    // 1. Troviamo i nuovi elementi nell'HTML
+    const toggleStoricoBuoniRicevuti = document.getElementById('toggle-storico-buoni-ricevuti');
+    const toggleStoricoBuoniAcquistati = document.getElementById('toggle-storico-buoni-acquistati');
+
+    // 2. Aggiungiamo un listener per il link "Buoni Ricevuti"
+    if (toggleStoricoBuoniRicevuti) {
+        toggleStoricoBuoniRicevuti.addEventListener('click', async (e) => {
+            e.preventDefault(); // Impedisce al link di ricaricare la pagina
+            
+            const mostraStorico = e.target.textContent.includes('Mostra');
+            e.target.textContent = mostraStorico ? 'Nascondi esauriti' : 'Mostra anche esauriti';
+            
+            // Ricarica SOLO la sezione dei buoni ricevuti
+            await loadAndDisplayBuoni(currentClientId, mostraStorico);
+        });
+    }
+
+    // 3. Aggiungiamo un listener per il link "Buoni Acquistati"
+    if (toggleStoricoBuoniAcquistati) {
+        toggleStoricoBuoniAcquistati.addEventListener('click', async (e) => {
+            e.preventDefault(); // Impedisce al link di ricaricare la pagina
+
+            const mostraStorico = e.target.textContent.includes('Mostra');
+            e.target.textContent = mostraStorico ? 'Nascondi esauriti' : 'Mostra anche esauriti';
+
+            // Ricarica SOLO la sezione dei buoni acquistati
+            await loadAndDisplayBuoniAcquistati(currentClientId, mostraStorico);
+        });
+    }
 
 
 // Listener per il bottone "Aggiungi Servizio" nella modale

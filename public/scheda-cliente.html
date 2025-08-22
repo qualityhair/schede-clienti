@@ -45,14 +45,15 @@
                     <button class="btn btn-primary" id="modificaDettagliBtn">✏️ Modifica Profilo</button>
                 </div>
             </div>
-
-                          <!-- ========================================================== -->
-            <!-- === PANNELLO DESTRO - === -->
             <!-- ========================================================== -->
-            <div class="panel">
+            <!-- === PANNELLO DESTRO - CORRETTO PER LAYOUT A COLONNE === -->
+            <!-- ========================================================== -->
 
-                <!-- Sezione Clienti Correlati -->
-                <div class="panel-section collapsible-panel" id="relazioni-panel-section">
+            <!-- Questa "colonna invisibile" raggruppa i 3 pannelli -->
+            <div class="panel-column">
+
+                <!-- 1° PANNELLO: Clienti Correlati -->
+                <div class="panel collapsible-panel" id="relazioni-panel">
                     <div class="collapsible-header">
                         <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                             <span>Clienti Correlati</span>
@@ -67,40 +68,44 @@
                     </div>
                 </div>
 
-                <hr style="border-color: #444; margin: 20px 0;">
-                
-                <!-- ✅ PANNELLO BUONI CORRETTO -->
-                <div class="panel-section collapsible-panel" id="buoni-panel-section">
-  <div class="collapsible-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-    <span>Buoni / Pacchetti Attivi</span>
-    
-    <div style="display: flex; gap: 8px; align-items: center;">
-      <button class="btn btn-icon" id="creaBuonoBtn" title="Crea Nuovo Buono">➕</button>
-      <span class="collapsible-arrow">▼</span>
-    </div>
-  </div>
+                <!-- 2° PANNELLO: Buoni Ricevuti -->
+                <div class="panel collapsible-panel" id="buoni-ricevuti-panel">
+                    <div class="collapsible-header">
+                        <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span>Buoni Ricevuti</span>
+                            <button class="btn btn-icon" id="creaBuonoBtn" title="Crea Nuovo Buono">➕</button>
+                        </h3>
+                        <span class="collapsible-arrow">▼</span>
+                    </div>
+                    <div class="collapsible-content">
+                        <div id="buoni-container" style="padding-top: 15px;">
+                            <p class="loading-message">Caricamento buoni ricevuti...</p>
+                        </div>
+                        <div style="text-align: right; margin-top: 15px;">
+                            <a href="#" id="toggle-storico-buoni-ricevuti" class="link-toggle">Mostra anche esauriti</a>
+                        </div>
+                    </div>
+                </div>
 
-  <div class="collapsible-content">
-    <div id="buoni-container">
-      <h4 class="panel-subtitle" style="margin-bottom: 10px; font-size: 1em;">Buoni Ricevuti</h4>
-      <p class="loading-message">Caricamento buoni ricevuti...</p>
-    </div>
-    
-    <hr class="panel-divider" style="margin: 20px 0; border-color: #444;">
-    <h4 class="panel-subtitle" style="margin-bottom: 10px; font-size: 1em;">Buoni Acquistati per Altri</h4>
-    <div id="buoni-acquistati-container">
-      <p class="loading-message">Caricamento...</p>
-    </div>
-    <div style="text-align: right; margin-top: 15px;">
-      <a href="#" id="toggle-storico-buoni" class="link-toggle">Mostra anche esauriti</a>
-    </div>
-  </div>
-</div>
-
+                <!-- 3° PANNELLO: Buoni Acquistati per Altri -->
+                <div class="panel collapsible-panel" id="buoni-acquistati-panel">
+                    <div class="collapsible-header">
+                        <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span>Buoni Acquistati per Altri</span>
+                        </h3>
+                        <span class="collapsible-arrow">▼</span>
+                    </div>
+                    <div class="collapsible-content">
+                        <div id="buoni-acquistati-container" style="padding-top: 15px;">
+                            <p class="loading-message">Caricamento...</p>
+                        </div>
+                        <div style="text-align: right; margin-top: 15px;">
+                            <a href="#" id="toggle-storico-buoni-acquistati" class="link-toggle">Mostra anche esauriti</a>
+                        </div>
+                    </div>
+                </div>
 
             </div>
-            <!-- ========================================================== -->
-            <!-- ==================== FINE PANNELLO DESTRO ================== -->
             <!-- ========================================================== -->
 
             <!-- Pannello Servizi e Trattamenti (ora collassabile) -->

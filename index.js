@@ -1570,7 +1570,7 @@ app.delete("/api/relazioni/:id", ensureAuthenticated, async (req, res) => {
 // ===========================================
 
 // 1. API per RECUPERARE tutti i buoni di cui un cliente è BENEFICIARIO
-// --- SOSTITUISCI QUESTA INTERA API ---
+
 app.get("/api/clienti/:id/buoni", ensureAuthenticated, async (req, res) => {
     const { id } = req.params; 
 
@@ -1631,10 +1631,10 @@ app.get("/api/clienti/:id/buoni/storico", ensureAuthenticated, async (req, res) 
 });
 
 
-// --- INCOLLA QUESTA NUOVA API IN INDEX.JS ---
+
 
 // API per RECUPERARE tutti i buoni che un cliente ha ACQUISTATO per altri
-// --- SOSTITUISCI QUESTA INTERA API ---
+
 app.get("/api/clienti/:id/buoni-acquistati", ensureAuthenticated, async (req, res) => {
     const { id } = req.params;
 
@@ -1664,7 +1664,7 @@ app.get("/api/clienti/:id/buoni-acquistati", ensureAuthenticated, async (req, re
     }
 });
 
-// --- AGGIUNGI QUESTA NUOVA API IN INDEX.JS ---
+
 
 // API per RECUPERARE TUTTI i buoni (attivi ed esauriti) che un cliente ha ACQUISTATO
 app.get("/api/clienti/:id/buoni-acquistati/storico", ensureAuthenticated, async (req, res) => {
@@ -1698,7 +1698,7 @@ app.get("/api/clienti/:id/buoni-acquistati/storico", ensureAuthenticated, async 
 
 
 // 2. API per CREARE un nuovo buono
-// --- SOSTITUISCI QUESTA API ---
+
 app.post("/api/buoni", ensureAuthenticated, async (req, res) => {
     const {
         acquirenteId,
