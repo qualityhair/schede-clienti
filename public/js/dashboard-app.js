@@ -217,47 +217,55 @@ async function fetchAndDisplayAppointments() {
             const { backgroundColor, textColor } = getAppointmentColor(app);
 
             const listItem = document.createElement('li');
-            listItem.className = 'appointment-item clickable';
+            listItem.className = 'appointment-item';
             listItem.style.backgroundColor = backgroundColor;
             
+            let whatsappIconHtml = '';
+            if (app.cliente && app.cliente.telefono) {
+                let telefono = app.cliente.telefono.trim();
+
+                // --- NORMALIZZAZIONE NUMERO ---
+                // Se numero italiano che inizia con 3 (es. 3331234567), aggiungiamo prefisso 39
+                if (/^3\d{8,9}$/.test(telefono)) {
+                    telefono = "39" + telefono;
+                }
+                // Rimuoviamo qualsiasi carattere non numerico (+, spazi, trattini)
+                telefono = telefono.replace(/[^\d]/g, '');
+                // --- FINE NORMALIZZAZIONE ---
+
+                const nomeCliente = app.summary.trim().split(' ')[0];
+                const messaggio = encodeURIComponent(`Ciao ${nomeCliente}, ti ricordiamo il tuo appuntamento da Quality Hair oggi alle ${appointmentTime}. A dopo!`);
+
+                // --- COSTRUZIONE LINK WHATSAPP ---
+                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                let whatsappLink;
+                if (isMobile) {
+                    // Su smartphone funziona meglio wa.me
+                    whatsappLink = `https://wa.me/${telefono}?text=${messaggio}`;
+                } else {
+                    // Su PC apriamo WhatsApp Web con messaggio precompilato
+                    whatsappLink = `https://web.whatsapp.com/send?phone=${telefono}&text=${messaggio}`;
+                }
+                // --- FINE COSTRUZIONE LINK ---
+
+                whatsappIconHtml = `<a href="${whatsappLink}" class="whatsapp-icon" target="_blank" title="Invia promemoria WhatsApp">💬</a>`;
+            }
+
             listItem.innerHTML = `
-                <span class="appointment-time" style="color: ${textColor};">${appointmentTime}</span>
-                <span class="appointment-summary" style="color: ${textColor};">${app.summary}</span>
+                <div class="appointment-details">
+                    <span class="appointment-time" style="color: ${textColor};">${appointmentTime}</span>
+                    <span class="appointment-summary" style="color: ${textColor};">${app.summary}</span>
+                </div>
+                ${whatsappIconHtml}
             `;
 
-            // Aggiungi l'evento click per la ricerca e il reindirizzamento
-            listItem.addEventListener('click', async () => {
-                const rawTitle = app.summary.trim();
-                const sigleDaRimuovere = ['tg', 'tn', 'tratt', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul', 'colore'];
-                
-                let searchTerm = rawTitle;
-                // Pulisce il titolo in modo più robusto
-                const parole = searchTerm.toLowerCase().split(' ');
-                const nomePulito = parole.filter(p => !sigleDaRimuovere.includes(p) && isNaN(p)).join(' ').trim();
-
-                if (!nomePulito) {
-                    showMessage("Impossibile determinare un nome da cercare.", 'info');
-                    return;
-                }
-
-                try {
-                    const searchResponse = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(nomePulito)}`);
-                    const searchData = await handleApiResponse(searchResponse);
-                    if (!searchData) return;
-
-                    if (searchData.length === 1) {
-                        window.location.href = `/scheda-cliente.html?id=${searchData[0].id}`;
-                    } else if (searchData.length > 1) {
-                        const ids = searchData.map(c => c.id);
-                        window.location.href = `/scheda-cliente.html?id=${ids[0]}&searchIds=${encodeURIComponent(JSON.stringify(ids))}&index=0`;
-                    } else {
-                        showMessage(`Nessun cliente trovato per "${nomePulito}".`, 'info');
-                    }
-                } catch (error) {
-                    console.error('Errore durante la ricerca del cliente:', error);
-                    showMessage('Si è verificato un errore durante la ricerca.', 'error');
-                }
-            });
+            if (app.cliente && app.cliente.id) {
+                listItem.querySelector('.appointment-details').classList.add('clickable');
+                listItem.querySelector('.appointment-details').addEventListener('click', () => {
+                    window.location.href = `/scheda-cliente.html?id=${app.cliente.id}`;
+                });
+            }
+            
             listElement.appendChild(listItem);
         });
     } catch (error) {
@@ -265,6 +273,7 @@ async function fetchAndDisplayAppointments() {
         listElement.innerHTML = '<li class="appointment-item error">Errore nel caricamento.</li>';
     }
 }
+
 
 
     // --- INIZIALIZZAZIONE DEGLI EVENT LISTENERS ---

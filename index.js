@@ -1267,24 +1267,48 @@ app.get("/api/events", ensureAuthenticated, async (req, res) => {
 
 
 // API PER GLI APPUNTAMENTI DI OGGI (PER LA DASHBOARD)
+// API PER GLI APPUNTAMENTI DI OGGI (VERSIONE POTENZIATA CON RICERCA TELEFONO)
+// API PER GLI APPUNTAMENTI DI OGGI (CON NUMERO DI TELEFONO PULITO)
 app.get("/api/appuntamenti/oggi", ensureAuthenticated, async (req, res) => {
-    console.log("Richiesta per gli appuntamenti di oggi ricevuta.");
+    console.log("Richiesta per gli appuntamenti di oggi (con numero pulito) ricevuta.");
     try {
-const query = `
-    SELECT 
-        summary, 
-        start_time,
-        color_id 
-    FROM 
-                calendar_events 
-            WHERE 
-                start_time::date = CURRENT_DATE 
-            ORDER BY 
-                start_time ASC;
-        `;
-        
-        const result = await db.query(query);
-        res.json(result.rows);
+        const queryAppuntamenti = `SELECT summary, start_time, color_id FROM calendar_events WHERE start_time::date = CURRENT_DATE ORDER BY start_time ASC;`;
+        const resultAppuntamenti = await db.query(queryAppuntamenti);
+        const appuntamenti = resultAppuntamenti.rows;
+
+        const appuntamentiConDatiCliente = [];
+
+        for (const app of appuntamenti) {
+            const rawTitle = app.summary.trim();
+            const sigleDaRimuovere = ['tg', 'tn', 'tratt', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul', 'colore'];
+            const parole = rawTitle.toLowerCase().split(' ');
+            const nomePulito = parole.filter(p => !sigleDaRimuovere.includes(p) && isNaN(p)).join(' ').trim();
+            
+            let clienteTrovato = null;
+
+            if (nomePulito) {
+                const queryCliente = `SELECT id, telefono FROM clienti WHERE LOWER(CONCAT(nome, ' ', cognome)) ILIKE $1 OR LOWER(soprannome) ILIKE $1 LIMIT 1;`;
+                const resultCliente = await db.query(queryCliente, [`%${nomePulito}%`]);
+                
+                if (resultCliente.rows.length > 0 && resultCliente.rows[0].telefono) {
+                    // --- ECCO LA MODIFICA CHIAVE ---
+                    // Pulisce il numero da qualsiasi carattere non numerico
+                    let telefonoPulito = resultCliente.rows[0].telefono.replace(/\D/g, '');
+                    // Se il numero non inizia già con 39, lo aggiunge
+                    if (!telefonoPulito.startsWith('39')) {
+                        telefonoPulito = '39' + telefonoPulito;
+                    }
+                    clienteTrovato = {
+                        id: resultCliente.rows[0].id,
+                        telefono: telefonoPulito // Ora il telefono è garantito essere nel formato corretto
+                    };
+                }
+            }
+
+            appuntamentiConDatiCliente.push({ ...app, cliente: clienteTrovato });
+        }
+
+        res.json(appuntamentiConDatiCliente);
 
     } catch (err) {
         console.error("Errore nel recupero degli appuntamenti di oggi:", err.message);

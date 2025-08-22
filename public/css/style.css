@@ -2487,7 +2487,34 @@ animation: fadeInUp 0.5s ease-out forwards;
 .collapsible-panel .collapsible-content { display: block; }
 .collapsible-panel.closed .collapsible-content { display: none; }
 
+/* Stile per la lista appuntamenti sulla Dashboard */
+.appointment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
+.appointment-details {
+    flex-grow: 1; /* Occupa tutto lo spazio disponibile */
+    display: flex;
+    align-items: center;
+}
+
+.appointment-details.clickable {
+    cursor: pointer;
+}
+
+.whatsapp-icon {
+    font-size: 1.5em; /* Rende l'icona più grande */
+    text-decoration: none;
+    margin-left: 15px; /* Dà un po' di spazio */
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.whatsapp-icon:hover {
+    opacity: 1;
+}
 
 
 /* =================================== */
