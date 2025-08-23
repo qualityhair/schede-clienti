@@ -2680,6 +2680,53 @@ animation: fadeInUp 0.5s ease-out forwards;
     flex-grow: 1;
 }
 
+/* ======================================================= */
+/* == Stile Speciale Pannello Cliente (Viola Imperiale) == */
+/* ======================================================= */
+
+.client-details-panel {
+    /* Gradiente più marcato che parte da un viola/bordeaux scuro */
+    background: radial-gradient(
+        ellipse at 50% 0%,       /* Usiamo un'ellisse per una forma più morbida */
+        #4d3147 0%,              /* Un viola/bordeaux molto scuro e desaturato al centro */
+        #1c1c1e 80%              /* Sfuma verso un nero quasi totale */
+    );
+
+    border: 1px solid #554250; /* Un bordo in tinta con il gradiente */
+
+    /* Ombra esterna più pronunciata per staccare il pannello */
+    box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.4),      /* Ombra scura per la profondità */
+        0 0 20px rgba(255, 215, 0, 0.15); /* Alone dorato più visibile */
+}
+
+
+/* ======================================================= */
+/* == Stile Ridotto per Titoli Pannelli (Versione Corretta) == */
+/* ======================================================= */
+
+/* 
+   Selezioniamo i .panel-title CHE NON HANNO ANCHE la classe .profile-title-container.
+   In questo modo, escludiamo il titolo principale con il nome del cliente.
+*/
+.panel-title:not(.profile-title-container) {
+    font-size: 1.2em;
+    font-weight: 500;
+    color: #e8e8e8;
+    letter-spacing: 0.5px;
+}
+
+/* 
+   Applichiamo la stessa logica per rimpicciolire il nome del cliente
+   tra parentesi, solo nei pannelli secondari.
+*/
+.panel-title:not(.profile-title-container) .panel-client-name {
+    font-size: 0.8em;
+    font-weight: 400;
+    color: #aaa;
+    margin-left: 5px;
+}
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */
