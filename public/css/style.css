@@ -1657,19 +1657,72 @@ body {
 }
 
 
-/* Stili per l'avatar nel titolo del profilo cliente */
-.profile-title-container {
+/* =================================================== */
+/* == Stili per Avatar con Iniziali (Versione PRO)  == */
+/* =================================================== */
+
+/* Contenitore principale: aggiungiamo un'ombra interna per un effetto "bezel" */
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid #FFD700;
+    background-color: #4a4a4a;
     display: flex;
-    align-items: center; /* Allinea verticalmente l'avatar e il testo */
-    gap: 15px; /* Spazio tra l'avatar e il testo */
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    /* Ombra interna per dare profondità e un effetto rilievo al cerchio */
+    box-shadow: 
+        inset 0 4px 5px rgba(255, 255, 255, 0.2), /* Luce dall'alto */
+        inset 0 -4px 5px rgba(0, 0, 0, 0.3);      /* Ombra dal basso */
 }
 
-.profile-avatar {
-    width: 100px;  /* AUMENTATO da 80px */
-    height: 100px; /* AUMENTATO da 80px */
-    border-radius: 50%; /* Lo rende perfettamente rotondo */
-    object-fit: cover; /* Assicura che l'immagine riempia il cerchio senza deformarsi */
-    border: 2px solid #FFD700; /* Bordo giallo, come il logo */
+/* Stile per il box delle iniziali: aggiungiamo l'effetto GLOSS e testo in RILIEVO */
+.initials-avatar {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative; /* Necessario per l'effetto gloss con pseudo-elementi */
+	 background-color: #2c2c2e; /* Sfondo grigio scuro fisso */
+    
+    font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif;
+    font-size: 42px;
+    font-weight: 700; /* Più marcato */
+    color: #fff; /* Testo bianco puro per massimo contrasto */
+
+    /* Stile testo in RILIEVO con ombra gialla */
+    text-shadow: 
+        1px 1px 0px #c7a700,  /* Ombra dura color oro scuro per il contorno */
+        2px 3px 4px rgba(0, 0, 0, 0.4); /* Ombra morbida più scura per la profondità */
+}
+
+/* L'EFFETTO GLOSS: un riflesso di luce in alto */
+.initials-avatar::before {
+    content: '';
+    position: absolute;
+    top: 2px; /* Leggermente staccato dal bordo */
+    left: 10%;
+    right: 10%;
+    height: 45%;
+    background: linear-gradient(to bottom, 
+        rgba(255, 255, 255, 0.4) 0%,   /* Riflesso più intenso */
+        rgba(255, 255, 255, 0.1) 80%,  /* Sfumatura morbida */
+        rgba(255, 255, 255, 0) 100%   /* Trasparente alla fine */
+    );
+    border-radius: 50% / 35%; /* Crea una forma a ellisse per il riflesso */
+    z-index: 1; /* Assicura che sia sopra lo sfondo ma sotto il testo (se necessario) */
+}
+
+
+/* Stile per l'immagine del profilo (invariato) */
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 
@@ -2546,6 +2599,86 @@ animation: fadeInUp 0.5s ease-out forwards;
     opacity: 1;
 }
 
+/* ============================================= */
+/* == Stili per Avatar con Iniziali           == */
+/* ============================================= */
+
+/* Stile base del contenitore tondo (dovresti averlo già, ma questo lo sistema) */
+.profile-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 3px solid #FFD700; /* Bordo dorato */
+    background-color: #4a4a4a; /* Sfondo di fallback */
+    display: flex; /* Necessario per centrare il contenuto */
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Nasconde le parti dell'immagine che escono dal cerchio */
+    flex-shrink: 0; 
+}
+
+/* Stile per il box delle iniziali che creeremo con JS */
+.initials-avatar {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    font-family: 'Segoe UI', 'Roboto', 'Arial', sans-serif; /* Un font pulito */
+    font-size: 40px; /* Dimensione delle iniziali */
+    font-weight: 600; /* Leggermente grassetto */
+    color: #FFD700; /* Colore Giallo Oro per le iniziali */
+
+    /* Ombra adattata per il testo giallo: più scura e netta per dare profondità */
+    text-shadow: 
+        1px 2px 3px rgba(0, 0, 0, 0.7); /* Ombra principale più scura */
+    /* ============================ */
+}
+
+/* Stile per l'immagine del profilo VERA quando viene inserita dal JS */
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Assicura che l'immagine copra il cerchio senza deformarsi */
+}
+
+/* Stile per il nome del cliente in corsivo (VERSIONE CORRETTA E BILANCIATA) */
+.main-client-name-elegant {
+    font-family: 'Great Vibes', cursive;
+    
+    /* === MODIFICA CHIAVE QUI === */
+    font-size: 1.5em; /* Ridotto da 3.5em. Prova questo valore, è un buon punto di partenza. */
+    /* =========================== */
+
+    color: #FFD700;
+    margin-left: 20px; /* Aumentato un po' per dare più respiro */
+    line-height: 1.1;  /* Leggermente aumentato per un allineamento verticale migliore */
+    
+    /* Aggiungiamo un'ombra per staccare meglio il testo dallo sfondo */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* ================================================ */
+/* == Allineamento Orizzontale per Note Cliente == */
+/* ================================================ */
+
+/* 1. Trasforma il contenitore in un layout flessibile */
+.detail-group {
+    display: flex;           /* Mette i suoi figli (label e textarea) uno di fianco all'altro */
+    align-items: center;     /* Allinea verticalmente il titolo e il box di testo al centro */
+    gap: 15px;               /* Aggiunge uno spazio di 15px tra il titolo e il box */
+}
+
+/* 2. Assicura che il titolo non si "schiacci" se lo spazio è poco */
+.detail-group .form-label {
+    flex-shrink: 0;
+}
+
+/* 3. Dice alla textarea di "crescere" per occupare tutto lo spazio rimanente */
+.detail-group .textarea-field {
+    flex-grow: 1;
+}
 
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */

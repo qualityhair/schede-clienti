@@ -24,8 +24,13 @@
             <!-- Pannello Profilo (non collassabile) -->
             <div class="panel client-details-panel">
                 <h2 class="panel-title profile-title-container">
-                    <img id="profile-avatar" src="/img/default-avatar.png" alt="Avatar Cliente" class="profile-avatar">
-                    <span>Profilo di  <span id="nome-completo" style="color: #FFD700;"></span></span>
+				
+                    <!-- NUOVO CONTENITORE DA INSERIRE AL POSTO DELL'IMMAGINE -->
+					<div id="avatar-container" class="profile-avatar">
+					<!-- Il JavaScript inserirà qui la foto o le iniziali -->
+					</div>
+					
+                    <span id="nome-completo" class="main-client-name-elegant"></span>
                 </h2>
                 <div class="panel-content">
 				    <p><strong>Soprannome:</strong> <span id="soprannome-cliente" style="color: #FFD700;">N/A</span></p>
@@ -37,7 +42,7 @@
 				</div>
 				<hr style="border-color: #444; margin: 20px 0;">
 				<div class="detail-group">
-				    <label for="cliente-note" class="form-label" style="font-size: 1.2em; color: #FFD700;">Note e Preferenze:</label>
+				    <label for="cliente-note" class="form-label" style="font-size: 0.8em; color: #FFD700;">Note e Preferenze:</label>
 				    <textarea id="cliente-note" class="textarea-field" rows="2" placeholder="Aggiungi note..."></textarea>
 				</div>
                 <div class="panel-actions-multiple">

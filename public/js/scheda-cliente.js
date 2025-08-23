@@ -360,6 +360,42 @@ function setupPagaConBuonoUI(sezione, checkbox, spanCredito, checkboxPagato) {
     }
 }
 
+// --- FUNZIONI PER AVATAR" ---
+
+/**
+ * Genera le iniziali da nome e cognome (es. "Sandro Stefanati" -> "SS")
+ */
+// NUOVA VERSIONE CON I PUNTI
+function getInitials(nome, cognome) {
+    const nomeIniziale = nome ? nome.trim().charAt(0).toUpperCase() : '';
+    const cognomeIniziale = cognome ? cognome.trim().charAt(0).toUpperCase() : '';
+    
+    // Se c'è l'iniziale, aggiungi un punto.
+    const inizialiConPunti = (nomeIniziale ? `${nomeIniziale}.` : '') + 
+                             (cognomeIniziale ? `${cognomeIniziale}.` : '');
+    
+    return inizialiConPunti || '?'; // Restituisce S.S. o solo S. o ?
+}
+
+/**
+ * Genera un colore di sfondo consistente partendo dal nome del cliente.
+ * Lo stesso nome produrrà sempre lo stesso colore.
+ */
+function generateColorForString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const colors = [
+        '#e57373', '#f06292', '#ba68c8', '#9575cd', '#7986cb',
+        '#64b5f6', '#4fc3f7', '#4dd0e1', '#4db6ac', '#81c784',
+        '#aed581', '#ff8a65', '#d4e157', '#ffd54f', '#ffb74d'
+    ];
+    return colors[Math.abs(hash % colors.length)];
+}
+
+
+
   // --- 3. FUNZIONI DI CARICAMENTO E VISUALIZZAZIONE DATI ---
   
   // --- AGGIUNGI QUESTA NUOVA FUNZIONE ---
@@ -457,11 +493,32 @@ async function loadClientData(clientId, anno = new Date().getFullYear().toString
         currentClienteData = client;
 
         // --- PARTE 2: Popola l'interfaccia con i dati principali ---
-        const photoResponse = await fetch(`/api/clienti/${clientId}/photos`);
-        const allPhotos = await handleApiResponse(photoResponse) || [];
-        currentClienteData.photos = allPhotos; 
-        const profilePhoto = allPhotos.find(p => (p.tags || []).includes('profilo'));
-        profileAvatar.src = profilePhoto ? profilePhoto.url : '/img/default-avatar.png';
+
+
+const avatarContainer = document.getElementById('avatar-container');
+avatarContainer.innerHTML = ''; // Pulisce il contenitore ad ogni caricamento
+
+const photoResponse = await fetch(`/api/clienti/${clientId}/photos`);
+const allPhotos = await handleApiResponse(photoResponse) || [];
+currentClienteData.photos = allPhotos; 
+const profilePhoto = allPhotos.find(p => (p.tags || []).includes('profilo'));
+
+if (profilePhoto && profilePhoto.url) {
+    // CASO 1: C'è una foto profilo. La mostriamo.
+    const img = document.createElement('img');
+    img.src = profilePhoto.url;
+    img.alt = `Foto profilo di ${client.nome}`;
+    avatarContainer.appendChild(img);
+} else {
+    // CASO 2: Non c'è una foto. Generiamo le iniziali.
+    const initials = getInitials(client.nome, client.cognome);
+
+const initialsDiv = document.createElement('div');
+initialsDiv.className = 'initials-avatar'; // Il CSS ora imposta lo sfondo grigio
+initialsDiv.textContent = initials;
+        
+avatarContainer.appendChild(initialsDiv);
+}
 
         nomeCompletoSpan.textContent = `${client.nome} ${client.cognome}`;
         document.querySelectorAll('.panel-client-name').forEach(span => { span.textContent = `(${client.nome} ${client.cognome})`; });
