@@ -121,15 +121,18 @@
         <p>Cosa vuoi fare con l'appuntamento:</p>
         <strong id="modalEventTitle"></strong>
       </div>
-      <div class="modal-footer justify-content-between">
-        <!-- Questo pulsante apparirà a sinistra -->
-        <button type="button" id="btnDeleteEvent" class="btn btn-danger">Annulla Appuntamento</button>
-        
-        <!-- Questi due pulsanti appariranno a destra -->
-        <div>
-          <button type="button" id="btnGoToClient" class="btn btn-secondary">Vai a Scheda Cliente</button>
-          <button type="button" id="btnEditInGoogle" class="btn btn-primary">Modifica</button>
-        </div>
+      <!-- NUOVO FOOTER DELLA MODALE, CORRETTO E STILIZZATO -->
+<div class="modal-footer">
+    <!-- 
+      - Usiamo 'btn-sm' per rendere i bottoni più piccoli.
+      - Cambiamo i colori per una migliore gerarchia visiva.
+      - Mettiamo 'Annulla' all'estrema sinistra con 'me-auto'.
+    -->
+    <button type="button" id="btnDeleteEvent" class="btn btn-sm btn-outline-danger me-auto">Annulla</button>
+    
+    <button type="button" id="btnGoToClient" class="btn btn-sm btn-secondary">Scheda Cliente</button>
+    <button type="button" id="btnEditInGoogle" class="btn btn-sm btn-primary">Modifica</button>
+</div>
       </div>
     </div>
   </div>

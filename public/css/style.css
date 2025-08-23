@@ -2727,6 +2727,71 @@ animation: fadeInUp 0.5s ease-out forwards;
     margin-left: 5px;
 }
 
+
+/* ======================================================= */
+/* == Stile Dark per Modali Calendario (Versione Corretta) == */
+/* ======================================================= */
+
+/* Selezioniamo entrambe le modali tramite il loro ID per essere sicuri */
+#addEventModal .modal-content,
+#editEventModal .modal-content {
+    background-color: #2c2c2e;
+    color: #e8e8e8;
+    border: 1px solid #555;
+    border-radius: 8px;
+}
+
+/* Intestazione */
+#addEventModal .modal-header,
+#editEventModal .modal-header {
+    border-bottom-color: #555;
+}
+
+/* Titolo */
+#addEventModal .modal-title,
+#editEventModal .modal-title {
+    font-weight: 500;
+}
+
+/* Pulsante di chiusura 'x' */
+#addEventModal .btn-close,
+#editEventModal .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* Etichette dei campi (Nome, Operatore...) */
+#addEventModal .form-label,
+#editEventModal .form-label {
+    font-weight: 500;
+    color: #e8e8e8;
+}
+
+/* --- I CAMPI DEL FORM TORNANO BIANCHI --- */
+#addEventModal .form-control,
+#editEventModal .form-control {
+    background-color: #fff; /* Sfondo bianco */
+    color: #212529;         /* Testo nero */
+    border: 1px solid #ccc;
+}
+#addEventModal .form-control:focus,
+#editEventModal .form-control:focus {
+    border-color: #FFD700;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+/* Footer e pulsanti */
+#addEventModal .modal-footer,
+#editEventModal .modal-footer {
+    border-top-color: #555;
+}
+#addEventModal .btn-primary,
+#editEventModal .btn-primary {
+    background-color: #FFD700;
+    border-color: #FFD700;
+    color: #1c1c1e;
+    font-weight: bold;
+}
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */
