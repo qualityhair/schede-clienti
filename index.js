@@ -1267,10 +1267,8 @@ app.get("/api/events", ensureAuthenticated, async (req, res) => {
 
 
 // API PER GLI APPUNTAMENTI DI OGGI (PER LA DASHBOARD)
-// API PER GLI APPUNTAMENTI DI OGGI (VERSIONE POTENZIATA CON RICERCA TELEFONO)
-// API PER GLI APPUNTAMENTI DI OGGI (CON NUMERO DI TELEFONO PULITO)
+
 app.get("/api/appuntamenti/oggi", ensureAuthenticated, async (req, res) => {
-    console.log("Richiesta per gli appuntamenti di oggi (con numero pulito) ricevuta.");
     try {
         const queryAppuntamenti = `SELECT summary, start_time, color_id FROM calendar_events WHERE start_time::date = CURRENT_DATE ORDER BY start_time ASC;`;
         const resultAppuntamenti = await db.query(queryAppuntamenti);
@@ -1281,31 +1279,48 @@ app.get("/api/appuntamenti/oggi", ensureAuthenticated, async (req, res) => {
         for (const app of appuntamenti) {
             const rawTitle = app.summary.trim();
             const sigleDaRimuovere = ['tg', 'tn', 'tratt', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul', 'colore'];
-            const parole = rawTitle.toLowerCase().split(' ');
-            const nomePulito = parole.filter(p => !sigleDaRimuovere.includes(p) && isNaN(p)).join(' ').trim();
+            const nomePulito = rawTitle.toLowerCase().split(' ').filter(p => !sigleDaRimuovere.includes(p) && isNaN(p)).join(' ').trim();
             
-            let clienteTrovato = null;
+            let clienteCollegato = null;
 
             if (nomePulito) {
-                const queryCliente = `SELECT id, telefono FROM clienti WHERE LOWER(CONCAT(nome, ' ', cognome)) ILIKE $1 OR LOWER(soprannome) ILIKE $1 LIMIT 1;`;
-                const resultCliente = await db.query(queryCliente, [`%${nomePulito}%`]);
+                // --- NUOVA LOGICA DI RICERCA POTENZIATA ---
+                // Trasformiamo "margherita cristoforetti" in "%margherita%cristoforetti%"
+                // Questo permette di trovare il nome anche se ci sono spazi extra o caratteri in mezzo.
+                const searchTerm = `%${nomePulito.replace(/\s+/g, '%')}%`;
                 
-                if (resultCliente.rows.length > 0 && resultCliente.rows[0].telefono) {
-                    // --- ECCO LA MODIFICA CHIAVE ---
-                    // Pulisce il numero da qualsiasi carattere non numerico
-                    let telefonoPulito = resultCliente.rows[0].telefono.replace(/\D/g, '');
-                    // Se il numero non inizia già con 39, lo aggiunge
-                    if (!telefonoPulito.startsWith('39')) {
-                        telefonoPulito = '39' + telefonoPulito;
-                    }
-                    clienteTrovato = {
-                        id: resultCliente.rows[0].id,
-                        telefono: telefonoPulito // Ora il telefono è garantito essere nel formato corretto
+                // La query ora cerca CONCAT(nome, ' ', cognome) e CONCAT(cognome, ' ', nome)
+                // Questo gestisce sia l'ordine normale che quello invertito.
+                const queryCliente = `
+                    SELECT id, telefono 
+                    FROM clienti 
+                    WHERE 
+                        LOWER(CONCAT(nome, ' ', cognome)) ILIKE $1 OR
+                        LOWER(CONCAT(cognome, ' ', nome)) ILIKE $1 OR
+                        LOWER(soprannome) ILIKE $1
+                    LIMIT 1;
+                `;
+                
+                const resultCliente = await db.query(queryCliente, [searchTerm]);
+                
+                if (resultCliente.rows.length > 0) {
+                    const clienteDb = resultCliente.rows[0];
+                    clienteCollegato = {
+                        id: clienteDb.id,
+                        telefono: null 
                     };
+
+                    if (clienteDb.telefono) {
+                        let telefonoPulito = clienteDb.telefono.replace(/\D/g, '');
+                        if (telefonoPulito.startsWith('3') && !telefonoPulito.startsWith('39')) {
+                            telefonoPulito = '39' + telefonoPulito;
+                        }
+                        clienteCollegato.telefono = telefonoPulito;
+                    }
                 }
             }
 
-            appuntamentiConDatiCliente.push({ ...app, cliente: clienteTrovato });
+            appuntamentiConDatiCliente.push({ ...app, cliente: clienteCollegato });
         }
 
         res.json(appuntamentiConDatiCliente);

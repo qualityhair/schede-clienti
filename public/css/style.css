@@ -1069,6 +1069,36 @@ border-radius: 10px; /* <<< AGGIUNGI QUESTA RIGA */
     color: #e0e0e0;
 }
 
+/* ======================================================= */
+/* === Aggiunte e Correzioni per Lista Appuntamenti    === */
+/* ======================================================= */
+
+/* 1. Spazio tra orario e nome del cliente */
+.appointment-time {
+    margin-right: 10px; /* Aggiunge spazio a destra dell'orario */
+    font-weight: bold;  /* Rende l'orario leggermente più evidente */
+}
+
+/* 2. Assicura che il nome del cliente si espanda per occupare lo spazio */
+.appointment-summary {
+    flex-grow: 1;      /* Permette al nome di occupare tutto lo spazio disponibile */
+    text-align: left;  /* Allinea il nome a sinistra, dopo l'orario */
+    white-space: nowrap; /* Impedisce al testo di andare a capo */
+    overflow: hidden;    /* Nasconde il testo che non ci sta */
+    text-overflow: ellipsis; /* Aggiunge "..." se il nome è troppo lungo */
+}
+
+/* 3. Stile per l'icona di WhatsApp */
+.whatsapp-icon {
+    font-size: 1.4em; /* Rende l'icona un po' più grande e cliccabile */
+    margin-left: 10px; /* Aggiunge spazio prima dell'icona */
+    text-decoration: none;
+    transition: transform 0.2s ease;
+}
+
+.whatsapp-icon:hover {
+    transform: scale(1.2); /* Leggero ingrandimento al passaggio del mouse */
+}
 
 /* =================================== */
 /* === STILI PANNELLO ANALISI TRICOLOGICA === */
