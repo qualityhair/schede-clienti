@@ -15,7 +15,89 @@
 
 <main class="container dashboard-main">
     <img src="img/logo1.jpg" alt="Logo Quality Hair" class="page-logo">
-    
+  
+
+<!-- ============================================= -->
+<!-- == SEZIONE RIEPILOGO GIORNALIERO (NUOVA)   == -->
+<!-- ============================================= -->
+<div class="summary-panel-container">
+    <div class="summary-panel">
+        
+        <!-- Saluto e Meteo -->
+        <div class="summary-header">
+            <h2 id="summary-greeting">👋 Caricamento...</h2>
+            <div id="summary-weather" class="weather-widget">
+                <span id="weather-text">Meteo non disponibile</span>
+                <img id="weather-icon" src="" alt="" style="display: none;">
+            </div>
+        </div>
+
+        <!-- Metriche Cliccabili -->
+        <div class="summary-metrics">
+            <div id="widget-sospesi" class="metric-widget clickable">
+                <div class="metric-icon">🚨</div>
+                <div class="metric-value" id="sospesi-count">...</div>
+                <div class="metric-label">Clienti in Sospeso</div>
+            </div>
+            <div id="widget-buoni" class="metric-widget clickable">
+                <div class="metric-icon">🎁</div>
+                <div class="metric-value" id="buoni-count">...</div>
+                <div class="metric-label">Buoni Attivi</div>
+            </div>
+        </div>
+
+        <!-- Aforisma -->
+        <div id="summary-aforisma" class="aforisma-widget">
+            <p id="aforisma-frase">“Caricamento aforisma...”</p>
+            <footer id="aforisma-autore"></footer>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================================= -->
+<!-- == MODALI PER IL RIEPILOGO (NUOVE)         == -->
+<!-- ============================================= -->
+<!-- Modale Clienti in Sospeso -->
+<div id="sospesiModal" class="dashboard-modal">
+    <div class="dashboard-modal-content">
+        <div class="dashboard-modal-header">
+            <h3>Clienti con Pagamenti in Sospeso</h3>
+            <button class="close-btn">&times;</button>
+        </div>
+        <div class="dashboard-modal-body">
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Importo Sospeso</th>
+                        <th>Azione</th>
+                    </tr>
+                </thead>
+                <tbody id="sospesi-lista">
+                    <!-- Il JS popolerà questa tabella -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modale Buoni Attivi -->
+<div id="buoniModal" class="dashboard-modal">
+    <div class="dashboard-modal-content">
+        <div class="dashboard-modal-header">
+            <h3>Buoni Regalo Attivi</h3>
+            <button class="close-btn">&times;</button>
+        </div>
+        <div class="dashboard-modal-body" id="buoni-lista">
+            <!-- Il JS popolerà questa lista -->
+        </div>
+    </div>
+</div>
+
+
+
+  
 
 <!-- ============================================= -->
 <!-- ========= INIZIO GRIGLIA PANNELLI ========= -->

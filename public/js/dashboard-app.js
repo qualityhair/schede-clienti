@@ -15,6 +15,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const appointmentsListContainer = document.getElementById('lista-appuntamenti');
 	const newClientTagsInput = document.getElementById("new-client-tags");
 
+// --- RIFERIMENTI DOM PER IL RIEPILOGO GIORNALIERO (NUOVI) ---
+const summaryGreeting = document.getElementById('summary-greeting');
+const weatherText = document.getElementById('weather-text');
+const weatherIcon = document.getElementById('weather-icon');
+const sospesiCount = document.getElementById('sospesi-count');
+const buoniCount = document.getElementById('buoni-count');
+const aforismaFrase = document.getElementById('aforisma-frase');
+const aforismaAutore = document.getElementById('aforisma-autore');
+const widgetSospesi = document.getElementById('widget-sospesi');
+const widgetBuoni = document.getElementById('widget-buoni');
+const sospesiModal = document.getElementById('sospesiModal');
+const buoniModal = document.getElementById('buoniModal');
+const sospesiLista = document.getElementById('sospesi-lista');
+const buoniLista = document.getElementById('buoni-lista');
+
 
 
 
@@ -48,6 +63,88 @@ document.addEventListener("DOMContentLoaded", () => {
         showMessage('Errore imprevisto nella comunicazione con il server.', 'error');
         return null;
     }
+	
+	
+	// --- FUNZIONE PER CARICARE E MOSTRARE IL RIEPILOGO GIORNALIERO (NUOVA) ---
+async function fetchAndDisplaySummary() {
+    try {
+        const response = await fetch('/api/dashboard/summary');
+        const data = await handleApiResponse(response);
+        if (!data) return;
+
+        // 1. Popola Meteo e Saluto
+        if (data.meteo) {
+            weatherText.textContent = `Oggi a Bolzano: ${data.meteo.descrizione}, ${data.meteo.temperatura}°C`;
+            weatherIcon.src = `https://openweathermap.org/img/wn/${data.meteo.icona}.png`;
+            weatherIcon.style.display = 'inline-block';
+        }
+        summaryGreeting.textContent = "👋 Buongiorno!";
+
+        // 2. Popola Aforisma
+        if (data.aforisma) {
+            aforismaFrase.textContent = `“${data.aforisma.frase}”`;
+            aforismaAutore.textContent = `– ${data.aforisma.autore}`;
+        }
+
+        // 3. Popola Metriche e prepara le modali
+        sospesiCount.textContent = data.clientiSospesi.count;
+        buoniCount.textContent = data.buoniAttivi.count;
+
+        widgetSospesi.onclick = () => {
+            sospesiLista.innerHTML = ''; // Pulisce la tabella
+            if (data.clientiSospesi.count > 0) {
+                data.clientiSospesi.lista.forEach(cliente => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${cliente.nome} ${cliente.cognome}</td>
+                        <td>€ ${parseFloat(cliente.totale_sospeso).toFixed(2)}</td>
+                        <td><a href="/scheda-cliente.html?id=${cliente.id}" class="btn btn-sm btn-primary">Apri Scheda</a></td>
+                    `;
+                    sospesiLista.appendChild(row);
+                });
+            } else {
+                sospesiLista.innerHTML = '<tr><td colspan="3">Nessun cliente con pagamenti in sospeso. Ottimo!</td></tr>';
+            }
+            sospesiModal.style.display = 'block';
+        };
+
+        widgetBuoni.onclick = () => {
+            buoniLista.innerHTML = ''; // Pulisce la lista
+             if (data.buoniAttivi.count > 0) {
+                data.buoniAttivi.lista.forEach(buono => {
+                    const item = document.createElement('div');
+                    item.className = 'summary-list-item';
+                    let dettagli = '';
+                    if (buono.tipo_buono === 'valore') {
+                        dettagli = `Buono a Valore: €${parseFloat(buono.valore_rimanente_euro).toFixed(2)}`;
+                    } else {
+                        const servizi = buono.servizi_inclusi.map(s => `${s.servizio} (${s.totali - s.usati} rim.)`).join(', ');
+                        dettagli = `Pacchetto: ${servizi}`;
+                    }
+                    item.innerHTML = `
+    <div>
+        <strong>${buono.descrizione || 'Buono Prepagato'}</strong><br>
+        <small>per ${buono.beneficiario_nome} ${buono.beneficiario_cognome}</small><br>
+        <em>${dettagli}</em>
+    </div>
+    <a href="/scheda-cliente.html?id=${buono.beneficiario_id}" class="btn btn-sm btn-primary">Apri Scheda</a>
+`;
+buoniLista.appendChild(item);
+                });
+            } else {
+                buoniLista.innerHTML = '<p>Nessun buono regalo o pacchetto attualmente attivo.</p>';
+            }
+            buoniModal.style.display = 'block';
+        };
+
+    } catch (error) {
+        console.error("Errore nel caricamento del riepilogo:", error);
+        // Puoi aggiungere un messaggio di errore nel pannello se vuoi
+    }
+}
+	
+	
+	
 
 function openModal(modalElement) {
     if (modalElement) modalElement.classList.add('open');
@@ -308,6 +405,32 @@ btnPlayer.addEventListener('click', () => {
     window.open('http://79.6.136.236:32400/web/index.html#!/server/6ebfb71d58fed1206d2c273ca1b96e2e9c3ead61/playlist?key=%2Fplaylists%2F19976&context=source%3Acontent.playlists~0~5', '_blank');
 });
 
+
+// --- EVENT LISTENERS PER PANNELLI TEMPO E BUONI---
+
+if (searchButton) searchButton.addEventListener("click", handleSearchClient);
+if (searchInput) searchInput.addEventListener("keypress", e => { if (e.key === "Enter") handleSearchClient(); });
+if (addNewClientButton) addNewClientButton.addEventListener("click", handleAddNewClient);
+
+// Aggiungi queste due righe per le nuove funzionalità
+if (appointmentsListContainer) fetchAndDisplayAppointments();
+fetchAndDisplaySummary(); // <-- CHIAMATA ALLA NUOVA FUNZIONE!
+
+// Logica per chiudere le modali del riepilogo
+[sospesiModal, buoniModal].forEach(modal => {
+    if (modal) {
+        // Chiude la modale se si clicca sulla 'x'
+        modal.querySelector('.close-btn').addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        // Chiude la modale se si clicca fuori dal contenuto
+        window.addEventListener('click', (event) => {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+});
 
 
 

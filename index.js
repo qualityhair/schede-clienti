@@ -13,6 +13,8 @@ const pgSession = require('connect-pg-simple')(session);
 const multer = require('multer');
 const crypto = require('crypto');
 
+const fetch = require('node-fetch');
+
 // --- CONFIGURAZIONE PER L'UPLOAD DELLE IMMAGINI (VERSIONE CORRETTA) ---
 const UPLOAD_PATH = process.env.NODE_ENV === 'production' ? '/app/uploads' : 'public/uploads';
 
@@ -1950,6 +1952,111 @@ app.post("/api/acquisti/paga-con-buono", ensureAuthenticated, async (req, res) =
     }
 });
 
+// =================================================================================
+// == API RIEPILOGO DASHBOARD (VERSIONE DEFINITIVA CON TRATTAMENTI E ACQUISTI SOSPESI) ==
+// =================================================================================
+app.get("/api/dashboard/summary", ensureAuthenticated, async (req, res) => {
+    try {
+        // --- 1. Recupero Dati Interni ---
+
+        // Query 1: Recupera i TRATTAMENTI non pagati
+        const trattamentiSospesiPromise = db.query(`
+            SELECT c.id, c.nome, c.cognome, t.servizi
+            FROM clienti c
+            JOIN trattamenti t ON c.id = t.cliente_id
+            WHERE t.pagato = false;
+        `);
+        
+        // Query 2: Recupera TUTTI i clienti per analizzare gli acquisti
+        // (È più efficiente prendere tutti i clienti che fare join complessi su un campo JSON)
+        const clientiPromise = db.query(`SELECT id, nome, cognome, storico_acquisti FROM clienti;`);
+
+        const buoniPromise = db.query(`
+            SELECT 
+                b.id, b.descrizione, b.tipo_buono, b.valore_rimanente_euro, b.servizi_inclusi,
+                c.id AS beneficiario_id, c.nome AS beneficiario_nome, c.cognome AS beneficiario_cognome
+            FROM buoni_prepagati b
+            JOIN clienti c ON b.cliente_beneficiario_id = c.id
+            WHERE b.stato = 'attivo'
+            ORDER BY b.data_acquisto DESC;
+        `);
+
+        // --- 2 & 3. Meteo e Aforisma (invariati) ---
+        const apiKey = process.env.OPENWEATHER_API_KEY;
+        const meteoPromise = fetch(`https://api.openweathermap.org/data/2.5/weather?q=Bolzano,IT&appid=${apiKey}&units=metric&lang=it`)
+            .then(response => response.json()).then(data => ({
+                descrizione: data.weather[0].description, temperatura: Math.round(data.main.temp), icona: data.weather[0].icon
+            })).catch(error => null);
+        
+        const aforismaPromise = fetch('https://api.quotable.io/random?language=it&maxLength=100')
+            .then(res => res.json()).then(data => ({ frase: data.content, autore: data.author }))
+            .catch(error => ({ frase: "Vivi come se dovessi morire domani. Impara come se dovessi vivere per sempre.", autore: "Mahatma Gandhi" }));
+
+        // --- 4. Attendi tutte le chiamate ---
+        const [trattamentiSospesiResult, clientiResult, buoniResult, meteo, aforisma] = await Promise.all([
+            trattamentiSospesiPromise, clientiPromise, buoniPromise, meteoPromise, aforismaPromise
+        ]);
+
+        // --- 5. [LOGICA DI CALCOLO UNIFICATA] ---
+        const clientiSospesiMap = new Map();
+
+        // Step A: Calcola i sospesi dai TRATTAMENTI
+        trattamentiSospesiResult.rows.forEach(trattamento => {
+            const clienteId = trattamento.id;
+            let totaleTrattamento = 0;
+            if (trattamento.servizi && Array.isArray(trattamento.servizi)) {
+                totaleTrattamento = trattamento.servizi.reduce((sum, servizio) => sum + parseFloat(servizio.prezzo || 0), 0);
+            }
+
+            if (!clientiSospesiMap.has(clienteId)) {
+                clientiSospesiMap.set(clienteId, {
+                    id: clienteId, nome: trattamento.nome, cognome: trattamento.cognome, totale_sospeso: 0
+                });
+            }
+            clientiSospesiMap.get(clienteId).totale_sospeso += totaleTrattamento;
+        });
+
+        // Step B: Calcola i sospesi dagli ACQUISTI e aggiungili
+        clientiResult.rows.forEach(cliente => {
+            if (cliente.storico_acquisti) {
+                try {
+                    const acquisti = JSON.parse(cliente.storico_acquisti);
+                    const totaleAcquistiSospesi = acquisti
+                        .filter(a => a.pagato === false) // Filtra solo quelli non pagati
+                        .reduce((sum, a) => sum + (parseFloat(a.prezzo_unitario || 0) * parseInt(a.quantita || 1)), 0);
+
+                    if (totaleAcquistiSospesi > 0) {
+                        if (!clientiSospesiMap.has(cliente.id)) {
+                            clientiSospesiMap.set(cliente.id, {
+                                id: cliente.id, nome: cliente.nome, cognome: cliente.cognome, totale_sospeso: 0
+                            });
+                        }
+                        clientiSospesiMap.get(cliente.id).totale_sospeso += totaleAcquistiSospesi;
+                    }
+                } catch (e) { /* Ignora errori di parsing JSON */ }
+            }
+        });
+
+        const listaClientiSospesi = Array.from(clientiSospesiMap.values());
+
+        res.json({
+            meteo,
+            aforisma,
+            clientiSospesi: {
+                count: listaClientiSospesi.length,
+                lista: listaClientiSospesi
+            },
+            buoniAttivi: {
+                count: buoniResult.rows.length,
+                lista: buoniResult.rows
+            }
+        });
+
+    } catch (err) {
+        console.error("Errore nel recupero del riepilogo dashboard:", err);
+        res.status(500).json({ error: "Errore del server." });
+    }
+});
 
 
 // --- Avvio server ---

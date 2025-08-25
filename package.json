@@ -20,6 +20,7 @@
     "express-session": "^1.18.0",
     "googleapis": "^152.0.0",
     "multer": "^2.0.2",
+    "node-fetch": "^2.7.0",
     "passport": "^0.6.0",
     "passport-google-oauth20": "^2.0.0",
     "path-to-regexp": "^6.1.0",
