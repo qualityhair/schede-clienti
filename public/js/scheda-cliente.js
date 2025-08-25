@@ -1883,6 +1883,26 @@ function calcolaTotaleTrattamentoModal() {
     totaleTrattamentoModal.textContent = `€ ${totale.toFixed(2)}`;
 }
 
+// --- INCOLLA QUESTA NUOVA FUNZIONE ---
+
+function aggiungiRigaServizioBuono() {
+    const div = document.createElement('div');
+    // Usiamo una classe specifica per le righe del buono
+    div.className = 'servizio-row-buono'; 
+    
+    let selectOptions = LISTA_SERVIZI_DISPONIBILI.map(servizio => `<option value="${servizio}">${servizio}</option>`).join('');
+
+    div.innerHTML = `
+        <select class="select-field servizio-nome-buono">
+            ${selectOptions}
+        </select>
+        <input type="number" class="input-field servizio-quantita-buono" value="1" min="1" required>
+        <button type="button" class="btn-remove-servizio" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    listaServiziBuono.appendChild(div);
+}
+
 function aggiungiRigaServizioModal() {
     const div = document.createElement('div');
     div.className = 'servizio-row-modal';
@@ -2364,7 +2384,7 @@ radioTipoBuono.forEach(radio => {
     });
 });
 
-aggiungiServizioBuonoBtn.addEventListener('click', aggiungiRigaServizio);
+aggiungiServizioBuonoBtn.addEventListener('click', aggiungiRigaServizioBuono);
 
 // Ricerca beneficiario
 buonoBeneficiarioSearchInput.addEventListener('keyup', () => {
@@ -2399,11 +2419,17 @@ buonoBeneficiarioSearchResults.addEventListener('click', (e) => {
 });
 
 // Submit del form per creare il buono
+// --- SOSTITUISCI IL VECCHIO EVENT LISTENER CON QUESTO ---
+
+// Submit del form per creare il buono
 formCreaBuono.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const acquirenteId = currentClientId;
     const beneficiarioId = buonoBeneficiarioIdInput.value;
+    if (!beneficiarioId) {
+        return showMessage("Seleziona un beneficiario per il buono.", "error");
+    }
     const tipoBuono = document.querySelector('input[name="tipo-buono"]:checked').value;
 
     const buonoData = {
@@ -2416,24 +2442,30 @@ formCreaBuono.addEventListener('submit', async (e) => {
 
     if (tipoBuono === 'quantita') {
         const servizi = [];
-        const righeServizi = listaServiziBuono.querySelectorAll('.servizio-row');
+        // SELETTORE CORRETTO: Cerca le righe con la classe '.servizio-row-buono'
+        const righeServizi = listaServiziBuono.querySelectorAll('.servizio-row-buono'); 
+        
         if (righeServizi.length === 0) {
-            showMessage("Aggiungi almeno un servizio per il pacchetto.", 'error');
-            return;
+            return showMessage("Aggiungi almeno un servizio per il pacchetto.", 'error');
         }
-        righeServizi.forEach(riga => {
+
+        for (const riga of righeServizi) {
+            const quantita = parseInt(riga.querySelector('.servizio-quantita-buono').value, 10);
+            if (isNaN(quantita) || quantita < 1) {
+                return showMessage("Tutti i servizi devono avere una quantità valida (minimo 1).", "error");
+            }
             servizi.push({
-                servizio: riga.querySelector('.servizio-nome').value,
-                totali: parseInt(riga.querySelector('.servizio-quantita').value, 10),
+                servizio: riga.querySelector('.servizio-nome-buono').value,
+                totali: quantita,
                 usati: 0
             });
-        });
+        }
         buonoData.serviziInclusi = servizi;
-    } else {
+
+    } else { // tipoBuono === 'valore'
         const valore = parseFloat(buonoValoreInizialeInput.value);
         if (isNaN(valore) || valore <= 0) {
-            showMessage("Inserisci un valore valido per il buono.", 'error');
-            return;
+            return showMessage("Inserisci un valore valido per il buono.", 'error');
         }
         buonoData.valoreIniziale = valore;
     }
@@ -2445,12 +2477,13 @@ formCreaBuono.addEventListener('submit', async (e) => {
             body: JSON.stringify(buonoData)
         });
         const data = await handleApiResponse(response);
-        if (!response.ok) throw new Error(data.error || "Errore creazione buono.");
+        if (!response.ok) throw new Error(data.error || "Errore durante la creazione del buono.");
 
         showMessage("Buono creato con successo!", "success");
         closeModal(creaBuonoModal);
-        // Ricarica i buoni sia per l'acquirente che per il beneficiario (se visibile)
+        // Ricarica la sezione dei buoni per vedere quello nuovo
         await loadAndDisplayBuoni(currentClientId);
+        await loadAndDisplayBuoniAcquistati(currentClientId);
 
     } catch (error) {
         console.error("Errore creazione buono:", error);
