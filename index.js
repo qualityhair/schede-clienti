@@ -1956,21 +1956,33 @@ app.post("/api/acquisti/paga-con-buono", ensureAuthenticated, async (req, res) =
 // == API RIEPILOGO DASHBOARD (VERSIONE DEFINITIVA CON TRATTAMENTI E ACQUISTI SOSPESI) ==
 // =================================================================================
 app.get("/api/dashboard/summary", ensureAuthenticated, async (req, res) => {
+    res.set('Cache-Control', 'no-store');
     try {
-        // --- 1. Recupero Dati Interni ---
+        const AFORISMI = [
+            { frase: "La bellezza è l'unica cosa contro cui la forza del tempo è vana.", autore: "Oscar Wilde" },
+            { frase: "Scegli un lavoro che ami, e non dovrai lavorare neppure un giorno in vita tua.", autore: "Confucio" },
+            { frase: "Il successo è la somma di piccoli sforzi ripetuti giorno dopo giorno.", autore: "Robert Collier" },
+            { frase: "La logica vi porterà da A a B. L'immaginazione vi porterà ovunque.", autore: "Albert Einstein" },
+            { frase: "Lo stile è un modo di dire chi sei senza dover parlare.", autore: "Rachel Zoe" },
+            { frase: "La vita è come un'eco: se non ti piace quello che ti rimanda, devi cambiare il messaggio che invii.", autore: "James Joyce" },
+            { frase: "Il futuro appartiene a coloro che credono nella bellezza dei propri sogni.", autore: "Eleanor Roosevelt" },
+            { frase: "Non aspettare. Il tempo non sarà mai giusto.", autore: "Napoleon Hill" },
+            { frase: "La semplicità è l'ultima sofisticazione.", autore: "Leonardo da Vinci" },
+            { frase: "Un giorno senza un sorriso è un giorno perso.", autore: "Charlie Chaplin" },
+            { frase: "La creatività è intelligenza che si diverte.", autore: "Albert Einstein" },
+            { frase: "Fai della tua vita un sogno, e di un sogno, una realtà.", autore: "Antoine de Saint-Exupéry" },
+            { frase: "Ciò che non mi uccide, mi rende più forte.", autore: "Friedrich Nietzsche" },
+            { frase: "Il modo migliore per predire il futuro è crearlo.", autore: "Peter Drucker" },
+            { frase: "La felicità non è qualcosa di già pronto. Viene dalle tue azioni.", autore: "Dalai Lama" }
+        ];
 
-        // Query 1: Recupera i TRATTAMENTI non pagati
         const trattamentiSospesiPromise = db.query(`
             SELECT c.id, c.nome, c.cognome, t.servizi
             FROM clienti c
             JOIN trattamenti t ON c.id = t.cliente_id
             WHERE t.pagato = false;
         `);
-        
-        // Query 2: Recupera TUTTI i clienti per analizzare gli acquisti
-        // (È più efficiente prendere tutti i clienti che fare join complessi su un campo JSON)
         const clientiPromise = db.query(`SELECT id, nome, cognome, storico_acquisti FROM clienti;`);
-
         const buoniPromise = db.query(`
             SELECT 
                 b.id, b.descrizione, b.tipo_buono, b.valore_rimanente_euro, b.servizi_inclusi,
@@ -1980,78 +1992,53 @@ app.get("/api/dashboard/summary", ensureAuthenticated, async (req, res) => {
             WHERE b.stato = 'attivo'
             ORDER BY b.data_acquisto DESC;
         `);
-
-        // --- 2 & 3. Meteo e Aforisma (invariati) ---
         const apiKey = process.env.OPENWEATHER_API_KEY;
         const meteoPromise = fetch(`https://api.openweathermap.org/data/2.5/weather?q=Bolzano,IT&appid=${apiKey}&units=metric&lang=it`)
             .then(response => response.json()).then(data => ({
                 descrizione: data.weather[0].description, temperatura: Math.round(data.main.temp), icona: data.weather[0].icon
             })).catch(error => null);
         
-        const aforismaPromise = fetch('https://api.quotable.io/random?language=it&maxLength=100')
-            .then(res => res.json()).then(data => ({ frase: data.content, autore: data.author }))
-            .catch(error => ({ frase: "Vivi come se dovessi morire domani. Impara come se dovessi vivere per sempre.", autore: "Mahatma Gandhi" }));
+        const randomIndex = Math.floor(Math.random() * AFORISMI.length);
+        const aforismaDelGiorno = AFORISMI[randomIndex];
 
-        // --- 4. Attendi tutte le chiamate ---
-        const [trattamentiSospesiResult, clientiResult, buoniResult, meteo, aforisma] = await Promise.all([
-            trattamentiSospesiPromise, clientiPromise, buoniPromise, meteoPromise, aforismaPromise
+        const [trattamentiSospesiResult, clientiResult, buoniResult, meteo] = await Promise.all([
+            trattamentiSospesiPromise, clientiPromise, buoniPromise, meteoPromise
         ]);
 
-        // --- 5. [LOGICA DI CALCOLO UNIFICATA] ---
         const clientiSospesiMap = new Map();
-
-        // Step A: Calcola i sospesi dai TRATTAMENTI
         trattamentiSospesiResult.rows.forEach(trattamento => {
             const clienteId = trattamento.id;
             let totaleTrattamento = 0;
             if (trattamento.servizi && Array.isArray(trattamento.servizi)) {
                 totaleTrattamento = trattamento.servizi.reduce((sum, servizio) => sum + parseFloat(servizio.prezzo || 0), 0);
             }
-
             if (!clientiSospesiMap.has(clienteId)) {
-                clientiSospesiMap.set(clienteId, {
-                    id: clienteId, nome: trattamento.nome, cognome: trattamento.cognome, totale_sospeso: 0
-                });
+                clientiSospesiMap.set(clienteId, { id: clienteId, nome: trattamento.nome, cognome: trattamento.cognome, totale_sospeso: 0 });
             }
             clientiSospesiMap.get(clienteId).totale_sospeso += totaleTrattamento;
         });
-
-        // Step B: Calcola i sospesi dagli ACQUISTI e aggiungili
         clientiResult.rows.forEach(cliente => {
             if (cliente.storico_acquisti) {
                 try {
                     const acquisti = JSON.parse(cliente.storico_acquisti);
-                    const totaleAcquistiSospesi = acquisti
-                        .filter(a => a.pagato === false) // Filtra solo quelli non pagati
-                        .reduce((sum, a) => sum + (parseFloat(a.prezzo_unitario || 0) * parseInt(a.quantita || 1)), 0);
-
+                    const totaleAcquistiSospesi = acquisti.filter(a => a.pagato === false).reduce((sum, a) => sum + (parseFloat(a.prezzo_unitario || 0) * parseInt(a.quantita || 1)), 0);
                     if (totaleAcquistiSospesi > 0) {
                         if (!clientiSospesiMap.has(cliente.id)) {
-                            clientiSospesiMap.set(cliente.id, {
-                                id: cliente.id, nome: cliente.nome, cognome: cliente.cognome, totale_sospeso: 0
-                            });
+                            clientiSospesiMap.set(cliente.id, { id: cliente.id, nome: cliente.nome, cognome: cliente.cognome, totale_sospeso: 0 });
                         }
                         clientiSospesiMap.get(cliente.id).totale_sospeso += totaleAcquistiSospesi;
                     }
-                } catch (e) { /* Ignora errori di parsing JSON */ }
+                } catch (e) {}
             }
         });
-
         const listaClientiSospesi = Array.from(clientiSospesiMap.values());
 
         res.json({
             meteo,
-            aforisma,
-            clientiSospesi: {
-                count: listaClientiSospesi.length,
-                lista: listaClientiSospesi
-            },
-            buoniAttivi: {
-                count: buoniResult.rows.length,
-                lista: buoniResult.rows
-            }
+            aforisma: aforismaDelGiorno,
+            clientiSospesi: { count: listaClientiSospesi.length, lista: listaClientiSospesi },
+            buoniAttivi: { count: buoniResult.rows.length, lista: buoniResult.rows }
         });
-
     } catch (err) {
         console.error("Errore nel recupero del riepilogo dashboard:", err);
         res.status(500).json({ error: "Errore del server." });
