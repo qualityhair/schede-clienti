@@ -164,8 +164,12 @@ const aggiungiServizioBtnModal = document.getElementById('aggiungi-servizio-btn-
 const totaleTrattamentoModal = document.getElementById('totale-trattamento-modal');
 const trattamentoIdEditInput = document.getElementById('trattamento-id-edit');
 
-
-
+// --- RIFERIMENTI PER LA PALETTE COLORE (NUOVI) ---
+const paletteLista = document.getElementById('palette-colore-lista');
+const apriPaletteBtn = document.getElementById('apri-palette-btn');
+const salvaInPaletteCheckbox = document.getElementById('salva-in-palette-checkbox');
+const selezionaFormulaModal = document.getElementById('selezionaFormulaModal');
+const listaFormuleSelezionabili = document.getElementById('lista-formule-selezionabili');
 
 
 
@@ -544,13 +548,14 @@ avatarContainer.appendChild(initialsDiv);
 
         // --- PARTE 4: Carica tutte le sezioni "extra" in modo asincrono ---
         await Promise.all([
-            loadStyleClientPhotos(clientId),
-            loadTrichoClientPhotos(clientId),
-            caricaRiepilogoAnalisi(clientId),
-            loadAndDisplayRelazioni(clientId),
-            loadAndDisplayBuoni(clientId, false),
-            loadAndDisplayBuoniAcquistati(clientId, false)
-        ]);
+    loadStyleClientPhotos(clientId),
+    loadTrichoClientPhotos(clientId),
+    caricaRiepilogoAnalisi(clientId),
+    loadAndDisplayRelazioni(clientId),
+    loadAndDisplayBuoni(clientId, false),
+    loadAndDisplayBuoniAcquistati(clientId, false),
+    caricaEVisualizzaPalette(clientId) // <-- AGGIUNGI QUESTA RIGA
+]);
 
     } catch (error) {
         console.error("Errore in loadClientData:", error);
@@ -1457,6 +1462,70 @@ async function caricaRiepilogoAnalisi(clienteId) {
             contentDiv.innerHTML = '<p class="error-message">Impossibile caricare il riepilogo.</p>';
         }
     }
+	
+	
+	// =======================================================
+// === FUNZIONI PER GESTIONE PALETTE COLORE (NUOVE)    ===
+// =======================================================
+async function caricaEVisualizzaPalette(clienteId) {
+    if (!paletteLista) return;
+    paletteLista.innerHTML = '<p class="loading-message">Caricamento palette...</p>';
+    
+    try {
+        const response = await fetch(`/api/clienti/${clienteId}/formule`);
+        const formule = await handleApiResponse(response);
+
+        paletteLista.innerHTML = ''; // Pulisce il contenitore
+
+        if (!formule || formule.length === 0) {
+            paletteLista.innerHTML = '<p>Nessuna formula salvata.</p>';
+            return;
+        }
+
+        formule.forEach(formula => {
+            const cartellino = document.createElement('div');
+            cartellino.className = 'formula-cartellino';
+            cartellino.innerHTML = `
+    <div class="formula-header">
+        <h5>${formula.nome_formula}</h5>
+        <button class="btn btn-sm btn-danger btn-elimina-formula">&times;</button>
+    </div>
+    <p>${formula.testo_formula}</p>
+`;
+
+        
+
+            cartellino.querySelector('.btn-elimina-formula').onclick = () => {
+                if (confirm(`Sei sicuro di voler eliminare la formula "${formula.nome_formula}"?`)) {
+                    eliminaFormula(formula.id);
+                }
+            };
+
+            paletteLista.appendChild(cartellino);
+        });
+
+    } catch (error) {
+        console.error('Errore nel caricamento della palette:', error);
+        paletteLista.innerHTML = '<p class="error-message">Impossibile caricare la palette.</p>';
+    }
+}
+
+async function eliminaFormula(formulaId) {
+    try {
+        const response = await fetch(`/api/formule/${formulaId}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Errore server durante l\'eliminazione.');
+        
+        showMessage('Formula eliminata!', 'success');
+        await caricaEVisualizzaPalette(currentClientId); // Ricarica la palette per aggiornare la vista
+    } catch (error) {
+        console.error('Errore eliminazione formula:', error);
+        showMessage('Errore durante l\'eliminazione della formula.', 'error');
+    }
+}
+	
+	
+	
+	
 
     // --- 4. FUNZIONI DI GESTIONE (DELETE, SAVE, UPDATE, etc.) ---
 
@@ -1646,9 +1715,8 @@ async function handleAddAcquisto(event) {
     }
 }
 
-    // --- SOSTITUISCI LA VECCHIA handleAddTrattamento ---
 
-// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
+// --- SOSTITUISCI LA VECCHIA handleAddTrattamento CON QUESTA ---
 async function handleAddTrattamento(event) {
     event.preventDefault();
 
@@ -1657,23 +1725,20 @@ async function handleAddTrattamento(event) {
         return;
     }
 
+    // ... (la parte che raccoglie i dati dei servizi rimane uguale)
     const righeServizi = serviziContainerModal.querySelectorAll('.servizio-row-modal');
     if (righeServizi.length === 0) {
         return showMessage("Aggiungi almeno un servizio.", "error");
     }
-
     const servizi = [];
     for (const riga of righeServizi) {
         const prezzo = parseFloat(riga.querySelector('.servizio-prezzo-modal').value);
         if (isNaN(prezzo) || prezzo < 0) {
             return showMessage("Tutti i servizi devono avere un prezzo valido.", "error");
         }
-        servizi.push({
-            servizio: riga.querySelector('.servizio-nome-modal').value,
-            prezzo: prezzo
-        });
+        servizi.push({ servizio: riga.querySelector('.servizio-nome-modal').value, prezzo: prezzo });
     }
-
+    
     const datiTrattamento = {
         cliente_id: currentClientId,
         data_trattamento: dataTrattamentoInput.value,
@@ -1683,9 +1748,7 @@ async function handleAddTrattamento(event) {
         note: noteTrattamentoInput.value.trim()
     };
     
-    if (!datiTrattamento.data_trattamento) {
-        return showMessage("La data è obbligatoria.", "error");
-    }
+    if (!datiTrattamento.data_trattamento) return showMessage("La data è obbligatoria.", "error");
 
     try {
         const response = await fetch('/api/trattamenti', {
@@ -1696,9 +1759,25 @@ async function handleAddTrattamento(event) {
         const data = await handleApiResponse(response);
         if (!response.ok) throw new Error(data.error || "Errore durante il salvataggio.");
 
+        // --- [LOGICA AGGIUNTA] Salvataggio in Palette ---
+        if (salvaInPaletteCheckbox.checked && datiTrattamento.descrizione) {
+            const nomeFormula = prompt("Dai un nome a questa nuova formula colore per salvarla in palette:");
+            if (nomeFormula) {
+                await fetch('/api/formule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cliente_id: currentClientId,
+                        nome_formula: nomeFormula,
+                        testo_formula: datiTrattamento.descrizione
+                    })
+                });
+            }
+        }
+
         showMessage("Appuntamento salvato con successo!", "success");
         closeModal(modalAggiungiTrattamento);
-        await loadClientData(currentClientId);
+        await loadClientData(currentClientId); // Ricarica tutto, inclusa la palette
 
     } catch (error) {
         console.error("Errore salvataggio trattamento:", error);
@@ -2610,7 +2689,51 @@ aggiungiServizioBtnModal.addEventListener('click', aggiungiRigaServizioModal);
   });
 })();
 
+// --- EVENT LISTENERS PER LA SELEZIONE DELLA FORMULA (NUOVI) ---
+if (apriPaletteBtn) {
+    apriPaletteBtn.addEventListener('click', async () => {
+        // Popola la modale con le formule attuali
+        listaFormuleSelezionabili.innerHTML = '<p class="loading-message">Caricamento...</p>';
+        
+        const response = await fetch(`/api/clienti/${currentClientId}/formule`);
+        const formule = await handleApiResponse(response);
+        
+        listaFormuleSelezionabili.innerHTML = '';
+        if (!formule || formule.length === 0) {
+            listaFormuleSelezionabili.innerHTML = '<p>Nessuna formula da selezionare.</p>';
+        } else {
+            formule.forEach(formula => {
+                const cartellino = document.createElement('div');
+                cartellino.className = 'formula-cartellino clickable'; // Aggiungiamo 'clickable'
+                cartellino.innerHTML = `
+                    <h5>${formula.nome_formula}</h5>
+                    <p>${formula.testo_formula}</p>
+                `;
+                // Quando clicchi il cartellino, incolla la formula e chiudi la modale
+                cartellino.onclick = () => {
+                    document.getElementById('descrizioneTrattamento').value = formula.testo_formula;
+                    selezionaFormulaModal.style.display = 'none';
+                    showMessage('Formula inserita!', 'success');
+                };
+                listaFormuleSelezionabili.appendChild(cartellino);
+            });
+        }
+        
+        selezionaFormulaModal.style.display = 'block';
+    });
+}
 
+// Logica per chiudere la modale delle formule
+if (selezionaFormulaModal) {
+    selezionaFormulaModal.querySelector('.close-btn').onclick = () => {
+        selezionaFormulaModal.style.display = 'none';
+    };
+    window.addEventListener('click', (event) => {
+        if (event.target == selezionaFormulaModal) {
+            selezionaFormulaModal.style.display = 'none';
+        }
+    });
+}
 
     // --- 7. AVVIO ---
     getClientIdsFromSearch();

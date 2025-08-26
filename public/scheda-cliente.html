@@ -123,6 +123,22 @@
                     <span class="collapsible-arrow">▼</span>
                 </div>
                 <div class="collapsible-content">
+				        <!-- === INCOLLA QUESTO NUOVO BLOCCO HTML QUI DENTRO === -->
+        <div id="palette-colore-container" class="palette-container">
+            <h4 class="palette-title">🎨 Palette Colore</h4>
+            <div id="palette-colore-lista" class="palette-grid">
+                <!-- Il JavaScript popolerà questa sezione con i cartellini delle formule -->
+                <p class="loading-message">Caricamento palette...</p>
+            </div>
+        </div>
+        <hr class="panel-divider"> <!-- Una linea per separare -->
+        <!-- ====================================================== -->
+        
+        <div class="filter-controls" id="trattamenti-filter-controls"></div>
+        <div class="panel-content table-responsive">
+            <table class="trattamenti data-table">
+				
+				
                     <div class="filter-controls" id="trattamenti-filter-controls"></div>
                     <div class="panel-content table-responsive">
                         <table class="trattamenti data-table">
@@ -404,14 +420,26 @@
             <form id="formAddTrattamento">
                 <input type="hidden" id="trattamento-id-edit" value="">
                 
-                <div class="form-group">
-                    <label for="dataTrattamento" class="form-label">Data Appuntamento:</label>
-                    <input type="date" id="dataTrattamento" class="input-field" required>
-                </div>
-				<div class="form-group">
-				<label for="descrizioneTrattamento" class="form-label">Descrizione / Formula Colore:</label>
-				<textarea id="descrizioneTrattamento" class="textarea-field"></textarea>
-				</div>
+                 <!-- === HO RIPRISTINATO QUESTO PEZZO FONDAMENTALE === -->
+    <div class="form-group">
+        <label for="dataTrattamento" class="form-label">Data Appuntamento:</label>
+        <input type="date" id="dataTrattamento" class="input-field" required>
+    </div>
+    <!-- ================================================= -->
+
+    <div class="form-group">
+        <div class="label-container-palette">
+            <label for="descrizioneTrattamento" class="form-label">Descrizione / Formula Colore:</label>
+            <button type="button" id="apri-palette-btn" class="btn-icon" title="Usa una formula salvata">🎨</button>
+        </div>
+        <textarea id="descrizioneTrattamento" class="textarea-field"></textarea>
+        <div class="form-group-checkbox" style="margin-top: 10px;">
+            <input type="checkbox" id="salva-in-palette-checkbox">
+            <label for="salva-in-palette-checkbox">Salva questa formula nella Palette</label>
+        </div>
+    </div>
+				
+				
                 <hr class="panel-divider">
 
                 <h4>Servizi Eseguiti</h4>
@@ -572,6 +600,21 @@
             </form>
         </div>
     </div>
+	
+	<!-- MODALE PER LA SELEZIONE DELLA FORMULA COLORE (NUOVA) -->
+<div id="selezionaFormulaModal" class="dashboard-modal">
+    <div class="dashboard-modal-content">
+        <div class="dashboard-modal-header">
+            <h3>Seleziona una Formula Salvata</h3>
+            <button class="close-btn">&times;</button>
+        </div>
+        <div id="lista-formule-selezionabili" class="dashboard-modal-body palette-grid">
+            <!-- Il JS popolerà questa lista -->
+        </div>
+    </div>
+</div>
+	
+	
 </body>
 
 

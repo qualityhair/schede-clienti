@@ -2142,7 +2142,59 @@ app.get("/api/dashboard/summary", ensureAuthenticated, async (req, res) => {
     }
 });
 
+// =======================================================
+// === API PER LA PALETTE COLORE (NUOVA)               ===
+// =======================================================
 
+// 1. API per RECUPERARE tutte le formule di un cliente
+app.get("/api/clienti/:id/formule", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const query = "SELECT * FROM formule_colore WHERE cliente_id = $1 ORDER BY nome_formula ASC";
+        const result = await db.query(query, [id]);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(`Errore recupero formule per cliente ${id}:`, err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// 2. API per SALVARE una nuova formula
+app.post("/api/formule", ensureAuthenticated, async (req, res) => {
+    const { cliente_id, nome_formula, testo_formula } = req.body;
+
+    if (!cliente_id || !nome_formula || !testo_formula) {
+        return res.status(400).json({ error: "Dati mancanti per salvare la formula." });
+    }
+
+    try {
+        const query = `
+            INSERT INTO formule_colore (cliente_id, nome_formula, testo_formula) 
+            VALUES ($1, $2, $3) 
+            RETURNING *;
+        `;
+        const result = await db.query(query, [cliente_id, nome_formula, testo_formula]);
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        console.error('Errore creazione formula:', err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// 3. API per ELIMINARE una formula
+app.delete("/api/formule/:id", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params; // Questo è l'ID della formula
+    try {
+        const result = await db.query("DELETE FROM formule_colore WHERE id = $1", [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Formula non trovata." });
+        }
+        res.status(200).json({ message: "Formula eliminata con successo." });
+    } catch (err) {
+        console.error(`Errore eliminazione formula ${id}:`, err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
 
 
 

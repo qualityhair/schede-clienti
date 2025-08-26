@@ -3028,6 +3028,134 @@ animation: fadeInUp 0.5s ease-out forwards;
     color: #81c784; /* Verde per i buoni */
 }
 
+/* ============================================= */
+/* == Stili per Palette Colore Cliente        == */
+/* ============================================= */
+
+.palette-container {
+    margin-bottom: 20px;
+}
+
+.palette-title {
+    font-size: 1.1em;
+    color: #FFD700;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #444;
+}
+
+.palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.formula-cartellino {
+    background-color: #3a3a3c;
+    border: 1px solid #555;
+    border-radius: 6px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.formula-cartellino h5 {
+    font-size: 1em;
+    font-weight: bold;
+    color: #e8e8e8;
+    margin: 0 0 10px 0;
+}
+
+.formula-cartellino p {
+    font-size: 0.9em;
+    color: #ccc;
+    white-space: pre-wrap;
+    flex-grow: 1; /* Fa espandere il testo della formula */
+    margin-bottom: 15px;
+}
+
+.formula-actions {
+    display: flex;
+    justify-content: flex-end; /* Allinea i pulsanti a destra */
+    gap: 10px;
+}
+
+/* Stile per l'icona della palette nella modale */
+.label-container-palette {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+
+.formula-cartellino.clickable {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.formula-cartellino.clickable:hover {
+    background-color: #4a4a4c;
+}
+
+/* ============================================= */
+/* == Stile per Pulsante Elimina Formula      == */
+/* ============================================= */
+
+.formula-actions .btn-elimina-formula {
+    /* Dimensioni e forma */
+    padding: 2px 8px; /* Riduciamo il padding per rimpicciolirlo */
+    font-size: 0.8em; /* Riduciamo la dimensione del testo */
+    
+    /* Stile "fantasma" per renderlo meno invadente */
+    background-color: transparent;
+    border: 1px solid #dc3545; /* Bordo rosso */
+    color: #dc3545; /* Testo rosso */
+}
+
+/* Effetto al passaggio del mouse per dare feedback */
+.formula-actions .btn-elimina-formula:hover {
+    background-color: #dc3545; /* Lo sfondo diventa rosso */
+    color: white; /* Il testo diventa bianco */
+}
+
+/* ============================================= */
+/* == Stili per Intestazione Cartellino Formula == */
+/* ============================================= */
+
+/* Contenitore per titolo e pulsante elimina */
+.formula-header {
+    display: flex;
+    justify-content: space-between; /* Spinge titolo e pulsante ai lati opposti */
+    align-items: center;          /* Li allinea verticalmente al centro */
+    margin-bottom: 10px;
+}
+
+/* Titolo della formula */
+.formula-header h5 {
+    margin: 0; /* Rimuove il margine di default che potrebbe sballare l'allineamento */
+    color: #e8e8e8;
+}
+
+/* Pulsante elimina (ora è una piccola 'x') */
+.formula-header .btn-elimina-formula {
+    padding: 0px 6px; /* Padding minimo per renderlo piccolo e quasi quadrato */
+    font-size: 1.2em;   /* Ingrandisce la 'x' per renderla chiara */
+    line-height: 1;     /* Migliora l'allineamento verticale della 'x' */
+    background-color: transparent;
+    border: 1px solid #dc3545;
+    color: #dc3545;
+}
+
+.formula-header .btn-elimina-formula:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+
+
+
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */
