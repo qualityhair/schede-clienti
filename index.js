@@ -615,6 +615,84 @@ app.get("/api/clienti/cerca", async (req, res) => {
 });
 
 
+// ====================================================================
+// == API CLIENTI SENZA APPUNTAMENTO (V. CON FILTRO CORRETTO) ==
+// ====================================================================
+app.get("/api/clienti/senza-appuntamento", ensureAuthenticated, async (req, res) => {
+    try {
+        // --- 1. Trova gli ID dei clienti che HANNO un appuntamento questo mese ---
+        const appuntamentiMeseResult = await db.query(`
+            SELECT DISTINCT summary 
+            FROM calendar_events 
+            WHERE DATE_TRUNC('month', start_time) = DATE_TRUNC('month', CURRENT_DATE);
+        `);
+        
+        const clientiConAppuntamento = new Set();
+
+        if (appuntamentiMeseResult.rows.length > 0) {
+            // Per ogni appuntamento, cerchiamo un cliente corrispondente
+            for (const app of appuntamentiMeseResult.rows) {
+                const rawTitle = app.summary.trim();
+                const sigleDaRimuovere = ['tg', 'tn', 'tratt', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul', 'colore'];
+                const nomePulito = rawTitle.toLowerCase().split(' ').filter(p => !sigleDaRimuovere.includes(p) && isNaN(p)).join(' ').trim();
+                
+                if (nomePulito) {
+                    const searchTerm = `%${nomePulito.replace(/\s+/g, '%')}%`;
+                    const resultCliente = await db.query(`
+                        SELECT id FROM clienti 
+                        WHERE 
+                            LOWER(CONCAT(nome, ' ', cognome)) ILIKE $1 OR
+                            LOWER(CONCAT(cognome, ' ', nome)) ILIKE $1 OR
+                            LOWER(soprannome) ILIKE $1
+                        LIMIT 1;
+                    `, [searchTerm]);
+
+                    if (resultCliente.rows.length > 0) {
+                        clientiConAppuntamento.add(resultCliente.rows[0].id);
+                    }
+                }
+            }
+        }
+        
+        const idsClientiConAppuntamento = Array.from(clientiConAppuntamento);
+
+        // --- 2. Trova TUTTI i clienti con la loro ultima data di visita, ESCLUDENDO quelli già trovati ---
+        let queryTuttiClienti;
+        let queryParams = [];
+
+        if (idsClientiConAppuntamento.length > 0) {
+            queryTuttiClienti = `
+                SELECT c.id, c.nome, c.cognome, c.telefono, MAX(t.data_trattamento) as ultima_visita
+                FROM clienti c
+                LEFT JOIN trattamenti t ON c.id = t.cliente_id
+                WHERE c.id NOT IN (${idsClientiConAppuntamento.map((_, i) => `$${i + 1}`).join(',')})
+                GROUP BY c.id
+                ORDER BY ultima_visita DESC NULLS LAST, c.cognome, c.nome;
+            `;
+            queryParams = idsClientiConAppuntamento;
+        } else {
+            queryTuttiClienti = `
+                SELECT c.id, c.nome, c.cognome, c.telefono, MAX(t.data_trattamento) as ultima_visita
+                FROM clienti c
+                LEFT JOIN trattamenti t ON c.id = t.cliente_id
+                GROUP BY c.id
+                ORDER BY ultima_visita DESC NULLS LAST, c.cognome, c.nome;
+            `;
+        }
+
+        const clientiDaContattareResult = await db.query(queryTuttiClienti, queryParams);
+        
+        res.json(clientiDaContattareResult.rows);
+
+    } catch (err) {
+        console.error("Errore nel trovare clienti senza appuntamento:", err);
+        res.status(500).json({ error: "Errore del server." });
+    }
+});
+
+
+
+
 
 // --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
 app.get("/api/clienti/:id", async (req, res) => {
@@ -1270,6 +1348,9 @@ app.get("/api/events", ensureAuthenticated, async (req, res) => {
 
 // API PER GLI APPUNTAMENTI DI OGGI (PER LA DASHBOARD)
 
+// =================================================================================
+// == API APPUNTAMENTI OGGI (V. CON MINI-CRUSCOTTO CLIENTE) ==
+// =================================================================================
 app.get("/api/appuntamenti/oggi", ensureAuthenticated, async (req, res) => {
     try {
         const queryAppuntamenti = `SELECT summary, start_time, color_id FROM calendar_events WHERE start_time::date = CURRENT_DATE ORDER BY start_time ASC;`;
@@ -1283,52 +1364,68 @@ app.get("/api/appuntamenti/oggi", ensureAuthenticated, async (req, res) => {
             const sigleDaRimuovere = ['tg', 'tn', 'tratt', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul', 'colore'];
             const nomePulito = rawTitle.toLowerCase().split(' ').filter(p => !sigleDaRimuovere.includes(p) && isNaN(p)).join(' ').trim();
             
-            let clienteCollegato = null;
+            let clienteDettagli = null;
 
             if (nomePulito) {
-                // --- NUOVA LOGICA DI RICERCA POTENZIATA ---
-                // Trasformiamo "margherita cristoforetti" in "%margherita%cristoforetti%"
-                // Questo permette di trovare il nome anche se ci sono spazi extra o caratteri in mezzo.
                 const searchTerm = `%${nomePulito.replace(/\s+/g, '%')}%`;
-                
-                // La query ora cerca CONCAT(nome, ' ', cognome) e CONCAT(cognome, ' ', nome)
-                // Questo gestisce sia l'ordine normale che quello invertito.
-                const queryCliente = `
-                    SELECT id, telefono 
+                const resultCliente = await db.query(`
+                    SELECT id, nome, cognome, telefono, preferenze_note, tags, storico_acquisti 
                     FROM clienti 
                     WHERE 
                         LOWER(CONCAT(nome, ' ', cognome)) ILIKE $1 OR
                         LOWER(CONCAT(cognome, ' ', nome)) ILIKE $1 OR
                         LOWER(soprannome) ILIKE $1
                     LIMIT 1;
-                `;
-                
-                const resultCliente = await db.query(queryCliente, [searchTerm]);
+                `, [searchTerm]);
                 
                 if (resultCliente.rows.length > 0) {
-                    const clienteDb = resultCliente.rows[0];
-                    clienteCollegato = {
-                        id: clienteDb.id,
-                        telefono: null 
-                    };
+                    const cliente = resultCliente.rows[0];
 
-                    if (clienteDb.telefono) {
-                        let telefonoPulito = clienteDb.telefono.replace(/\D/g, '');
-                        if (telefonoPulito.startsWith('3') && !telefonoPulito.startsWith('39')) {
-                            telefonoPulito = '39' + telefonoPulito;
-                        }
-                        clienteCollegato.telefono = telefonoPulito;
+                    // --- INIZIA IL LAVORO DI ANALISI ---
+                    // 1. Controlla i trattamenti in sospeso
+                    const trattamentiResult = await db.query('SELECT pagato FROM trattamenti WHERE cliente_id = $1', [cliente.id]);
+                    const haTrattamentiSospesi = trattamentiResult.rows.some(t => !t.pagato);
+
+                    // 2. Controlla gli acquisti in sospeso
+                    let haAcquistiSospesi = false;
+                    if (cliente.storico_acquisti) {
+                        try {
+                            const acquisti = JSON.parse(cliente.storico_acquisti);
+                            haAcquistiSospesi = acquisti.some(a => a.pagato === false);
+                        } catch (e) { /* ignora errori di parsing */ }
                     }
+
+                    // 3. Controlla i buoni attivi
+                    const buoniResult = await db.query("SELECT 1 FROM buoni_prepagati WHERE cliente_beneficiario_id = $1 AND stato = 'attivo' LIMIT 1", [cliente.id]);
+                    const haBuoniAttivi = buoniResult.rows.length > 0;
+
+                    // 4. Pulisce il telefono (logica già esistente)
+                    let telefonoPulito = null;
+                    if (cliente.telefono) {
+                         telefonoPulito = cliente.telefono.replace(/\D/g, '');
+                         if (telefonoPulito.startsWith('3') && !telefonoPulito.startsWith('39')) {
+                            telefonoPulito = '39' + telefonoPulito;
+                         }
+                    }
+                    
+                    // 5. Costruisce l'oggetto finale con tutte le informazioni
+                    clienteDettagli = {
+                        id: cliente.id,
+                        telefono: telefonoPulito,
+                        note: cliente.preferenze_note,
+                        tags: cliente.tags,
+                        haSospesi: haTrattamentiSospesi || haAcquistiSospesi,
+                        haBuoniAttivi: haBuoniAttivi
+                    };
                 }
             }
-
-            appuntamentiConDatiCliente.push({ ...app, cliente: clienteCollegato });
+            appuntamentiConDatiCliente.push({ ...app, cliente: clienteDettagli });
         }
 
         res.json(appuntamentiConDatiCliente);
 
     } catch (err) {
-        console.error("Errore nel recupero degli appuntamenti di oggi:", err.message);
+        console.error("Errore nel recupero degli appuntamenti di oggi (con dettagli):", err.message);
         res.status(500).json({ error: "Errore del server" });
     }
 });
@@ -2044,6 +2141,10 @@ app.get("/api/dashboard/summary", ensureAuthenticated, async (req, res) => {
         res.status(500).json({ error: "Errore del server." });
     }
 });
+
+
+
+
 
 
 // --- Avvio server ---

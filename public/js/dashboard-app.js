@@ -294,18 +294,20 @@ function getAppointmentColor(app) {
 
     // Funzione per caricare e mostrare gli appuntamenti
 
-async function fetchAndDisplayAppointments() {
-    const listElement = document.getElementById('lista-appuntamenti');
-    if (!listElement) return;
+// =========================================================================
+// == GESTIONE APPUNTAMENTI CON MINI-CRUSCOTTO (SOSTITUISCE LA VECCHIA LOGICA) ==
+// =========================================================================
 
+async function fetchAndDisplayAppointments() {
+    if (!appointmentsListContainer) return;
     try {
         const response = await fetch('/api/appuntamenti/oggi');
         const appointments = await handleApiResponse(response);
         if (!appointments) return;
 
-        listElement.innerHTML = '';
+        appointmentsListContainer.innerHTML = '';
         if (appointments.length === 0) {
-            listElement.innerHTML = '<li class="appointment-item info">Nessun appuntamento per oggi.</li>';
+            appointmentsListContainer.innerHTML = '<li class="appointment-item info">Nessun appuntamento per oggi.</li>';
             return;
         }
 
@@ -316,59 +318,92 @@ async function fetchAndDisplayAppointments() {
             const listItem = document.createElement('li');
             listItem.className = 'appointment-item';
             listItem.style.backgroundColor = backgroundColor;
+
+            let statusIconsHtml = '';
+            let detailsPanelHtml = '';
             
-            let whatsappIconHtml = '';
-            if (app.cliente && app.cliente.telefono) {
-                let telefono = app.cliente.telefono.trim();
+            if (app.cliente) {
+                listItem.classList.add('clickable');
+                listItem.dataset.clienteId = app.cliente.id;
 
-                // --- NORMALIZZAZIONE NUMERO ---
-                // Se numero italiano che inizia con 3 (es. 3331234567), aggiungiamo prefisso 39
-                if (/^3\d{8,9}$/.test(telefono)) {
-                    telefono = "39" + telefono;
+                // Costruisci le icone di stato
+                if (app.cliente.note || (app.cliente.tags && app.cliente.tags.length > 0)) statusIconsHtml += '<span>💬</span>';
+                if (app.cliente.haSospesi) statusIconsHtml += '<span>🚨</span>';
+                if (app.cliente.haBuoniAttivi) statusIconsHtml += '<span>🎁</span>';
+
+                // Costruisci il pannello a scomparsa con i dettagli
+                detailsPanelHtml += '<div class="appointment-details-panel">';
+                if (app.cliente.note) {
+                    detailsPanelHtml += `<div class="detail-section"><h5>Note e Preferenze</h5><p>${app.cliente.note}</p></div>`;
                 }
-                // Rimuoviamo qualsiasi carattere non numerico (+, spazi, trattini)
-                telefono = telefono.replace(/[^\d]/g, '');
-                // --- FINE NORMALIZZAZIONE ---
-
-                const nomeCliente = app.summary.trim().split(' ')[0];
-                const messaggio = encodeURIComponent(`Ciao ${nomeCliente}, ti ricordiamo il tuo appuntamento da Quality Hair oggi alle ${appointmentTime}. A dopo!`);
-
-                // --- COSTRUZIONE LINK WHATSAPP ---
-                const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-                let whatsappLink;
-                if (isMobile) {
-                    // Su smartphone funziona meglio wa.me
-                    whatsappLink = `https://wa.me/${telefono}?text=${messaggio}`;
-                } else {
-                    // Su PC apriamo WhatsApp Web con messaggio precompilato
-                    whatsappLink = `https://web.whatsapp.com/send?phone=${telefono}&text=${messaggio}`;
+                if (app.cliente.tags && app.cliente.tags.length > 0) {
+                    const tagsHtml = app.cliente.tags.map(tag => `<span class="client-tag">${tag}</span>`).join('');
+                    detailsPanelHtml += `<div class="detail-section"><h5>Tags</h5><div class="tags-container">${tagsHtml}</div></div>`;
                 }
-                // --- FINE COSTRUZIONE LINK ---
-
-                whatsappIconHtml = `<a href="${whatsappLink}" class="whatsapp-icon" target="_blank" title="Invia promemoria WhatsApp">💬</a>`;
+                if (app.cliente.haSospesi) {
+                    detailsPanelHtml += `<div class="detail-section"><h5>Avvisi</h5><p class="detail-alert">❗️ Cliente con pagamenti in sospeso.</p></div>`;
+                }
+                if (app.cliente.haBuoniAttivi) {
+                    detailsPanelHtml += `<div class="detail-section"><h5>Info</h5><p class="detail-info">✅ Cliente con buoni o pacchetti attivi.</p></div>`;
+                }
+                detailsPanelHtml += '</div>';
             }
-
+            
+            // Assembla l'HTML finale dell'appuntamento
             listItem.innerHTML = `
-                <div class="appointment-details">
-                    <span class="appointment-time" style="color: ${textColor};">${appointmentTime}</span>
-                    <span class="appointment-summary" style="color: ${textColor};">${app.summary}</span>
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <div>
+                        <span class="appointment-time" style="color: ${textColor};">${appointmentTime}</span>
+                        <span class="appointment-summary" style="color: ${textColor};">${app.summary}</span>
+                    </div>
+                    <div class="appointment-status-icons">${statusIconsHtml}</div>
                 </div>
-                ${whatsappIconHtml}
+                ${detailsPanelHtml}
             `;
-
-            if (app.cliente && app.cliente.id) {
-                listItem.querySelector('.appointment-details').classList.add('clickable');
-                listItem.querySelector('.appointment-details').addEventListener('click', () => {
-                    window.location.href = `/scheda-cliente.html?id=${app.cliente.id}`;
-                });
-            }
             
-            listElement.appendChild(listItem);
+            appointmentsListContainer.appendChild(listItem);
         });
+
     } catch (error) {
         console.error('Errore caricamento appuntamenti:', error);
-        listElement.innerHTML = '<li class="appointment-item error">Errore nel caricamento.</li>';
+        appointmentsListContainer.innerHTML = '<li class="appointment-item error">Errore nel caricamento.</li>';
     }
+}
+
+// Listener con delegazione per gestire i click sulla lista appuntamenti
+// =========================================================================
+// == LISTENER POTENZIATO: GESTISCE CLICK E DOPPIO CLICK SULLA LISTA APPUNTAMENTI ==
+// =========================================================================
+
+if (appointmentsListContainer) {
+    appointmentsListContainer.addEventListener('click', (event) => {
+        const listItem = event.target.closest('li.appointment-item.clickable');
+        if (!listItem) return;
+
+        // Se l'utente clicca su un link o un bottone specifico all'interno, non facciamo nulla
+        if (event.target.closest('a, button')) {
+            return;
+        }
+
+        const detailsPanel = listItem.querySelector('.appointment-details-panel');
+        if (detailsPanel) {
+            // Logica per mostrare/nascondere il pannello con un CLICK SINGOLO
+            const isVisible = detailsPanel.style.display === 'block';
+            detailsPanel.style.display = isVisible ? 'none' : 'block';
+        }
+    });
+
+    // Aggiungiamo un listener SEPARATO per il DOPPIO CLICK (dblclick)
+    appointmentsListContainer.addEventListener('dblclick', (event) => {
+        const listItem = event.target.closest('li.appointment-item.clickable');
+        if (!listItem) return;
+
+        const clienteId = listItem.dataset.clienteId;
+        if (clienteId) {
+            // Logica per andare alla scheda cliente con DOPPIO CLICK
+            window.location.href = `/scheda-cliente.html?id=${clienteId}`;
+        }
+    });
 }
 
 
