@@ -6,9 +6,8 @@
     <title>Dashboard - Schede Clienti</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
@@ -16,168 +15,101 @@
 <main class="container dashboard-main">
     <img src="img/logo1.jpg" alt="Logo Quality Hair" class="page-logo">
   
+    <!-- ============================================= -->
+    <!-- ========= NUOVA GRIGLIA A 3 COLONNE ========= -->
+    <!-- ============================================= -->
+    <div class="dashboard-layout-grid-3-col">
 
-<!-- ============================================= -->
-<!-- == SEZIONE RIEPILOGO GIORNALIERO (NUOVA)   == -->
-<!-- ============================================= -->
-<div class="summary-panel-container">
-    <div class="summary-panel">
-        
-        <!-- Saluto e Meteo -->
-        <div class="summary-header">
-            <h2 id="summary-greeting">👋 Caricamento...</h2>
-            <div id="summary-weather" class="weather-widget">
-                <span id="weather-text">Meteo non disponibile</span>
-                <img id="weather-icon" src="" alt="" style="display: none;">
+        <!-- === COLONNA SINISTRA === -->
+        <div class="dashboard-column">
+            
+            <!-- PANNELLO RIEPILOGO MATTUTINO -->
+           
+                <div class="summary-panel">
+                    <div class="summary-header">
+                        <h2 id="summary-greeting">👋 Caricamento...</h2>
+                        <div id="summary-weather" class="weather-widget">
+                            <span id="weather-text">Meteo...</span>
+                            <img id="weather-icon" src="" alt="" style="display: none;">
+                        </div>
+                    </div>
+                    <div class="summary-metrics">
+                        <div id="widget-sospesi" class="metric-widget clickable">
+                            <div class="metric-icon">🚨</div>
+                            <div class="metric-value" id="sospesi-count">...</div>
+                            <div class="metric-label">Clienti in Sospeso</div>
+                        </div>
+                        <div id="widget-buoni" class="metric-widget clickable">
+                            <div class="metric-icon">🎁</div>
+                            <div class="metric-value" id="buoni-count">...</div>
+                            <div class="metric-label">Buoni Attivi</div>
+                        </div>
+                    </div>
+                    <div id="summary-aforisma" class="aforisma-widget">
+                        <p id="aforisma-frase">“...”</p>
+                        <footer id="aforisma-autore"></footer>
+                    </div>
+                </div>
+           
+
+            <!-- PANNELLO APPUNTAMENTI DI OGGI -->
+            <div class="panel dashboard-panel">
+                <h2 class="panel-title">Appuntamenti di Oggi</h2>
+                <ul class="appointments-list" id="lista-appuntamenti">
+                    <li class="appointment-item loading">Caricamento in corso...</li>
+                </ul>
             </div>
         </div>
 
-        <!-- Metriche Cliccabili -->
-        <div class="summary-metrics">
-            <div id="widget-sospesi" class="metric-widget clickable">
-                <div class="metric-icon">🚨</div>
-                <div class="metric-value" id="sospesi-count">...</div>
-                <div class="metric-label">Clienti in Sospeso</div>
+        <!-- === COLONNA CENTRALE === -->
+        <div class="dashboard-column">
+            
+            <!-- PANNELLO CERCA CLIENTE -->
+            <div class="panel dashboard-panel">
+                <h2 class="panel-title">Cerca Cliente</h2>
+                <input type="text" id="search-input" placeholder="Nome, Cognome o Soprannome" class="input-field" />
+                <button id="search-button" class="btn btn-primary">Cerca</button>
             </div>
-            <div id="widget-buoni" class="metric-widget clickable">
-                <div class="metric-icon">🎁</div>
-                <div class="metric-value" id="buoni-count">...</div>
-                <div class="metric-label">Buoni Attivi</div>
+
+            <!-- PANNELLO NUOVO CLIENTE -->
+            <div class="panel dashboard-panel">
+                <h2 class="panel-title">Nuovo Cliente</h2>
+                <input type="text" id="new-client-name" placeholder="Nome" required class="input-field" />
+                <input type="text" id="new-client-surname" placeholder="Cognome" required class="input-field" />
+                <input type="text" id="new-client-nickname" placeholder="Soprannome (opzionale)" class="input-field" />
+                <input type="email" id="new-client-email" placeholder="Email (opzionale)" class="input-field" />
+                <input type="tel" id="new-client-phone" placeholder="Telefono (opzionale)" class="input-field" />
+                <input type="text" id="new-client-tags" placeholder="Tag (es: VIP, Allergia Tinta)" class="input-field" />
+                <button id="add-new-client-button" class="btn btn-primary">Aggiungi Cliente</button>
             </div>
         </div>
 
-        <!-- Aforisma -->
-        <div id="summary-aforisma" class="aforisma-widget">
-            <p id="aforisma-frase">“Caricamento aforisma...”</p>
-            <footer id="aforisma-autore"></footer>
-        </div>
+        <!-- === COLONNA DESTRA === -->
+        <div class="dashboard-column">
+            
+            <!-- PANNELLO STRUMENTI E LINK -->
+            <div class="panel dashboard-panel">
+<h2 class="panel-title">Strumenti e Link Utili</h2>
+<div class="tools-grid">
+<a href="/calendario" class="btn btn-primary">Agenda Settimanale</a>
+<button onclick="window.open('https://calendar.google.com/calendar/u/0/r/week', '_blank')" class="btn btn-primary">Apri Google Calendar</button>
+<a href="/catalogo.html" class="btn btn-primary">Catalogo Lavori</a>
+<a href="/lista-clienti.html" class="btn btn-primary">Lista Clienti</a>
+                    
+					
+					<hr class="panel-divider">
+                    <button id="play-radiofreccia" class="btn-music">🎵 Apri Radiofreccia</button>
+                    <button id="play-spotify" class="btn-music">🎧 Apri Spotify</button>
+                    <button id="play-player" class="btn-music">🎹 Apri Player Musica</button>
+                    <hr class="panel-divider">
+                    <a href="/logout" class="btn btn-danger">Esci dal Programma</a>
+                </div>
+            </div>
 
-    </div>
-</div>
-
-<!-- ============================================= -->
-<!-- == MODALI PER IL RIEPILOGO (NUOVE)         == -->
-<!-- ============================================= -->
-<!-- Modale Clienti in Sospeso -->
-<div id="sospesiModal" class="dashboard-modal">
-    <div class="dashboard-modal-content">
-        <div class="dashboard-modal-header">
-            <h3>Clienti con Pagamenti in Sospeso</h3>
-            <button class="close-btn">&times;</button>
-        </div>
-        <div class="dashboard-modal-body">
-            <table class="summary-table">
-                <thead>
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Importo Sospeso</th>
-                        <th>Azione</th>
-                    </tr>
-                </thead>
-                <tbody id="sospesi-lista">
-                    <!-- Il JS popolerà questa tabella -->
-                </tbody>
-            </table>
         </div>
     </div>
-</div>
-
-<!-- Modale Buoni Attivi -->
-<div id="buoniModal" class="dashboard-modal">
-    <div class="dashboard-modal-content">
-        <div class="dashboard-modal-header">
-            <h3>Buoni Regalo Attivi</h3>
-            <button class="close-btn">&times;</button>
-        </div>
-        <div class="dashboard-modal-body" id="buoni-lista">
-            <!-- Il JS popolerà questa lista -->
-        </div>
-    </div>
-</div>
-
-
-
-  
-
-<!-- ============================================= -->
-<!-- ========= INIZIO GRIGLIA PANNELLI ========= -->
-<!-- ============================================= -->
-<div class="dashboard-grid-container">
-
-    <!-- RIGA 1 -->
-    <!-- PANNELLO APPUNTAMENTI (Appuntamenti di Oggi + Agenda) -->
-    <div class="panel dashboard-panel">
-        <h2 class="panel-title">Appuntamenti di Oggi</h2>
-        <ul class="appointments-list" id="lista-appuntamenti">
-            <li class="appointment-item loading">Caricamento in corso...</li>
-        </ul>
-        
-        <hr class="panel-divider">
-
-        <h2 class="panel-title">Agenda Settimanale</h2>
-        <a href="/calendario" class="btn btn-nav">Visualizza Appuntamenti</a>
-        <button onclick="window.open('https://calendar.google.com/calendar/u/0/r/week', '_blank')" class="btn btn-nav btn-secondary mt-2">Apri Google Calendar</button>
-    </div>
-
-    <!-- PANNELLO CLIENTI (Cerca + Nuovo) -->
-    <div class="panel dashboard-panel">
-        <h2 class="panel-title">Cerca Cliente</h2>
-        <input type="text" id="search-input" placeholder="Nome, Cognome o Soprannome" class="input-field" />
-        <button id="search-button" class="btn btn-primary">Cerca</button>
-
-        <hr class="panel-divider">
-
-        <h2 class="panel-title">Nuovo Cliente</h2>
-        <input type="text" id="new-client-name" placeholder="Nome" required class="input-field" />
-        <input type="text" id="new-client-surname" placeholder="Cognome" required class="input-field" />
-		<input type="text" id="new-client-nickname" placeholder="Soprannome (opzionale)" class="input-field" />
-        <input type="email" id="new-client-email" placeholder="Email (opzionale)" class="input-field" />
-        <input type="tel" id="new-client-phone" placeholder="Telefono (opzionale)" class="input-field" />
-		        <!-- ======================================================= -->
-        <!-- === NUOVO CAMPO PER I TAG (AGGIUNGI QUESTO) === -->
-        <!-- ======================================================= -->
-        <input type="text" id="new-client-tags" placeholder="Tag (es: VIP, Allergia Tinta)" class="input-field" />
-        <!-- ======================================================= -->
-		
-		
-        <button id="add-new-client-button" class="btn btn-primary">Aggiungi Cliente</button>
-    </div>
-
-    <!-- RIGA 2 -->
-    <!-- PANNELLO MUSICA -->
-<div class="panel dashboard-panel">
-    <h2 class="panel-title">Musica</h2>
-    
-    <div class="panel-actions-bottom" style="display: flex; flex-direction: column; gap: 10px;">
-        <!-- Pulsante Radiofreccia -->
-        <button id="play-radiofreccia" class="btn-music">🎵 Apri Radiofreccia</button>
-        
-        <!-- Pulsante Spotify -->
-        <button id="play-spotify" class="btn-music">🎧 Apri Spotify</button>
-        
-        <!-- Player Musica esterno con stesso stile -->
-        <button id="play-player" class="btn-music">🎹 Apri Player Musica</button>
-    </div>
-</div>
-
-
-
-
-    <!-- PANNELLO GESTIONE -->
-    <div class="panel dashboard-panel">
-        <h2 class="panel-title">Strumenti</h2>
-        <div class="panel-actions-bottom">
-		<a href="/catalogo.html" class="btn btn-nav">Catalogo Lavori</a>
-            <a href="/lista-clienti.html" class="btn btn-nav">Lista Clienti</a>
-            <a href="/logout" class="btn btn-danger">Esci dal Programma</a>
-        </div>
-    </div>
-
-</div>
-<!-- ============================================= -->
-<!-- ========= FINE GRIGLIA PANNELLI =========== -->
-<!-- ============================================= -->
-    </main>
+    <!-- ============================================= -->
+</main>
 
 
 <!-- ======================================================= -->
