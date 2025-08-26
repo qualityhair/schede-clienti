@@ -194,7 +194,7 @@ const LISTA_SERVIZI_DISPONIBILI = [
 // --- 2. FUNZIONI DI UTILITÀ ---
 
 // --- FUNZIONE PER GESTIRE I PANNELLI COLLASSABILI IN MODO INTELLIGENTE ---
-// --- Gestione pannelli collassabili unificata ---
+
 function initCollapsiblePanels() {
   const panels = document.querySelectorAll('.collapsible-panel');
 
@@ -400,6 +400,16 @@ function generateColorForString(str) {
 
 
 
+// --- FUNZIONE PER CAPITALIZZARE LE INIZIALI DI OGNI PAROLA ---
+function capitalizeWords(str) {
+    if (!str || typeof str !== 'string') return '';
+    // Converte in minuscolo, divide in parole, mette la prima lettera di ogni parola in maiuscolo
+    return str.toLowerCase().split(' ').map(word => 
+        word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+}
+
+
   // --- 3. FUNZIONI DI CARICAMENTO E VISUALIZZAZIONE DATI ---
   
   // --- AGGIUNGI QUESTA NUOVA FUNZIONE ---
@@ -524,8 +534,13 @@ initialsDiv.textContent = initials;
 avatarContainer.appendChild(initialsDiv);
 }
 
-        nomeCompletoSpan.textContent = `${client.nome} ${client.cognome}`;
-        document.querySelectorAll('.panel-client-name').forEach(span => { span.textContent = `(${client.nome} ${client.cognome})`; });
+        const nomeFormattato = capitalizeWords(client.nome);
+		const cognomeFormattato = capitalizeWords(client.cognome);
+
+		nomeCompletoSpan.textContent = `${nomeFormattato} ${cognomeFormattato}`;
+        document.querySelectorAll('.panel-client-name').forEach(span => { 
+		span.textContent = `(${nomeFormattato} ${cognomeFormattato})`; 
+		});
         soprannomeSpan.textContent = client.soprannome || "N/A";
         emailSpan.textContent = client.email || "N/A";
         telefonoSpan.textContent = client.telefono || "N/A";
