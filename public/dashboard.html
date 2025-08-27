@@ -13,7 +13,22 @@
 <body>
 
 <main class="container dashboard-main">
-    <img src="img/logo1.jpg" alt="Logo Quality Hair" class="page-logo">
+    <table class="header-table">
+        <tr>
+            <td class="logo-cell">
+                <img src="img/logo1.jpg" alt="Logo Quality Hair" class="page-logo">
+            </td>
+            <td class="greeting-cell">
+                <h2 id="summary-greeting">👋 Caricamento...</h2>
+            </td>
+            <td class="weather-cell">
+                <div id="summary-weather" class="weather-widget">
+                    <span id="weather-text">Meteo non disponibile</span>
+                    <img id="weather-icon" src="" alt="" style="display: none;">
+                </div>
+            </td>
+        </tr>
+    </table>
   
     <!-- ============================================= -->
     <!-- ========= NUOVA GRIGLIA A 3 COLONNE ========= -->
@@ -26,12 +41,9 @@
             <!-- PANNELLO RIEPILOGO MATTUTINO -->
            
                 <div class="summary-panel">
-                    <div class="summary-header">
-                        <h2 id="summary-greeting">👋 Caricamento...</h2>
-                        <div id="summary-weather" class="weather-widget">
-                            <span id="weather-text">Meteo...</span>
-                            <img id="weather-icon" src="" alt="" style="display: none;">
-                        </div>
+                    <div id="summary-aforisma" class="aforisma-widget">
+                        <p id="aforisma-frase">“...”</p>
+                        <footer id="aforisma-autore"></footer>
                     </div>
                     <div class="summary-metrics">
                         <div id="widget-sospesi" class="metric-widget clickable">
@@ -45,25 +57,9 @@
                             <div class="metric-label">Buoni Attivi</div>
                         </div>
                     </div>
-                    <div id="summary-aforisma" class="aforisma-widget">
-                        <p id="aforisma-frase">“...”</p>
-                        <footer id="aforisma-autore"></footer>
-                    </div>
+
                 </div>
-           
-
-            <!-- PANNELLO APPUNTAMENTI DI OGGI -->
-            <div class="panel dashboard-panel">
-                <h2 class="panel-title">Appuntamenti di Oggi</h2>
-                <ul class="appointments-list" id="lista-appuntamenti">
-                    <li class="appointment-item loading">Caricamento in corso...</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- === COLONNA CENTRALE === -->
-        <div class="dashboard-column">
-            
+				
             <!-- PANNELLO CERCA CLIENTE -->
             <div class="panel dashboard-panel">
                 <h2 class="panel-title">Cerca Cliente</h2>
@@ -72,16 +68,37 @@
             </div>
 
             <!-- PANNELLO NUOVO CLIENTE -->
+<!-- NUOVA STRUTTURA COLLASSABILE -->
+<div class="panel dashboard-panel collapsible-panel closed">
+    <div class="collapsible-header">
+        <h2 class="panel-title">Nuovo Cliente</h2>
+        <span class="collapsible-arrow">▼</span>
+    </div>
+    <div class="collapsible-content">
+        <!-- Il form ora è qui dentro -->
+        <input type="text" id="new-client-name" placeholder="Nome" required class="input-field" />
+        <input type="text" id="new-client-surname" placeholder="Cognome" required class="input-field" />
+        <input type="text" id="new-client-nickname" placeholder="Soprannome (opzionale)" class="input-field" />
+        <input type="email" id="new-client-email" placeholder="Email (opzionale)" class="input-field" />
+        <input type="tel" id="new-client-phone" placeholder="Telefono (opzionale)" class="input-field" />
+        <input type="text" id="new-client-tags" placeholder="Tag (es: VIP, Allergia Tinta)" class="input-field" />
+        <button id="add-new-client-button" class="btn btn-primary">Aggiungi Cliente</button>
+    </div>
+</div>          
+
+
+        </div>
+
+        <!-- === COLONNA CENTRALE === -->
+        <div class="dashboard-column">
+            <!-- PANNELLO APPUNTAMENTI DI OGGI -->
             <div class="panel dashboard-panel">
-                <h2 class="panel-title">Nuovo Cliente</h2>
-                <input type="text" id="new-client-name" placeholder="Nome" required class="input-field" />
-                <input type="text" id="new-client-surname" placeholder="Cognome" required class="input-field" />
-                <input type="text" id="new-client-nickname" placeholder="Soprannome (opzionale)" class="input-field" />
-                <input type="email" id="new-client-email" placeholder="Email (opzionale)" class="input-field" />
-                <input type="tel" id="new-client-phone" placeholder="Telefono (opzionale)" class="input-field" />
-                <input type="text" id="new-client-tags" placeholder="Tag (es: VIP, Allergia Tinta)" class="input-field" />
-                <button id="add-new-client-button" class="btn btn-primary">Aggiungi Cliente</button>
-            </div>
+                <h2 class="panel-title">Appuntamenti di Oggi</h2>
+                <ul class="appointments-list" id="lista-appuntamenti">
+                    <li class="appointment-item loading">Caricamento in corso...</li>
+                </ul>
+            </div>            
+ 
         </div>
 
         <!-- === COLONNA DESTRA === -->

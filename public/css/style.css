@@ -3376,6 +3376,53 @@ animation: fadeInUp 0.5s ease-out forwards;
 }
 
 
+/* ============================================= */
+/* == Stili per Intestazione con Tabella      == */
+/* ============================================= */
+
+.header-table {
+    width: 100%; /* La tabella occupa tutta la larghezza */
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.header-table td {
+    vertical-align: middle; /* Allinea verticalmente tutto al centro */
+}
+
+/* Cella del logo (a sinistra) */
+.logo-cell {
+    width: auto; /* La larghezza si adatta al logo */
+    padding-right: 20px;
+}
+.logo-cell .page-logo {
+    height: 90px;
+    display: block;
+}
+
+/* Cella del saluto (al centro, si espande) */
+.greeting-cell {
+    text-align: center;
+}
+.greeting-cell #summary-greeting {
+    font-size: 1.5em;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Cella del meteo (a destra) */
+.weather-cell {
+    width: auto; /* La larghezza si adatta al contenuto */
+    text-align: right;
+}
+.weather-cell .weather-widget {
+    display: inline-flex; /* Per allineare testo e icona */
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1em;
+    color: #FFD700;
+}
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */

@@ -78,7 +78,20 @@ async function fetchAndDisplaySummary() {
             weatherIcon.src = `https://openweathermap.org/img/wn/${data.meteo.icona}.png`;
             weatherIcon.style.display = 'inline-block';
         }
-        summaryGreeting.textContent = "👋 Buongiorno!";
+        // === LOGICA PER IL SALUTO DINAMICO ===
+const oraCorrente = new Date().getHours();
+let saluto;
+
+if (oraCorrente < 12) {
+    saluto = "👋 Buongiorno";
+} else if (oraCorrente < 17) {
+    saluto = "👋 Buon Pomeriggio";
+} else {
+    saluto = "🌙 Buonasera";
+}
+
+summaryGreeting.textContent = saluto;
+// ===================================
 
         // 2. Popola Aforisma
         if (data.aforisma) {
@@ -238,6 +251,39 @@ function closeModal(modalElement, formToReset = null) {
         console.error("Errore aggiunta cliente:", error);
         showMessage(`Errore durante l'aggiunta: ${error.message}`, 'error');
     }
+}
+
+
+// --- FUNZIONE PER GESTIRE I PANNELLI COLLASSABILI ---
+function initCollapsibles() {
+  // Unico listener per tutti i pannelli
+  document.addEventListener('click', (e) => {
+    const header = e.target.closest('.collapsible-header');
+    if (!header) return;
+
+    // Non collassare se il click è su un bottone interno all'header
+    if (e.target.closest('button, .btn, a, [data-no-collapse]')) return;
+
+    const panel = header.closest('.collapsible-panel');
+    if (!panel) return;
+
+    const arrow = header.querySelector('.collapsible-arrow');
+    
+    panel.classList.toggle('closed');
+    
+    if (arrow) {
+        arrow.textContent = panel.classList.contains('closed') ? '▼' : '▲';
+    }
+  });
+
+  // Imposta lo stato iniziale delle frecce
+  document.querySelectorAll('.collapsible-panel').forEach(panel => {
+    const header = panel.querySelector('.collapsible-header');
+    const arrow = header.querySelector('.collapsible-arrow');
+    if (header && arrow) {
+        arrow.textContent = panel.classList.contains('closed') ? '▼' : '▲';
+    }
+  });
 }
 
 
@@ -450,6 +496,8 @@ if (addNewClientButton) addNewClientButton.addEventListener("click", handleAddNe
 // Aggiungi queste due righe per le nuove funzionalità
 if (appointmentsListContainer) fetchAndDisplayAppointments();
 fetchAndDisplaySummary(); // <-- CHIAMATA ALLA NUOVA FUNZIONE!
+initCollapsibles();
+
 
 // Logica per chiudere le modali del riepilogo
 [sospesiModal, buoniModal].forEach(modal => {
