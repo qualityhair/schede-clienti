@@ -81,7 +81,7 @@ const editPhotoTagsInput = document.getElementById('edit-photo-tags');
     const modalAggiungiAcquisto = document.getElementById("modalAggiungiAcquisto");
     const formAggiungiAcquisto = document.getElementById("formAggiungiAcquisto");
     const annullaAcquistoBtn = document.getElementById("annulla-acquisto-btn");
-    const prodottoAcquistoInput = document.getElementById("prodotto-acquisto");
+    const prodottoAcquistoSelect = document.getElementById('prodotto-acquisto-select');
     const dataAcquistoInput = document.getElementById("data-acquisto");
     const prezzoAcquistoInput = document.getElementById("prezzo-acquisto");
     const quantitaAcquistoInput = document.getElementById("quantita-acquisto");
@@ -182,6 +182,7 @@ const aggiungiDesiderioBtn = document.getElementById('aggiungi-desiderio-btn');
     let searchResultsIds = [];
     let currentIndex = 0;
     let currentClienteData = null;
+	let catalogoProdotti = [];
 	// Insieme alle altre variabili di stato
 	let stream = null; // Conterrà il flusso video della fotocamera
 	let capturedBlob = null; // Conterrà la foto scattata come oggetto Blob
@@ -196,6 +197,17 @@ const LISTA_SERVIZI_DISPONIBILI = [
 ];
 
 // --- 2. FUNZIONI DI UTILITÀ ---
+
+async function caricaCatalogoProdotti() {
+    try {
+        const response = await fetch('/api/prodotti');
+        catalogoProdotti = await handleApiResponse(response) || [];
+    } catch (error) {
+        console.error('Errore nel caricamento del catalogo prodotti:', error);
+    }
+}
+
+
 
 // --- FUNZIONE PER GESTIRE I PANNELLI COLLASSABILI IN MODO INTELLIGENTE ---
 
@@ -1739,7 +1751,7 @@ async function handleAddAcquisto(event) {
     }
 
     // Altrimenti, esegui la logica standard che già avevamo
-    const prodotto = prodottoAcquistoInput.value.trim();
+    const prodotto = prodottoAcquistoSelect.value;
     const data = dataAcquistoInput.value;
     const prezzo_unitario = parseFloat(prezzoAcquistoInput.value);
     const quantita = parseInt(quantitaAcquistoInput.value);
@@ -1926,7 +1938,7 @@ async function handleAddTrattamento(event) {
 
 async function handleAddAcquistoConBuono() {
     const acquistoData = {
-        prodotto: prodottoAcquistoInput.value.trim(),
+        prodotto: prodottoAcquistoSelect.value, // <-- CORRETTO!
         data: dataAcquistoInput.value,
         prezzo_unitario: parseFloat(prezzoAcquistoInput.value),
         quantita: parseInt(quantitaAcquistoInput.value),
@@ -2101,6 +2113,7 @@ function setupTrattamentoModal() {
 
     // --- SOSTITUISCI LA TUA FUNZIONE getClientIdsFromSearch CON QUESTA ---
 async function getClientIdsFromSearch() {
+	await caricaCatalogoProdotti();
     const urlParams = new URLSearchParams(window.location.search);
     const clientIdParam = urlParams.get('id');
     const searchIdsParam = urlParams.get('searchIds');
@@ -2184,12 +2197,41 @@ async function getClientIdsFromSearch() {
     cancelTrattamentoBtn.addEventListener('click', () => closeModal(modalAggiungiTrattamento, formAddTrattamento));
     formAddTrattamento.addEventListener('submit', handleAddTrattamento);
 
-    // Listener per ACQUISTI
-    aggiungiAcquistoBtn.addEventListener('click', () => {
-        openModal(modalAggiungiAcquisto);
-        // Prepara la UI per pagare con buono, se disponibile
-        setupPagaConBuonoUI(pagaConBuonoAcquistoSezione, pagaConBuonoAcquistoCheckbox, creditoBuonoAcquistoSpan, pagatoAcquistoInput);
-    });
+
+    // ==========================================================
+// == LISTENER PER APRIRE MODALE ACQUISTO (VERS. CORRETTA) ==
+// ==========================================================
+aggiungiAcquistoBtn.addEventListener('click', () => {
+    // 1. Resetta il form prima di tutto
+    formAggiungiAcquisto.reset();
+
+    // 2. Popola il menu a tendina dei prodotti
+    prodottoAcquistoSelect.innerHTML = '<option value="">Seleziona un prodotto...</option>';
+    if (catalogoProdotti && catalogoProdotti.length > 0) {
+        catalogoProdotti.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.nome;
+            // Mostra nome e prezzo nel menu
+            option.textContent = `${p.nome} - €${parseFloat(p.prezzo_vendita).toFixed(2)}`;
+            // Salva il prezzo nel 'dataset' per un facile recupero
+            option.dataset.prezzo = p.prezzo_vendita;
+            prodottoAcquistoSelect.appendChild(option);
+        });
+    }
+
+    // 3. Apri la modale
+    openModal(modalAggiungiAcquisto);
+    
+    // 4. Prepara la UI per pagare con buono, se disponibile
+    // Assicurati che 'setupPagaConBuonoUI' sia chiamata con i parametri corretti.
+    // Dalla tua funzione originale, i parametri sono:
+    setupPagaConBuonoUI(
+        pagaConBuonoAcquistoSezione, 
+        pagaConBuonoAcquistoCheckbox, 
+        creditoBuonoAcquistoSpan, 
+        pagatoAcquistoInput
+    );
+});
     annullaAcquistoBtn.addEventListener('click', () => closeModal(modalAggiungiAcquisto, formAggiungiAcquisto));
     formAggiungiAcquisto.addEventListener('submit', handleAddAcquisto);
 
@@ -2848,6 +2890,14 @@ if (wishlistContainer) {
     });
 }
 
+
+prodottoAcquistoSelect.addEventListener('change', (e) => {
+    const selectedOption = e.target.options[e.target.selectedIndex];
+    const prezzo = selectedOption.dataset.prezzo;
+    if (prezzo) {
+        prezzoAcquistoInput.value = parseFloat(prezzo).toFixed(2);
+    }
+});
 
 
     // --- 7. AVVIO ---

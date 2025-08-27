@@ -488,6 +488,10 @@ app.get("/lista-clienti.html", ensureAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, "public", "lista-clienti.html"));
 });
 
+app.get("/prodotti.html", ensureAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "prodotti.html"));
+});
+
 app.get("/catalogo.html", ensureAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, "public", "catalogo.html"));
 });
@@ -2229,6 +2233,98 @@ app.put("/api/clienti/:id/wishlist", ensureAuthenticated, async (req, res) => {
     }
 });
 
+
+
+// =======================================================
+// === API PER LA GESTIONE PRODOTTI (NUOVA)            ===
+// =======================================================
+
+// 1. API per RECUPERARE tutti i prodotti (filtrando per attivi)
+app.get("/api/prodotti", ensureAuthenticated, async (req, res) => {
+    try {
+        // Seleziona solo i prodotti attivi per i menu a tendina
+        const query = "SELECT * FROM prodotti WHERE attivo = TRUE ORDER BY nome ASC";
+        const result = await db.query(query);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(`Errore recupero prodotti:`, err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// 2. API per SALVARE un nuovo prodotto
+app.post("/api/prodotti", ensureAuthenticated, async (req, res) => {
+    const { nome, prezzo_vendita, categoria } = req.body;
+
+    if (!nome) {
+        return res.status(400).json({ error: "Il nome del prodotto è obbligatorio." });
+    }
+
+    try {
+        const query = `
+            INSERT INTO prodotti (nome, prezzo_vendita, categoria) 
+            VALUES ($1, $2, $3) 
+            RETURNING *;
+        `;
+        const result = await db.query(query, [nome, prezzo_vendita || 0, categoria]);
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        // Errore '23505' è il codice per violazione del vincolo UNIQUE (prodotto già esistente)
+        if (err.code === '23505') {
+            return res.status(409).json({ error: "Un prodotto con questo nome esiste già." });
+        }
+        console.error('Errore creazione prodotto:', err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// 3. API per MODIFICARE un prodotto esistente
+app.put("/api/prodotti/:id", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    const { nome, prezzo_vendita, categoria } = req.body;
+
+    if (!nome) {
+        return res.status(400).json({ error: "Il nome del prodotto è obbligatorio." });
+    }
+
+    try {
+        const query = `
+            UPDATE prodotti 
+            SET nome = $1, prezzo_vendita = $2, categoria = $3 
+            WHERE id = $4
+            RETURNING *;
+        `;
+        const result = await db.query(query, [nome, prezzo_vendita || 0, categoria, id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Prodotto non trovato." });
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        if (err.code === '23505') {
+            return res.status(409).json({ error: "Un altro prodotto con questo nome esiste già." });
+        }
+        console.error(`Errore aggiornamento prodotto ${id}:`, err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+
+// 4. API per ELIMINARE (disattivare) un prodotto
+app.delete("/api/prodotti/:id", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Non cancelliamo il record, lo impostiamo come non attivo
+        const query = "UPDATE prodotti SET attivo = FALSE WHERE id = $1";
+        const result = await db.query(query, [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Prodotto non trovato." });
+        }
+        res.status(200).json({ message: "Prodotto disattivato con successo." });
+    } catch (err) {
+        console.error(`Errore disattivazione prodotto ${id}:`, err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
 
 
 // --- Avvio server ---

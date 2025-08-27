@@ -3347,6 +3347,35 @@ animation: fadeInUp 0.5s ease-out forwards;
 }
 
 
+/* ============================================= */
+/* == Stili per Pagina Gestione Prodotti      == */
+/* ============================================= */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Due colonne per il form */
+    gap: 20px;
+    align-items: end;
+}
+
+.form-actions {
+    grid-column: 2 / -1; /* Posiziona i pulsanti nella seconda colonna */
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Su schermi piccoli, il form va a una colonna */
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .form-actions {
+        grid-column: 1 / -1;
+    }
+}
+
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */
