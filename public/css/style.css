@@ -3201,6 +3201,61 @@ animation: fadeInUp 0.5s ease-out forwards;
 }
 
 
+/* ============================================= */
+/* == Stili per la Wishlist Cliente           == */
+/* ============================================= */
+
+/* Contenitore della lista dei desideri */
+#wishlist-container ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Ogni riga della wishlist */
+.wishlist-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 5px;
+    border-bottom: 1px solid #444;
+}
+.wishlist-item:last-child {
+    border-bottom: none;
+}
+
+.wishlist-text {
+    flex-grow: 1; /* Fa espandere il testo */
+}
+
+.wishlist-date {
+    font-size: 0.8em;
+    color: #888;
+    margin-left: 10px;
+}
+
+.btn-elimina-desiderio {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 0 5px;
+    margin-left: 10px;
+}
+
+/* Form per aggiungere un nuovo desiderio */
+.wishlist-form {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.wishlist-form .input-field {
+    flex-grow: 1; /* L'input occupa tutto lo spazio disponibile */
+}
+
+
 
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */

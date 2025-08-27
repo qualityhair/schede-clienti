@@ -171,6 +171,10 @@ const salvaInPaletteCheckbox = document.getElementById('salva-in-palette-checkbo
 const selezionaFormulaModal = document.getElementById('selezionaFormulaModal');
 const listaFormuleSelezionabili = document.getElementById('lista-formule-selezionabili');
 
+// --- RIFERIMENTI PER LA WISHLIST (NUOVI) ---
+const wishlistContainer = document.getElementById('wishlist-container');
+const nuovoDesiderioInput = document.getElementById('nuovo-desiderio-input');
+const aggiungiDesiderioBtn = document.getElementById('aggiungi-desiderio-btn');
 
 
     // Variabili di stato
@@ -505,6 +509,7 @@ async function loadClientData(clientId, anno = new Date().getFullYear().toString
             return;
         }
         currentClienteData = client;
+		displayWishlist(client.wishlist || []);
 
         // --- PARTE 2: Popola l'interfaccia con i dati principali ---
 
@@ -1538,6 +1543,55 @@ async function eliminaFormula(formulaId) {
     }
 }
 	
+
+// =======================================================
+// === FUNZIONI PER GESTIONE WISHLIST (NUOVE)          ===
+// =======================================================
+
+// Funzione per "disegnare" la lista dei desideri nell'HTML
+function displayWishlist(wishlistData = []) {
+    if (!wishlistContainer) return;
+    wishlistContainer.innerHTML = ''; // Pulisce il contenitore
+
+    const ul = document.createElement('ul');
+
+    if (wishlistData.length === 0) {
+        wishlistContainer.innerHTML = '<p>Nessun desiderio salvato.</p>';
+    } else {
+        wishlistData.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.className = 'wishlist-item';
+            li.innerHTML = `
+                <span class="wishlist-text">${item.testo}</span>
+                <span class="wishlist-date">(${new Date(item.data).toLocaleDateString('it-IT')})</span>
+                <button class="btn-elimina-desiderio" data-index="${index}">&times;</button>
+            `;
+            ul.appendChild(li);
+        });
+        wishlistContainer.appendChild(ul);
+    }
+    
+    // Attiva il pannello collassabile solo se ci sono dati
+    setupCollapsiblePanel('#wishlist-panel', wishlistData);
+}
+
+// Funzione per salvare l'intero array della wishlist sul server
+async function salvaWishlist(wishlistArray) {
+    try {
+        const response = await fetch(`/api/clienti/${currentClientId}/wishlist`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ wishlist: wishlistArray })
+        });
+        if (!response.ok) {
+            throw new Error('Errore durante il salvataggio della wishlist.');
+        }
+        showMessage('Wishlist aggiornata!', 'success');
+    } catch (error) {
+        console.error(error);
+        showMessage('Impossibile salvare la wishlist.', 'error');
+    }
+}
 	
 	
 	
@@ -2749,6 +2803,52 @@ if (selezionaFormulaModal) {
         }
     });
 }
+
+// --- EVENT LISTENERS PER LA WISHLIST (NUOVI) ---
+if (aggiungiDesiderioBtn) {
+    aggiungiDesiderioBtn.addEventListener('click', async () => {
+        const testoDesiderio = nuovoDesiderioInput.value.trim();
+        if (!testoDesiderio) return; // Non fare nulla se il campo è vuoto
+
+        // Recupera la wishlist attuale (o crea un array vuoto se non esiste)
+        const wishlistAttuale = currentClienteData.wishlist || [];
+
+        // Aggiunge il nuovo desiderio
+        wishlistAttuale.push({
+            testo: testoDesiderio,
+            data: new Date().toISOString() // Salva la data odierna
+        });
+
+        // Aggiorna i dati locali, ridisegna la lista e salva sul server
+        currentClienteData.wishlist = wishlistAttuale;
+        displayWishlist(wishlistAttuale);
+
+        // Pulisce il campo di input
+        nuovoDesiderioInput.value = '';
+
+        await salvaWishlist(wishlistAttuale);
+    });
+}
+
+if (wishlistContainer) {
+    // Usa la delegazione di eventi per gestire i click sui pulsanti 'elimina'
+    wishlistContainer.addEventListener('click', async (event) => {
+        if (event.target.classList.contains('btn-elimina-desiderio')) {
+            const indexDaEliminare = parseInt(event.target.dataset.index, 10);
+            
+            if (confirm("Sei sicuro di voler eliminare questo desiderio?")) {
+                // Rimuove l'elemento dalla wishlist
+                currentClienteData.wishlist.splice(indexDaEliminare, 1);
+                
+                // Ridisegna la lista e salva le modifiche sul server
+                displayWishlist(currentClienteData.wishlist);
+                await salvaWishlist(currentClienteData.wishlist);
+            }
+        }
+    });
+}
+
+
 
     // --- 7. AVVIO ---
     getClientIdsFromSearch();

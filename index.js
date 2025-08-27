@@ -2197,6 +2197,38 @@ app.delete("/api/formule/:id", ensureAuthenticated, async (req, res) => {
 });
 
 
+// =======================================================
+// === API PER LA WISHLIST CLIENTE (NUOVA)             ===
+// =======================================================
+
+app.put("/api/clienti/:id/wishlist", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    const { wishlist } = req.body; // Ci aspettiamo di ricevere un array
+
+    // Validazione di base: ci assicuriamo che la wishlist sia un array
+    if (!Array.isArray(wishlist)) {
+        return res.status(400).json({ error: "Il formato della wishlist non è valido. È richiesto un array." });
+    }
+
+    try {
+        // La query aggiorna solo la colonna 'wishlist' per il cliente specificato
+        const query = "UPDATE clienti SET wishlist = $1 WHERE id = $2";
+        
+        // Convertiamo l'array JavaScript in una stringa JSON per salvarlo nel database
+        const result = await db.query(query, [JSON.stringify(wishlist), id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Cliente non trovato." });
+        }
+        
+        res.status(200).json({ message: "Wishlist aggiornata con successo." });
+
+    } catch (err) {
+        console.error(`Errore durante l'aggiornamento della wishlist per il cliente ${id}:`, err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
 
 
 // --- Avvio server ---
