@@ -3256,6 +3256,96 @@ animation: fadeInUp 0.5s ease-out forwards;
 }
 
 
+/* ============================================= */
+/* == Stili per la Nuova Pagina Lista Clienti   == */
+/* ============================================= */
+.page-title {
+    color: #e8e8e8; /* Un bianco più morbido */
+    text-align: center;
+    font-family: 'Montserrat', sans-serif; /* Un font pulito e moderno che già usi */
+    font-size: 1.8em;  /* Dimensione più contenuta */
+    font-weight: 500;  /* Meno grassetto, più elegante */
+    letter-spacing: 1px; /* Aumenta leggermente lo spazio tra le lettere */
+    margin-bottom: 30px;
+}
+
+/* Stile per il contatore numerico */
+.page-title span {
+    color: #aaa;
+    font-size: 0.8em;
+}
+
+.controls-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    flex-grow: 1;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.client-list-container {
+    background-color: #2c2c2e;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.client-list-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto; /* Nome | Tag | Azioni */
+    align-items: center;
+    padding: 15px 10px;
+    border-bottom: 1px solid #444;
+    gap: 15px;
+}
+.client-list-item:last-child {
+    border-bottom: none;
+}
+
+.client-info h4 {
+    margin: 0;
+    color: #FFD700;
+    font-size: 1.2em;
+}
+.client-info p {
+    margin: 0;
+    color: #aaa;
+    font-size: 0.9em;
+}
+
+.client-item-tags {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+}
+
+.client-item-actions {
+    display: flex;
+    gap: 10px;
+}
+.client-item-actions .btn {
+    padding: 6px 12px;
+}
+
+.pagination-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
 
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
