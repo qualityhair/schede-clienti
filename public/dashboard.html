@@ -167,6 +167,45 @@
 </div>
 
 
+
+<!-- Modale Clienti in Sospeso -->
+<div id="sospesiModal" class="dashboard-modal">
+    <div class="dashboard-modal-content">
+        <div class="dashboard-modal-header">
+            <h3>Clienti con Pagamenti in Sospeso</h3>
+            <button class="close-btn">&times;</button>
+        </div>
+        <div class="dashboard-modal-body">
+            <table class="summary-table">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Importo Sospeso</th>
+                        <th>Azione</th>
+                    </tr>
+                </thead>
+                <tbody id="sospesi-lista">
+                    <!-- Il JS popolerà questa tabella -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modale Buoni Attivi -->
+<div id="buoniModal" class="dashboard-modal">
+    <div class="dashboard-modal-content">
+        <div class="dashboard-modal-header">
+            <h3>Buoni Regalo Attivi</h3>
+            <button class="close-btn">&times;</button>
+        </div>
+        <div class="dashboard-modal-body" id="buoni-lista">
+            <!-- Il JS popolerà questa lista -->
+        </div>
+    </div>
+</div>
+
+
     <script src="/js/dashboard-app.js"></script>
 
 </body>
