@@ -17,19 +17,24 @@
                 <input type="date" id="data_trattamento_modifica" class="input-field" required />
             </div>
 
-            <!-- === CAMPO DESCRIZIONE / FORMULA REINSERITO === -->
+            <!-- === CAMPO DESCRIZIONE POTENZIATO CON LA PALETTE === -->
             <div class="form-group">
-                <label for="descrizione_modifica" class="form-label">Descrizione </label>
+                <div class="label-container-palette">
+                    <label for="descrizione_modifica" class="form-label">Descrizione / Formula Colore:</label>
+                    <button type="button" id="apri-palette-btn-modifica" class="btn-icon" title="Usa una formula salvata">🎨</button>
+                </div>
                 <textarea id="descrizione_modifica" class="textarea-field" placeholder="Es: Base 5.1 20vol..."></textarea>
+                <div class="form-group-checkbox" style="margin-top: 10px;">
+                    <input type="checkbox" id="salva-in-palette-checkbox-modifica">
+                    <label for="salva-in-palette-checkbox-modifica">Salva questa formula nella Palette</label>
+                </div>
             </div>
             <!-- ============================================= -->
 
             <hr class="panel-divider">
 
             <h4>Servizi Eseguiti</h4>
-            <div id="servizi-container-modifica">
-                <!-- Le righe dei servizi esistenti verranno caricate qui -->
-            </div>
+            <div id="servizi-container-modifica"></div>
             <button type="button" class="btn btn-secondary" id="aggiungi-servizio-btn-modifica">Aggiungi Servizio</button>
 
             <hr class="panel-divider">
@@ -55,6 +60,20 @@
             </div>
         </form>
     </main>
+
+    <!-- === MODALE PER LA SELEZIONE DELLA FORMULA (AGGIUNTA) === -->
+    <div id="selezionaFormulaModal" class="dashboard-modal">
+        <div class="dashboard-modal-content">
+            <div class="dashboard-modal-header">
+                <h3>Seleziona una Formula Salvata</h3>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div id="lista-formule-selezionabili" class="dashboard-modal-body palette-grid">
+                <!-- Il JavaScript popolerà questa lista -->
+            </div>
+        </div>
+    </div>
+    <!-- ======================================================= -->
 
     <script src="/js/navbar-loader.js"></script>
     <script src="/js/modifica-trattamento.js"></script>
