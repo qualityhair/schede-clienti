@@ -492,6 +492,10 @@ app.get("/prodotti.html", ensureAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, "public", "prodotti.html"));
 });
 
+app.get("/mappa-salone.html", ensureAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "mappa-salone.html"));
+});
+
 app.get("/catalogo.html", ensureAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, "public", "catalogo.html"));
 });
@@ -1357,7 +1361,7 @@ app.get("/api/events", ensureAuthenticated, async (req, res) => {
 // =================================================================================
 app.get("/api/appuntamenti/oggi", ensureAuthenticated, async (req, res) => {
     try {
-        const queryAppuntamenti = `SELECT summary, start_time, color_id FROM calendar_events WHERE start_time::date = CURRENT_DATE ORDER BY start_time ASC;`;
+        const queryAppuntamenti = `SELECT summary, start_time, end_time, color_id FROM calendar_events WHERE start_time::date = CURRENT_DATE ORDER BY start_time ASC;`;
         const resultAppuntamenti = await db.query(queryAppuntamenti);
         const appuntamenti = resultAppuntamenti.rows;
 

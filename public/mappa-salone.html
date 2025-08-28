@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mappa Salone Live</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div id="navbar"></div>
+
+    <main class="container">
+        <h1 class="page-title">Mappa Salone Live</h1>
+
+        <!-- SOSTITUISCI CON QUESTA NUOVA STRUTTURA A 3 POSTAZIONI -->
+<div class="mappa-salone-container">
+
+    <!-- Colonna delle Postazioni di Lavoro -->
+    <div class="mappa-colonna-lavoro">
+        <div id="postazione-1" class="postazione-lavoro libera" data-postazione-nome="Postazione 1">
+            <div class="postazione-header">Postazione 1</div>
+            <div class="postazione-content"></div>
+        </div>
+        <div id="postazione-2" class="postazione-lavoro libera" data-postazione-nome="Postazione 2">
+            <div class="postazione-header">Postazione 2</div>
+            <div class="postazione-content"></div>
+        </div>
+        <div id="postazione-3" class="postazione-lavoro libera" data-postazione-nome="Postazione 3">
+            <div class="postazione-header">Postazione 3</div>
+            <div class="postazione-content"></div>
+        </div>
+    </div>
+
+    <!-- Colonna delle Aree di Servizio (ora solo "In Arrivo") -->
+    <div class="mappa-colonna-servizio">
+        <div id="area-attesa" class="area-servizio" data-postazione-nome="In Attesa">
+            <div class="postazione-header">Clienti in Arrivo</div>
+            <div class="postazione-content">
+                <!-- Qui metteremo i clienti che devono ancora arrivare -->
+            </div>
+        </div>
+    </div>
+
+</div>
+    </main>
+
+    <!-- La modale di preparazione che riutilizzeremo -->
+    <div id="prepare-appointment-modal" class="modal">
+        <!-- Assicurati di avere il codice completo di questa modale qui -->
+    </div>
+
+    <script src="/js/navbar-loader.js"></script>
+    <script src="/js/mappa-salone.js"></script> <!-- Nuovo file JS dedicato -->
+</body>
+</html>
