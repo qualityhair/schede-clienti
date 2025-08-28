@@ -2327,6 +2327,52 @@ app.delete("/api/prodotti/:id", ensureAuthenticated, async (req, res) => {
 });
 
 
+// =======================================================
+// === API PER IL BLOCCO NOTE RAPIDO (NUOVA)           ===
+// =======================================================
+
+// 1. API per RECUPERARE la nota
+app.get("/api/note", ensureAuthenticated, async (req, res) => {
+    try {
+        const result = await db.query("SELECT valore FROM impostazioni WHERE chiave = 'blocco_note'");
+        // Se la nota non esiste ancora, restituisce una stringa vuota
+        const nota = result.rows.length > 0 ? result.rows[0].valore : "";
+        res.json({ nota: nota });
+    } catch (err) {
+        console.error(`Errore recupero nota:`, err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// 2. API per SALVARE (aggiornare) la nota
+app.put("/api/note", ensureAuthenticated, async (req, res) => {
+    const { nota } = req.body;
+
+    if (nota === undefined) {
+        return res.status(400).json({ error: "Dati mancanti." });
+    }
+
+    try {
+        // Questa query SQL speciale (UPSERT) fa due cose:
+        // - Se una riga con chiave='blocco_note' esiste, la AGGIORNA.
+        // - Se non esiste, la INSERISCE.
+        // Perfetto per non doverci preoccupare se è la prima volta che salviamo.
+        const query = `
+            INSERT INTO impostazioni (chiave, valore) 
+            VALUES ('blocco_note', $1)
+            ON CONFLICT (chiave) 
+            DO UPDATE SET valore = EXCLUDED.valore;
+        `;
+        await db.query(query, [nota]);
+        res.status(200).json({ message: "Nota salvata con successo." });
+    } catch (err) {
+        console.error('Errore salvataggio nota:', err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+
+
 // --- Avvio server ---
 const port = process.env.PORT || 3000;
 app.listen(port, '0.0.0.0', () => {

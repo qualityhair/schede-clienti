@@ -598,9 +598,12 @@ avatarContainer.appendChild(initialsDiv);
 
 
 // --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
+// =======================================================
+// == FUNZIONE DISPLAY TRATTAMENTI (CON PULSANTE "COPIA") ==
+// =======================================================
+
 function displayTrattamenti(trattamenti) {
     listaTrattamentiBody.innerHTML = '';
-    // Cambiamo colspan a 7 per la nuova colonna Descrizione
     if (!trattamenti || trattamenti.length === 0) {
         listaTrattamentiBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nessun trattamento registrato per questo periodo.</td></tr>';
         return;
@@ -611,38 +614,26 @@ function displayTrattamenti(trattamenti) {
         
         let serviziNomi = 'N/A';
         let prezzoTotale = 0;
-
         if (trattamento.servizi && trattamento.servizi.length > 0) {
             serviziNomi = trattamento.servizi.map(s => s.servizio).join(', ');
             prezzoTotale = trattamento.servizi.reduce((sum, s) => sum + parseFloat(s.prezzo || 0), 0);
         } else {
-            // Fallback per i dati ancora nel vecchio formato
             serviziNomi = trattamento.tipo_trattamento || 'N/D';
             prezzoTotale = parseFloat(trattamento.prezzo || 0);
         }
         
-        // Colonna 1: Lista dei servizi
         row.insertCell().textContent = serviziNomi;
-        
-        // Colonna 2: Descrizione / Formula
         row.insertCell().textContent = trattamento.descrizione || ''; 
-        
-        // Colonna 3: Data
         row.insertCell().textContent = new Date(trattamento.data_trattamento).toLocaleDateString('it-IT');
         
-        // Colonna 4: Prezzo Totale (con tooltip)
         const prezzoTotaleCell = row.insertCell();
         prezzoTotaleCell.textContent = `€ ${prezzoTotale.toFixed(2)}`;
-        
         if (trattamento.servizi && trattamento.servizi.length > 1) {
-            const tooltipText = trattamento.servizi
-                .map(s => `${s.servizio}: € ${parseFloat(s.prezzo || 0).toFixed(2)}`)
-                .join('\n');
+            const tooltipText = trattamento.servizi.map(s => `${s.servizio}: € ${parseFloat(s.prezzo || 0).toFixed(2)}`).join('\n');
             prezzoTotaleCell.title = tooltipText;
             prezzoTotaleCell.style.cursor = 'help';
         }
         
-        // Colonna 5: Pagato
         const pagatoCell = row.insertCell();
         pagatoCell.style.textAlign = 'center';
         const pagatoCheckbox = document.createElement('input');
@@ -653,11 +644,51 @@ function displayTrattamenti(trattamenti) {
         });
         pagatoCell.appendChild(pagatoCheckbox);
         
-        // Colonna 6: Note
         row.insertCell().textContent = trattamento.note || "N/A";
         
-        // Colonna 7: Azioni
         const actionCell = row.insertCell();
+        actionCell.style.whiteSpace = 'nowrap'; // Impedisce ai pulsanti di andare a capo
+
+        // --- PULSANTE COPIA (NUOVO) ---
+        const copyButton = document.createElement("button");
+        copyButton.textContent = "🔁 Copia";
+        copyButton.className = "btn btn-secondary"; // Un colore neutro
+        copyButton.title = "Copia questo trattamento alla data di oggi";
+        copyButton.style.marginRight = "5px";
+
+        copyButton.onclick = async () => {
+            if (!confirm("Sei sicuro di voler duplicare questo trattamento alla data di oggi?")) return;
+
+            // Prepara il nuovo oggetto trattamento
+            const nuovoTrattamento = {
+                cliente_id: trattamento.cliente_id,
+                // Imposta la data di oggi in formato YYYY-MM-DD
+                data_trattamento: new Date().toISOString().split('T')[0],
+                descrizione: trattamento.descrizione,
+                servizi: trattamento.servizi,
+                pagato: false, // Un nuovo trattamento non è mai pagato di default
+                note: trattamento.note 
+            };
+
+            try {
+                const response = await fetch('/api/trattamenti', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(nuovoTrattamento)
+                });
+                if (!response.ok) throw new Error('Errore durante la copia.');
+                
+                showMessage('Trattamento copiato con successo!', 'success');
+                await loadClientData(currentClientId); // Ricarica tutto per vedere la nuova riga
+
+            } catch (error) {
+                console.error("Errore durante la copia del trattamento:", error);
+                showMessage(error.message, "error");
+            }
+        };
+        actionCell.appendChild(copyButton);
+
+        // Pulsanti esistenti
         const editButton = document.createElement("button");
         editButton.textContent = "✏️ Modifica";
         editButton.className = "btn btn-edit";

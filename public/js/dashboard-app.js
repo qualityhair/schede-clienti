@@ -30,7 +30,9 @@ const buoniModal = document.getElementById('buoniModal');
 const sospesiLista = document.getElementById('sospesi-lista');
 const buoniLista = document.getElementById('buoni-lista');
 
-
+// --- RIFERIMENTI DOM PER IL BLOCCO NOTE (NUOVO) ---
+const bloccoNoteTextarea = document.getElementById('blocco-note-textarea');
+const bloccoNoteStatus = document.getElementById('blocco-note-status');
 
 
     // --- FUNZIONI DI UTILITÀ ---
@@ -156,7 +158,57 @@ buoniLista.appendChild(item);
     }
 }
 	
-	
+// --- FUNZIONE PER GESTIRE IL BLOCCO NOTE (NUOVA) ---
+function initBloccoNote() {
+    let saveTimeout; // Variabile per il timer del salvataggio automatico
+
+    // 1. Carica la nota iniziale dal server
+    async function caricaNotaIniziale() {
+        try {
+            const response = await fetch('/api/note');
+            const data = await handleApiResponse(response);
+            if (data && data.nota !== undefined) {
+                bloccoNoteTextarea.value = data.nota;
+            }
+        } catch (error) {
+            console.error('Errore nel caricamento della nota:', error);
+            bloccoNoteStatus.textContent = "Errore di caricamento.";
+        }
+    }
+
+    // 2. Ascolta ogni modifica nella textarea
+    bloccoNoteTextarea.addEventListener('input', () => {
+        // Mostra "Salvataggio..."
+        bloccoNoteStatus.textContent = "Salvataggio in corso...";
+        
+        // Cancella il timer precedente per evitare salvataggi multipli
+        clearTimeout(saveTimeout);
+        
+        // Imposta un nuovo timer: dopo 1.5 secondi di inattività, salva.
+        saveTimeout = setTimeout(async () => {
+            try {
+                const notaDaSalvare = bloccoNoteTextarea.value;
+                const response = await fetch('/api/note', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nota: notaDaSalvare })
+                });
+                
+                if (!response.ok) throw new Error('Salvataggio fallito');
+
+                const oraSalvataggio = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+                bloccoNoteStatus.textContent = `Salvato alle ${oraSalvataggio}`;
+
+            } catch (error) {
+                console.error('Errore nel salvataggio della nota:', error);
+                bloccoNoteStatus.textContent = "Errore di salvataggio.";
+            }
+        }, 1500); // 1.5 secondi di ritardo
+    });
+
+    // 3. Carica la nota quando la funzione viene chiamata
+    caricaNotaIniziale();
+}	
 	
 
 function openModal(modalElement) {
@@ -497,6 +549,7 @@ if (addNewClientButton) addNewClientButton.addEventListener("click", handleAddNe
 if (appointmentsListContainer) fetchAndDisplayAppointments();
 fetchAndDisplaySummary(); // <-- CHIAMATA ALLA NUOVA FUNZIONE!
 initCollapsibles();
+initBloccoNote();
 
 
 // Logica per chiudere le modali del riepilogo

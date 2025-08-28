@@ -3423,6 +3423,35 @@ animation: fadeInUp 0.5s ease-out forwards;
     color: #FFD700;
 }
 
+/* ============================================= */
+/* == Stili per il Blocco Note della Dashboard == */
+/* ============================================= */
+
+.notepad-container {
+    position: relative;
+}
+
+#blocco-note-textarea {
+    width: 100%;
+    background-color: #3a3a3c;
+    border: 1px solid #555;
+    color: #f0f0f0;
+    padding: 10px;
+    border-radius: 6px;
+    resize: vertical; /* Permette di ridimensionare solo in altezza */
+}
+
+.notepad-status {
+    display: block;
+    text-align: right;
+    font-size: 0.75em;
+    color: #888;
+    margin-top: 5px;
+    height: 1em; /* Altezza fissa per non far "saltare" il layout */
+    font-style: italic;
+}
+
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */

@@ -9,6 +9,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
+
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
+
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
+
+<!-- Il tuo script dashboard -->
+    <script src="/js/dashboard-app.js"></script>
+
 </head>
 <body>
 
@@ -92,6 +102,7 @@
         <!-- === COLONNA CENTRALE === -->
         <div class="dashboard-column">
             <!-- PANNELLO APPUNTAMENTI DI OGGI -->
+			
             <div class="panel dashboard-panel">
                 <h2 class="panel-title">Appuntamenti di Oggi</h2>
                 <ul class="appointments-list" id="lista-appuntamenti">
@@ -103,16 +114,23 @@
 
         <!-- === COLONNA DESTRA === -->
         <div class="dashboard-column">
+		    <div class="panel dashboard-panel">
+			<h2 class="panel-title">📝 Blocco Note</h2>
+				<div class="notepad-container">
+				<textarea id="blocco-note-textarea" class="textarea-field" rows="6" placeholder="Appunti veloci..."></textarea>
+				<small id="blocco-note-status" class="notepad-status"></small>
+				</div>
+			</div>
             
             <!-- PANNELLO STRUMENTI E LINK -->
             <div class="panel dashboard-panel">
-<h2 class="panel-title">Strumenti e Link Utili</h2>
-<div class="tools-grid">
-<a href="/calendario" class="btn btn-primary">Agenda Settimanale</a>
-<button onclick="window.open('https://calendar.google.com/calendar/u/0/r/week', '_blank')" class="btn btn-primary">Apri Google Calendar</button>
-<a href="/catalogo.html" class="btn btn-primary">Catalogo Lavori</a>
-<a href="/lista-clienti.html" class="btn btn-primary">Lista Clienti</a>
-<a href="/prodotti.html" class="btn btn-primary">Gestione Prodotti</a>
+			<h2 class="panel-title">Strumenti e Link Utili</h2>
+			<div class="tools-grid">
+			<a href="/calendario" class="btn btn-primary">Agenda Settimanale</a>
+			<button onclick="window.open('https://calendar.google.com/calendar/u/0/r/week', '_blank')" class="btn btn-primary">Apri Google Calendar</button>
+			<a href="/catalogo.html" class="btn btn-primary">Catalogo Lavori</a>
+			<a href="/lista-clienti.html" class="btn btn-primary">Lista Clienti</a>
+			<a href="/prodotti.html" class="btn btn-primary">Gestione Prodotti</a>
                     
 					
 					<hr class="panel-divider">
@@ -224,7 +242,7 @@
 </div>
 
 
-    <script src="/js/dashboard-app.js"></script>
+
 
 </body>
 </html>
