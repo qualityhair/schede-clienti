@@ -12,6 +12,9 @@ const pannelliPostazione = {
 };
     let appuntamentiDiOggi = [];
     let tuttiClienti = [];
+	
+	
+	
 
     function getInitials(nome, cognome) {
         const n = nome ? nome.trim().charAt(0).toUpperCase() : '';
@@ -23,27 +26,45 @@ const pannelliPostazione = {
         return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
     }
 
-    function creaClienteToken(app, clienteTrovato) {
-        const inizio = new Date(app.start_time);
-        const fine = new Date(app.end_time);
-        if (isNaN(fine.getTime())) return '';
-        const oraAttuale = new Date();
-        const durataTotale = fine - inizio;
-        const tempoTrascorso = oraAttuale - inizio;
-        let progresso = Math.max(0, Math.min(100, (tempoTrascorso / durataTotale) * 100));
-        const nomeDaMostrare = clienteTrovato ? `${capitalizeWords(clienteTrovato.nome)} ${capitalizeWords(clienteTrovato.cognome)}` : capitalizeWords(app.summary);
-        const iniziali = clienteTrovato ? getInitials(clienteTrovato.nome, clienteTrovato.cognome) : '#';
-        const clienteId = clienteTrovato ? clienteTrovato.id : null;
-        return `
-            <div class="cliente-token" ${clienteId ? `data-cliente-id="${clienteId}"` : 'style="cursor: default;"'}>
-                <div class="avatar-container" style="background-color: #555;"><div class="initials-avatar" style="font-size: 18px;">${iniziali}</div></div>
-                <div class="info" style="flex-grow: 1;">
-                    <h5>${nomeDaMostrare}</h5>
-                    <p>${inizio.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'})} - ${fine.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'})}</p>
-                    <div class="progress-bar-container"><div class="progress-bar" style="width: ${progresso}%;"></div></div>
-                </div>
-            </div>`;
+    // === SOSTITUISCI QUESTA INTERA FUNZIONE ===
+function creaClienteToken(app, clienteTrovato) {
+    const inizio = new Date(app.start_time);
+    const fine = new Date(app.end_time);
+    if (isNaN(fine.getTime())) return '';
+    
+    const oraAttuale = new Date();
+    const durataTotale = fine - inizio;
+    const tempoTrascorso = oraAttuale - inizio;
+    let progresso = Math.max(0, Math.min(100, (tempoTrascorso / durataTotale) * 100));
+
+    let avatarHtml = '';
+    let nomeDaMostrare = capitalizeWords(app.summary); // <-- CORRETTO
+    let clienteId = null;
+
+    if (clienteTrovato) {
+        nomeDaMostrare = `${capitalizeWords(clienteTrovato.nome)} ${capitalizeWords(clienteTrovato.cognome)}`; // <-- CORRETTO (x2)
+        clienteId = clienteTrovato.id;
+
+        if (clienteTrovato.foto_profilo_url) {
+            avatarHtml = `<img src="${clienteTrovato.foto_profilo_url}" alt="Profilo" class="profile-avatar-img">`;
+        } else {
+            const iniziali = getInitials(clienteTrovato.nome, clienteTrovato.cognome); // <-- CORRETTO
+            avatarHtml = `<div class="initials-avatar" style="font-size: 18px;">${iniziali}</div>`;
+        }
+    } else {
+        avatarHtml = `<div class="initials-avatar" style="font-size: 18px;">#</div>`;
     }
+    
+    return `
+        <div class="cliente-token" ${clienteId ? `data-cliente-id="${clienteId}"` : 'style="cursor: default;"'}>
+            <div class="avatar-container" style="background-color: #555;">${avatarHtml}</div>
+            <div class="info" style="flex-grow: 1;">
+                <h5>${nomeDaMostrare}</h5>
+                <p>${inizio.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'})} - ${fine.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'})}</p>
+                <div class="progress-bar-container"><div class="progress-bar" style="width: ${progresso}%;"></div></div>
+            </div>
+        </div>`;
+}
 
     // SOSTITUISCI L'INTERA FUNZIONE aggiornaMappa CON QUESTA
 function aggiornaMappa() {

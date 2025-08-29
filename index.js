@@ -49,6 +49,22 @@ const upload = multer({
     }
 });
 
+// Funzione helper per trovare la foto profilo di un cliente
+async function getProfilePhotoUrl(clienteId) {
+    try {
+        const photoResult = await db.query(
+            "SELECT file_path FROM client_photos WHERE cliente_id = $1 AND 'profilo' = ANY(tags) LIMIT 1",
+            [clienteId]
+        );
+        return photoResult.rows.length > 0 ? photoResult.rows[0].file_path : null;
+    } catch (error) {
+        console.error(`Errore nel recuperare la foto profilo per il cliente ${clienteId}:`, error);
+        return null;
+    }
+}
+
+
+
 
 // --- INIZIO: AGGIUNTE NECESSARIE PER GOOGLE CALENDAR ---
 const { google } = require('googleapis');
@@ -506,7 +522,17 @@ app.use("/api", ensureAuthenticated);
 app.get("/api/clienti", async (req, res) => {
     try {
         const result = await db.query("SELECT * FROM clienti");
-        res.json(result.rows);
+        
+        // Per ogni cliente, andiamo a cercare la sua foto profilo
+        const clientiConFoto = await Promise.all(result.rows.map(async (cliente) => {
+            const fotoUrl = await getProfilePhotoUrl(cliente.id);
+            return {
+                ...cliente,
+                foto_profilo_url: fotoUrl // Aggiungiamo il nuovo campo
+            };
+        }));
+
+        res.json(clientiConFoto);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

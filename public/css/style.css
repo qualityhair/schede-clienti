@@ -3608,6 +3608,14 @@ animation: fadeInUp 0.5s ease-out forwards;
 }
 
 
+/* Stile per l'immagine del profilo dentro il token della mappa */
+.cliente-token .profile-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Assicura che l'immagine copra il cerchio senza deformarsi */
+    border-radius: 50%;
+}
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */
