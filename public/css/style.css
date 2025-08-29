@@ -3457,9 +3457,11 @@ animation: fadeInUp 0.5s ease-out forwards;
 /* ============================================= */
 
 .mappa-salone-container {
-    display: flex;
+    display: grid;
+    /* Crea 3 colonne di larghezza uguale */
+    grid-template-columns: repeat(3, 1fr); 
     gap: 20px;
-    height: calc(85vh - 50px); /* Occupa l'altezza dello schermo meno un po' di spazio */
+    height: calc(85vh - 50px);
 }
 
 .mappa-colonna-lavoro {
@@ -3562,49 +3564,52 @@ animation: fadeInUp 0.5s ease-out forwards;
     transition: width 1s linear;
 }
 
-/* ============================================= */
-/* == Stili per Postazioni Colorate x Operatore == */
-/* ============================================= */
 
-/*
-   Quando una postazione è occupata, di default ha un bordo dorato.
-   Ma se ha ANCHE una classe operatore, queste regole avranno la priorità.
-*/
+/* Stile per lo stato "in posa" (operatore libero) */
+.postazione-lavoro.in-posa {
+    border-style: dotted; /* Bordo a puntini per indicare attesa */
+    border-color: #fbd75b; /* Un giallo diverso per distinguerlo */
+    opacity: 0.8;
+}
+.postazione-lavoro.in-posa .postazione-header {
+    color: #fbd75b;
+}
+
+/* ==================================================================== */
+/* == Stili per Postazioni Colorate (LAVORO E LAVAGGIO)              == */
+/* ==================================================================== */
+
+/* Stile di fallback (Nessuno/Generico - Arancione) */
+.postazione-lavoro.occupata.operatore-nessuno,
+.area-servizio.occupata.operatore-nessuno {
+    border-color: #ffb878 !important;
+    box-shadow: 0 0 15px rgba(255, 184, 120, 0.4) !important;
+}
+.postazione-lavoro.occupata.operatore-nessuno .postazione-header,
+.area-servizio.occupata.operatore-nessuno .postazione-header {
+    color: #ffb878;
+}
 
 /* Stile per SANDRO (Verde) */
-.postazione-lavoro.occupata.operatore-sandro {
-    border-color: #81C784; /* Verde Sandro */
-    box-shadow: 0 0 15px rgba(129, 199, 132, 0.4); /* Alone verde */
+.postazione-lavoro.occupata.operatore-sandro,
+.area-servizio.occupata.operatore-sandro {
+    border-color: #81C784 !important; /* Verde Sandro */
+    box-shadow: 0 0 15px rgba(129, 199, 132, 0.4) !important; /* Alone verde */
 }
-.postazione-lavoro.occupata.operatore-sandro .postazione-header {
+.postazione-lavoro.occupata.operatore-sandro .postazione-header,
+.area-servizio.occupata.operatore-sandro .postazione-header {
     color: #81C784;
 }
 
 /* Stile per TINO (Blu/Azzurro) */
-.postazione-lavoro.occupata.operatore-tino {
-    border-color: #46d6db; /* Azzurro Tino */
-    box-shadow: 0 0 15px rgba(70, 214, 219, 0.4); /* Alone azzurro */
+.postazione-lavoro.occupata.operatore-tino,
+.area-servizio.occupata.operatore-tino {
+    border-color: #46d6db !important; /* Azzurro Tino */
+    box-shadow: 0 0 15px rgba(70, 214, 219, 0.4) !important; /* Alone azzurro */
 }
-.postazione-lavoro.occupata.operatore-tino .postazione-header {
+.postazione-lavoro.occupata.operatore-tino .postazione-header,
+.area-servizio.occupata.operatore-tino .postazione-header {
     color: #46d6db;
-}
-
-/* Stile di fallback (Nessuno/Generico - Arancione) */
-.postazione-lavoro.occupata.operatore-nessuno {
-    border-color: #ffb878; /* Arancione Nessuno */
-    box-shadow: 0 0 15px rgba(255, 184, 120, 0.4); /* Alone arancione */
-}
-.postazione-lavoro.occupata.operatore-nessuno .postazione-header {
-    color: #ffb878;
-}
-
-/* Stile per i tag piccoli nella lista appuntamenti della dashboard */
-.appointment-status-icons .client-tag.mini {
-    font-size: 0.7em;
-    padding: 2px 6px;
-    font-weight: bold;
-    border-radius: 4px;
-    text-transform: uppercase;
 }
 
 
@@ -3614,6 +3619,12 @@ animation: fadeInUp 0.5s ease-out forwards;
     height: 100%;
     object-fit: cover; /* Assicura che l'immagine copra il cerchio senza deformarsi */
     border-radius: 50%;
+}
+
+
+.dashboard-modal-content.large {
+    display: flex;
+    flex-direction: column;
 }
 
 /* =================================== */

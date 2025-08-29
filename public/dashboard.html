@@ -147,19 +147,23 @@
     </div>
     <!-- ============================================= -->
 	
-	<!-- MODALE PER LA MAPPA SALONE (CON IFRAME) -->
+<!-- MODALE PER LA MAPPA SALONE (CON DIMENSIONI CORRETTE) -->
 <div id="mappa-salone-modal" class="dashboard-modal">
-<div class="dashboard-modal-content large">
-<div class="dashboard-modal-header">
+    <!-- Applico lo stile al contenitore principale -->
+    <div class="dashboard-modal-content large" style="width: 95%; max-width: 1400px; height: 90vh;">
+        
+        <div class="dashboard-modal-header">
+            <h3>Quality Hair Live</h3>
+            <button id="close-mappa-btn" class="close-btn">&times;</button>
+        </div>
 
-<button id="close-mappa-btn" class="close-btn">&times;</button>
+        <!-- Rimuovo lo stile dal corpo e lascio che si adatti -->
+        <div class="dashboard-modal-body" style="padding: 0; flex-grow: 1;">
+            <iframe id="mappa-iframe" src="about:blank" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+
+    </div>
 </div>
-<div class="dashboard-modal-body" style="padding: 0; height: 75vh;">
-<iframe id="mappa-iframe" src="about:blank" style="width: 100%; height: 100%; border: none;"></iframe>
-</div>
-</div>
-</div>
-<!-- ===================================== -->
 	
 	
 	

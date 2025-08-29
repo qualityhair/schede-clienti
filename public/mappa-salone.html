@@ -12,10 +12,10 @@
     <main class="container">
 
 
-        <!-- SOSTITUISCI CON QUESTA NUOVA STRUTTURA A 3 POSTAZIONI -->
+<!-- SOSTITUISCI CON QUESTA NUOVA STRUTTURA A 3 COLONNE -->
 <div class="mappa-salone-container">
 
-    <!-- Colonna delle Postazioni di Lavoro -->
+    <!-- Colonna Postazioni di Lavoro -->
     <div class="mappa-colonna-lavoro">
         <div id="postazione-1" class="postazione-lavoro libera" data-postazione-nome="Postazione 1">
             <div class="postazione-header">Postazione 1</div>
@@ -31,14 +31,30 @@
         </div>
     </div>
 
-    <!-- Colonna delle Aree di Servizio (ora solo "In Arrivo") -->
+    <!-- Colonna Aree Lavaggio -->
+    <div class="mappa-colonna-servizio">
+        <div id="lavaggio-1" class="area-servizio libera" data-postazione-nome="Lavaggio 1">
+            <div class="postazione-header">Lavaggio 1</div>
+            <div class="postazione-content"></div>
+        </div>
+        <div id="lavaggio-2" class="area-servizio libera" data-postazione-nome="Lavaggio 2">
+            <div class="postazione-header">Lavaggio 2</div>
+            <div class="postazione-content"></div>
+        </div>
+    </div>
+    
+    <!-- Colonna Clienti in Arrivo -->
     <div class="mappa-colonna-servizio">
         <div id="area-attesa" class="area-servizio" data-postazione-nome="In Attesa">
-            <div class="postazione-header">Clienti in Arrivo</div>
-            <div class="postazione-content">
-                <!-- Qui metteremo i clienti che devono ancora arrivare -->
-            </div>
-        </div>
+    <div class="postazione-header">Clienti in Arrivo</div>
+    
+    <!-- === ASSICURATI CHE QUESTO DIV ESISTA === -->
+    <div class="postazione-content">
+        <!-- Qui metteremo i clienti che devono ancora arrivare -->
+    </div>
+    <!-- ======================================= -->
+
+</div>
     </div>
 
 </div>
