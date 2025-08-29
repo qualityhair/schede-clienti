@@ -126,7 +126,7 @@
             <div class="panel dashboard-panel">
 			<h2 class="panel-title">Strumenti e Link Utili</h2>
 			<div class="tools-grid">
-			<a href="/mappa-salone.html" class="btn btn-primary">Mappa Salone Live 🚀</a>
+			<button id="apri-mappa-btn" class="btn btn-primary">Mappa Salone Live 🚀</button>
 			<a href="/calendario" class="btn btn-primary">Agenda Settimanale</a>
 			<button onclick="window.open('https://calendar.google.com/calendar/u/0/r/week', '_blank')" class="btn btn-primary">Apri Google Calendar</button>
 			<a href="/catalogo.html" class="btn btn-primary">Catalogo Lavori</a>
@@ -146,6 +146,23 @@
         </div>
     </div>
     <!-- ============================================= -->
+	
+	<!-- MODALE PER LA MAPPA SALONE (CON IFRAME) -->
+<div id="mappa-salone-modal" class="dashboard-modal">
+<div class="dashboard-modal-content large">
+<div class="dashboard-modal-header">
+
+<button id="close-mappa-btn" class="close-btn">&times;</button>
+</div>
+<div class="dashboard-modal-body" style="padding: 0; height: 75vh;">
+<iframe id="mappa-iframe" src="about:blank" style="width: 100%; height: 100%; border: none;"></iframe>
+</div>
+</div>
+</div>
+<!-- ===================================== -->
+	
+	
+	
 </main>
 
 

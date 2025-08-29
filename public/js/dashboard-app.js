@@ -34,6 +34,10 @@ const buoniLista = document.getElementById('buoni-lista');
 const bloccoNoteTextarea = document.getElementById('blocco-note-textarea');
 const bloccoNoteStatus = document.getElementById('blocco-note-status');
 
+const apriMappaBtn = document.getElementById('apri-mappa-btn');
+const mappaSaloneModal = document.getElementById('mappa-salone-modal');
+const closeMappaBtn = document.getElementById('close-mappa-btn');
+const mappaIframe = document.getElementById('mappa-iframe');
 
     // --- FUNZIONI DI UTILITÀ ---
 
@@ -568,6 +572,28 @@ initBloccoNote();
     }
 });
 
+    // == LOGICA PER LA MODALE DELLA MAPPA SALONE (NUOVA) - DA AGGIUNGERE ==
+    // ====================================================================
+    if (apriMappaBtn) {
+        apriMappaBtn.addEventListener('click', () => {
+            mappaIframe.src = '/mappa-salone.html';
+            mappaSaloneModal.style.display = 'block';
+        });
+    }
+
+    if (closeMappaBtn) {
+        closeMappaBtn.addEventListener('click', () => {
+            mappaSaloneModal.style.display = 'none';
+            mappaIframe.src = 'about:blank'; 
+        });
+    }
+    
+    window.addEventListener('click', (event) => {
+        if (event.target == mappaSaloneModal) {
+            mappaSaloneModal.style.display = 'none';
+            mappaIframe.src = 'about:blank';
+        }
+    })
 
 
 });
