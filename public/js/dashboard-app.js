@@ -424,14 +424,31 @@ async function fetchAndDisplayAppointments() {
             let statusIconsHtml = '';
             let detailsPanelHtml = '';
             
-            if (app.cliente) {
-                listItem.classList.add('clickable');
-                listItem.dataset.clienteId = app.cliente.id;
+            // VERSIONE FINALE CON LOGICA CORRETTA PER LE ICONE
+if (app.cliente) {
+    listItem.classList.add('clickable');
+    listItem.dataset.clienteId = app.cliente.id;
 
-                // Costruisci le icone di stato
-                if (app.cliente.note || (app.cliente.tags && app.cliente.tags.length > 0)) statusIconsHtml += '<span>💬</span>';
-                if (app.cliente.haSospesi) statusIconsHtml += '<span>🚨</span>';
-                if (app.cliente.haBuoniAttivi) statusIconsHtml += '<span>🎁</span>';
+    // --- LOGICA ICONE E TAG (DEFINITIVA) ---
+    // 1. Prima, creiamo i tag HTML (se esistono)
+    const tagsHtml = (app.cliente.tags && app.cliente.tags.length > 0)
+        ? app.cliente.tags.map(tag => `<span class="client-tag mini">${tag}</span>`).join('')
+        : '';
+
+    // 2. Poi, creiamo le icone di stato
+    let iconeDiStato = '';
+    if (app.cliente.haSospesi) iconeDiStato += '<span>🚨</span>';
+    if (app.cliente.haBuoniAttivi) iconeDiStato += '<span>🎁</span>';
+
+    // 3. [MODIFICA CHIAVE] Aggiungiamo l'icona delle note SOLO se ci sono note
+    let iconaNote = '';
+    if (app.cliente.note && app.cliente.note.trim() !== '') {
+        iconaNote = '<span>💬</span>';
+    }
+
+    // 4. Uniamo tutto insieme, dando la priorità ai tag
+    statusIconsHtml = `${tagsHtml}${iconeDiStato}${iconaNote}`;
+    // --- FINE LOGICA ---
 
                 // Costruisci il pannello a scomparsa con i dettagli
                 detailsPanelHtml += '<div class="appointment-details-panel">';

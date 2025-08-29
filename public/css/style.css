@@ -3598,7 +3598,14 @@ animation: fadeInUp 0.5s ease-out forwards;
     color: #ffb878;
 }
 
-
+/* Stile per i tag piccoli nella lista appuntamenti della dashboard */
+.appointment-status-icons .client-tag.mini {
+    font-size: 0.7em;
+    padding: 2px 6px;
+    font-weight: bold;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
 
 
 /* =================================== */
