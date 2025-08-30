@@ -38,6 +38,11 @@ document.addEventListener('DOMContentLoaded', function () {
   const editEventModalEl = document.getElementById('editEventModal');
   const editEventModal = new bootstrap.Modal(editEventModalEl);
 
+const eventTitleInput = document.getElementById('eventTitle');
+const searchResultsContainer = document.getElementById('searchResultsContainer');
+
+
+
   // ---------- Stato auto-scroll durante drag ----------
   let isDragging = false;
   let edgeTimer = null;
@@ -434,5 +439,61 @@ document.addEventListener('DOMContentLoaded', function () {
       alert("Impossibile salvare le modifiche. Riprova.");
     }
   });
+
+// =======================================================
+// == LOGICA PER LA RICERCA CLIENTE LIVE NEL CALENDARIO ==
+// =======================================================
+if (eventTitleInput && searchResultsContainer) {
+    let searchTimeout;
+
+    eventTitleInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        const searchTerm = eventTitleInput.value.trim();
+
+        if (searchTerm.length < 2) {
+            searchResultsContainer.style.display = 'none';
+            return;
+        }
+
+        searchTimeout = setTimeout(async () => {
+            try {
+                const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
+                const clienti = await response.json();
+
+                searchResultsContainer.innerHTML = '';
+                if (clienti.length > 0) {
+                    clienti.forEach(cliente => {
+                        const div = document.createElement('div');
+                        div.className = 'search-result-item';
+                        div.textContent = `${cliente.nome} ${cliente.cognome}`;
+                        
+                        div.addEventListener('mousedown', (e) => {
+                            e.preventDefault(); // Impedisce al campo di perdere il focus
+                            eventTitleInput.value = `${cliente.nome} ${cliente.cognome}`;
+                            searchResultsContainer.style.display = 'none';
+                        });
+
+                        searchResultsContainer.appendChild(div);
+                    });
+                    searchResultsContainer.style.display = 'block';
+                } else {
+                    searchResultsContainer.style.display = 'none';
+                }
+            } catch (error) {
+                console.error("Errore nella ricerca live:", error);
+            }
+        }, 300);
+    });
+
+    // Nasconde i risultati se l'input perde il focus
+    eventTitleInput.addEventListener('blur', () => {
+        // Aggiungiamo un piccolo ritardo per permettere al click sul risultato di registrarsi
+        setTimeout(() => {
+            searchResultsContainer.style.display = 'none';
+        }, 150);
+    });
+}
+
+
 
 });

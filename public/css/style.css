@@ -3627,6 +3627,36 @@ animation: fadeInUp 0.5s ease-out forwards;
     flex-direction: column;
 }
 
+
+/* ============================================= */
+/* == Stile per Risultati Ricerca Live        == */
+/* ============================================= */
+.search-results-container {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #f8f9fa; /* Sfondo chiaro per la modale chiara */
+    border: 1px solid #dee2e6;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+    z-index: 1060; /* Più alto della modale di Bootstrap (1055) */
+    max-height: 200px;
+    overflow-y: auto;
+    display: none; /* Nascosto di default */
+}
+
+.search-result-item {
+    padding: 10px 15px;
+    color: #212529; /* Testo scuro */
+    cursor: pointer;
+}
+
+.search-result-item:hover {
+    background-color: #0d6efd; /* Blu di Bootstrap */
+    color: white;
+}
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */

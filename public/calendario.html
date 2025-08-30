@@ -168,10 +168,13 @@
       </div>
       <div class="modal-body">
         <form id="addEventForm">
-          <div class="mb-3">
-            <label for="eventTitle" class="form-label">Nome Cliente (o Titolo)</label>
-            <input type="text" class="form-control" id="eventTitle" required>
-          </div>
+<div class="mb-3" style="position: relative;">
+    <label for="eventTitle" class="form-label">Nome Cliente (o Titolo)</label>
+    <input type="text" class="form-control" id="eventTitle" required autocomplete="off">
+    
+    <!-- Contenitore per i risultati della ricerca live -->
+    <div id="searchResultsContainer" class="search-results-container"></div>
+</div>
 		  
 		            <!-- ... subito dopo il campo eventTitle ... -->
           <div class="mb-3">
