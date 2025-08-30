@@ -3657,6 +3657,48 @@ animation: fadeInUp 0.5s ease-out forwards;
     color: white;
 }
 
+
+/* Rende trasparente lo sfondo della pagina della mappa,
+   quando viene visualizzata dentro l'iframe */
+body.iframe-mode .container {
+    background: transparent;
+    padding: 0;
+    box-shadow: none;
+}
+
+/* Rimuove anche il titolo, se presente */
+body.iframe-mode .page-title {
+    display: none;
+}
+
+/* ======================================================= */
+/* == Stile "Trasparenza Totale" per Mappa Salone       == */
+/* ======================================================= */
+
+/* Rende il contenitore principale della modale completamente trasparente e senza ombre */
+#mappa-salone-modal .dashboard-modal-content.large {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+}
+
+/* Rimuove lo sfondo anche dal corpo della modale */
+#mappa-salone-modal .dashboard-modal-body {
+    background: transparent;
+}
+
+/* Rimuove la linea di separazione e lo sfondo dall'header */
+#mappa-salone-modal .dashboard-modal-header {
+    background: transparent;
+    border-bottom: none;
+}
+
+/* Rende il titolo più visibile sullo sfondo della dashboard */
+#mappa-salone-modal .dashboard-modal-header h3 {
+    color: #FFD700;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); /* Aggiunge un'ombra per la leggibilità */
+}
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */

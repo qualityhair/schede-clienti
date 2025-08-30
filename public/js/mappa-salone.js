@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
+	
+	
+	    // Controlla se la pagina è dentro un iframe (cioè nella modale)
+    if (window.self !== window.top) {
+        // Se sì, aggiunge una classe speciale al body
+        document.body.classList.add('iframe-mode');
+    }
     
     const WORKFLOWS = {
         'tg barba': [{ step: 'Lavaggio', durata: 5, tipoPostazione: 'lavaggio' }, { step: 'Taglio e Barba', durata: 55, tipoPostazione: 'lavoro' }],
