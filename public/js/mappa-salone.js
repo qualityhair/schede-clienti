@@ -80,13 +80,19 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>`;
 }
 
-    function aggiornaMappa() {
-        const oraAttuale = new Date();
-        Object.values(containers).forEach(el => el.innerHTML = '');
-        Object.values(pannelli).forEach(el => el.classList.remove('occupata', 'in-posa', 'operatore-sandro', 'operatore-tino', 'operatore-nessuno'));
-        let postazioniLavoroOccupate = [], postazioniLavaggioOccupate = [];
-        appuntamentiDiOggi.forEach(app => {
-            const inizio = new Date(app.start_time);
+function aggiornaMappa() {
+    const oraAttuale = new Date();
+    // ... pulizia pannelli ...
+    
+    appuntamentiDiOggi.forEach(app => {
+        // --- MODIFICA CHIAVE QUI ---
+        // Se l'appuntamento non ha un cliente collegato, ignoralo completamente.
+        if (!app.cliente) {
+            return; // 'return' dentro un forEach significa "passa al prossimo elemento"
+        }
+        // --- FINE MODIFICA ---
+
+        const inizio = new Date(app.start_time);
             const fine = new Date(app.end_time);
             if (oraAttuale < inizio) {
                 containers[areaAttesa].innerHTML += creaClienteToken(app, app.cliente, null);
@@ -102,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (app.color_id === '7') classeColore = 'operatore-tino';
     
     // Inserisce il gettone del cliente
-    containers[postazioneLibera].innerHTML = creaClienteToken(app, app.cliente, stepCorrente);
+containers[postazioneLibera].innerHTML = creaClienteToken(app, app.cliente, { stepCorrente: { step: 'In corso' } });
     
     // --- MODIFICA CHIAVE QUI ---
     // Applica le classi di stato e colore al pannello corretto,
