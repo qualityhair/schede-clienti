@@ -40,7 +40,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 const eventTitleInput = document.getElementById('eventTitle');
 const searchResultsContainer = document.getElementById('searchResultsContainer');
-
+const editEventTitleInput = document.getElementById('editEventTitle');
+const searchResultsContainerEdit = document.getElementById('searchResultsContainerEdit');
 
 
   // ---------- Stato auto-scroll durante drag ----------
@@ -494,6 +495,56 @@ if (eventTitleInput && searchResultsContainer) {
     });
 }
 
+// =======================================================
+// == LOGICA PER LA RICERCA CLIENTE LIVE (MODALE MODIFICA) ==
+// =======================================================
+if (editEventTitleInput && searchResultsContainerEdit) {
+    let searchTimeoutEdit;
 
+    editEventTitleInput.addEventListener('input', () => {
+        clearTimeout(searchTimeoutEdit);
+        const searchTerm = editEventTitleInput.value.trim();
+
+        if (searchTerm.length < 2) {
+            searchResultsContainerEdit.style.display = 'none';
+            return;
+        }
+
+        searchTimeoutEdit = setTimeout(async () => {
+            try {
+                const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
+                const clienti = await response.json();
+
+                searchResultsContainerEdit.innerHTML = '';
+                if (clienti.length > 0) {
+                    clienti.forEach(cliente => {
+                        const div = document.createElement('div');
+                        div.className = 'search-result-item';
+                        div.textContent = `${cliente.nome} ${cliente.cognome}`;
+                        
+                        div.addEventListener('mousedown', (e) => {
+                            e.preventDefault();
+                            editEventTitleInput.value = `${cliente.nome} ${cliente.cognome}`;
+                            searchResultsContainerEdit.style.display = 'none';
+                        });
+
+                        searchResultsContainerEdit.appendChild(div);
+                    });
+                    searchResultsContainerEdit.style.display = 'block';
+                } else {
+                    searchResultsContainerEdit.style.display = 'none';
+                }
+            } catch (error) {
+                console.error("Errore nella ricerca live (edit):", error);
+            }
+        }, 300);
+    });
+
+    editEventTitleInput.addEventListener('blur', () => {
+        setTimeout(() => {
+            searchResultsContainerEdit.style.display = 'none';
+        }, 150);
+    });
+}
 
 });

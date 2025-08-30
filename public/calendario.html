@@ -226,10 +226,13 @@
           <!-- Campo nascosto per tenere in memoria l'ID dell'evento -->
           <input type="hidden" id="editEventId">
           
-          <div class="mb-3">
-            <label for="editEventTitle" class="form-label">Nome Cliente (o Titolo)</label>
-            <input type="text" class="form-control" id="editEventTitle" required>
-          </div>
+          <div class="mb-3" style="position: relative;">
+    <label for="editEventTitle" class="form-label">Nome Cliente (o Titolo)</label>
+    <input type="text" class="form-control" id="editEventTitle" required autocomplete="off">
+    
+    <!-- Contenitore per i risultati (con un ID diverso per evitare conflitti) -->
+    <div id="searchResultsContainerEdit" class="search-results-container"></div>
+</div>
 		  
 		            <!-- ... subito dopo il campo editEventTitle ... -->
           <div class="mb-3">
