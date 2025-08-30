@@ -82,15 +82,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function aggiornaMappa() {
     const oraAttuale = new Date();
-    // ... pulizia pannelli ...
+    Object.values(containers).forEach(el => { if (el) el.innerHTML = ''; });
+    Object.values(pannelli).forEach(el => { if (el) el.classList.remove('occupata', 'in-posa', 'operatore-sandro', 'operatore-tino', 'operatore-nessuno'); });
     
+    // === REINTRODUCI QUESTE DUE RIGHE FONDAMENTALI ===
+    let postazioniLavoroOccupate = [];
+    let postazioniLavaggioOccupate = [];
+    // ===============================================
+
     appuntamentiDiOggi.forEach(app => {
-        // --- MODIFICA CHIAVE QUI ---
-        // Se l'appuntamento non ha un cliente collegato, ignoralo completamente.
+        // Se l'appuntamento non ha un cliente, lo ignoriamo
         if (!app.cliente) {
-            return; // 'return' dentro un forEach significa "passa al prossimo elemento"
+            return;
         }
-        // --- FINE MODIFICA ---
 
         const inizio = new Date(app.start_time);
             const fine = new Date(app.end_time);
