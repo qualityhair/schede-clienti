@@ -363,7 +363,7 @@ function getAppointmentColor(app) {
     };
 
     const coloreGenerale = googleColorMap['6']; // Arancione di default
-    const sigleTrattamenti = [ 'tg', 'tn', 'tratt', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul' ];
+    const sigleTrattamenti = [ 'tg', 'tn', 'tratt', 'tr', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul' ];
 
     let backgroundColor = coloreGenerale;
     let textColor = '#FFFFFF'; // Default testo bianco
