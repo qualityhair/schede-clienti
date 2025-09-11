@@ -3723,7 +3723,8 @@ body.iframe-mode .page-title {
 }
 
 .search-result-item:hover {
-    background-color: #f0f0f0;
+    background-color: #e9ecef; /* Un grigio molto chiaro e leggibile */
+    color: #000; /* Assicura che il testo sia nero per un buon contrasto */
 }
 
 

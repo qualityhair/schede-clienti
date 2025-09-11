@@ -149,7 +149,11 @@ const sezioneQuantita = document.getElementById('buono-sezione-quantita');
 const sezioneValore = document.getElementById('buono-sezione-valore');
 const listaServiziBuono = document.getElementById('lista-servizi-buono');
 const aggiungiServizioBuonoBtn = document.getElementById('aggiungi-servizio-buono-btn');
-const buonoValoreInizialeInput = document.getElementById('buono-valore-iniziale');	
+const buonoValoreInizialeInput = document.getElementById('buono-valore-iniziale');
+
+
+
+	
 
 // --- RIFERIMENTI PER "PAGA CON BUONO" ---
 const pagaConBuonoAcquistoSezione = document.getElementById('paga-con-buono-acquisto-sezione');
@@ -1296,9 +1300,6 @@ async function loadAndDisplayBuoni(clienteId, mostraStorico = false) {
 
 
 
-// =================================================
-// RICERCA BENEFICIARIO BUONO
-// =================================================
 // =========================================
 // RICERCA BENEFICIARIO BUONO
 // =========================================
