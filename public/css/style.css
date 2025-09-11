@@ -3565,15 +3565,6 @@ animation: fadeInUp 0.5s ease-out forwards;
 }
 
 
-/* Stile per lo stato "in posa" (operatore libero) */
-.postazione-lavoro.in-posa {
-    border-style: dotted; /* Bordo a puntini per indicare attesa */
-    border-color: #fbd75b; /* Un giallo diverso per distinguerlo */
-    opacity: 0.8;
-}
-.postazione-lavoro.in-posa .postazione-header {
-    color: #fbd75b;
-}
 
 /* ==================================================================== */
 /* == Stili per Postazioni Colorate (LAVORO E LAVAGGIO)              == */
@@ -3698,6 +3689,71 @@ body.iframe-mode .page-title {
     color: #FFD700;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); /* Aggiunge un'ombra per la leggibilità */
 }
+
+
+
+
+
+
+/* Container dei risultati ricerca relazioni */
+#search-results-relazione {
+    position: absolute;       /* posizione rispetto alla modale */
+    top: 100%;                /* subito sotto l’input */
+    left: 0;
+    width: 100%;              /* stessa larghezza dell’input */
+    max-height: 300px;        /* altezza massima */
+    overflow-y: auto;         /* scroll se molti risultati */
+    background: white;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    z-index: 1050;            /* sopra altri elementi della modale */
+    display: block;
+}
+
+/* Singolo risultato */
+.search-result-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background-color: #f0f0f0;
+}
+
+
+#buono-beneficiario-search-results {
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none; /* rimane nascosto fino a quando non ci sono risultati */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+#buono-beneficiario-search-results .search-result-item {
+    padding: 8px 10px;
+    cursor: pointer;
+}
+
+#buono-beneficiario-search-results .search-result-item:hover {
+    background-color: #f0f0f0;
+}
+
+
+
+
+
+
 
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */

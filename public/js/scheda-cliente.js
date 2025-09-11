@@ -127,6 +127,10 @@ const searchResultsRelazioneContainer = document.getElementById('search-results-
 const selectedClienteIdRelazioneInput = document.getElementById('selected-cliente-id-relazione');
 const tipoRelazioneInput = document.getElementById('tipo-relazione');
 
+
+
+
+
 // --- RIFERIMENTI PER I BUONI PREPAGATI ---
 const creaBuonoBtn = document.getElementById('creaBuonoBtn');
 const buoniContainer = document.getElementById('buoni-container');
@@ -1289,6 +1293,71 @@ async function loadAndDisplayBuoni(clienteId, mostraStorico = false) {
         return [];
     }
 }
+
+
+
+// =================================================
+// RICERCA BENEFICIARIO BUONO
+// =================================================
+// =========================================
+// RICERCA BENEFICIARIO BUONO
+// =========================================
+const buonoSearchInput = document.getElementById('buono-beneficiario-search');
+const buonoResultsContainer = document.getElementById('buono-beneficiario-search-results');
+// const buonoBeneficiarioIdInput = document.getElementById('buono-beneficiario-id'); 
+// => commentata o rimossa perché già dichiarata
+
+let debounceTimer = null;
+
+buonoSearchInput.addEventListener('input', () => {
+    const query = buonoSearchInput.value.trim();
+    buonoResultsContainer.innerHTML = '';
+
+    if (query.length < 2) {
+        buonoResultsContainer.style.display = 'none';
+        return;
+    }
+
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+        try {
+            const res = await fetch(`/api/clienti/search?query=${encodeURIComponent(query)}`);
+            const clienti = await res.json();
+
+            buonoResultsContainer.innerHTML = '';
+            if (!clienti.length) {
+                buonoResultsContainer.innerHTML = '<p class="search-result-item">Nessun risultato</p>';
+            } else {
+                clienti.forEach(cliente => {
+                    const item = document.createElement('div');
+                    item.classList.add('search-result-item');
+                    item.textContent = `${cliente.nome} ${cliente.cognome}`;
+                    item.dataset.id = cliente.id;
+                    buonoResultsContainer.appendChild(item);
+
+                    item.addEventListener('click', () => {
+                        buonoSearchInput.value = `${cliente.nome} ${cliente.cognome}`;
+                        buonoBeneficiarioIdInput.value = cliente.id; // usa la variabile esistente
+                        buonoResultsContainer.style.display = 'none';
+                    });
+                });
+            }
+            buonoResultsContainer.style.display = 'block';
+        } catch (err) {
+            console.error('Errore ricerca clienti:', err);
+        }
+    }, 300);
+});
+
+document.addEventListener('click', (e) => {
+    if (!buonoResultsContainer.contains(e.target) && e.target !== buonoSearchInput) {
+        buonoResultsContainer.style.display = 'none';
+    }
+});
+
+
+
+
 
 
 
@@ -2495,28 +2564,65 @@ chiudiGestisciRelazioniModal.addEventListener('click', () => {
 
 // Ricerca cliente mentre si digita
 let searchTimeout;
+
+// Ricerca cliente mentre si digita
 searchClienteRelazioneInput.addEventListener('keyup', () => {
     clearTimeout(searchTimeout);
     const searchTerm = searchClienteRelazioneInput.value.trim();
+    console.log("DEBUG: Input digitato:", searchTerm);
+
     if (searchTerm.length < 2) {
+        console.log("DEBUG: meno di 2 caratteri");
         searchResultsRelazioneContainer.innerHTML = '';
         return;
     }
+
     searchTimeout = setTimeout(async () => {
-        const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
-        const clienti = await response.json();
-        searchResultsRelazioneContainer.innerHTML = '';
-        clienti
-            .filter(c => c.id !== currentClientId) // Escludi il cliente corrente dai risultati
-            .forEach(cliente => {
-                const div = document.createElement('div');
-                div.className = 'search-result-item';
-                div.textContent = `${cliente.nome} ${cliente.cognome}`;
-                div.dataset.clienteId = cliente.id;
-                searchResultsRelazioneContainer.appendChild(div);
-            });
+        console.log("DEBUG: Avvio fetch → /api/clienti/cerca?term=" + searchTerm);
+
+        try {
+            const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
+            console.log("DEBUG: Risposta fetch:", response);
+
+            const text = await response.text();
+            console.log("DEBUG: Corpo risposta grezzo:", text);
+
+            const clienti = JSON.parse(text);
+            console.log("DEBUG: Clienti JSON ricevuti:", clienti);
+
+            const filtered = clienti.filter(c => c.id !== currentClientId);
+            console.log("DEBUG: Dopo filtro restano:", filtered.length);
+
+            searchResultsRelazioneContainer.innerHTML = '';
+
+            if (filtered.length === 0) {
+                searchResultsRelazioneContainer.innerHTML =
+                    '<div class="search-result-item-info">Nessun cliente trovato</div>';
+            } else {
+                filtered.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'search-result-item';
+                    div.textContent = `${c.nome} ${c.cognome}`;
+                    div.dataset.clienteId = c.id;
+
+                    div.addEventListener("click", () => {
+                        searchClienteRelazioneInput.value = `${c.nome} ${c.cognome}`;
+                        selectedClienteIdRelazioneInput.value = c.id;
+                        searchResultsRelazioneContainer.innerHTML = '';
+                    });
+
+                    console.log("DEBUG: creo div per", div.textContent, " → append a", searchResultsRelazioneContainer);
+                    searchResultsRelazioneContainer.appendChild(div);
+                });
+            }
+        } catch (err) {
+            console.error("DEBUG: Errore fetch:", err);
+            searchResultsRelazioneContainer.innerHTML =
+                '<div class="search-result-item-error">Errore durante la ricerca</div>';
+        }
     }, 300);
 });
+
 
 // Gestione click sui risultati della ricerca
 searchResultsRelazioneContainer.addEventListener('click', (e) => {
@@ -2929,6 +3035,10 @@ prodottoAcquistoSelect.addEventListener('change', (e) => {
         prezzoAcquistoInput.value = parseFloat(prezzo).toFixed(2);
     }
 });
+
+
+
+
 
 
     // --- 7. AVVIO ---
