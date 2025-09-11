@@ -3754,7 +3754,76 @@ body.iframe-mode .page-title {
     position: relative;
 }
 
+/* =================================================== */
+/* === NUOVI STILI PER IL PANNELLO CLIENTI A RISCHIO === */
+/* =================================================== */
 
+.clienti-a-rischio-widget .panel-content {
+    /* Rimuove lo stile di default e lo rende flessibile */
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Spazio tra gli elementi della lista */
+    flex-grow: 1;
+}
+
+.rischio-item {
+    background-color: #444444; /* Grigio scuro, più chiaro dello sfondo del pannello */
+    border-radius: 8px;
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rischio-item:hover {
+    background-color: #555555; /* Diventa più chiaro al passaggio del mouse */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.rischio-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rischio-emoji {
+    font-size: 1.5em;
+    line-height: 1; /* Rimuove lo spazio extra intorno all'emoji */
+}
+
+.rischio-link {
+    font-weight: bold;
+    color: #e0e0e0; /* Testo chiaro */
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.rischio-link {
+    font-weight: bold;
+    color: #e0e0e0;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    font-size: 0.9em; /* Riduci la dimensione del font del 10% */
+}
+
+.rischio-link:hover {
+    color: #FFD700; /* Giallo acceso al passaggio del mouse */
+}
+
+.rischio-dettagli {
+    font-size: 0.9em;
+    color: #a0a0a0; /* Grigio più chiaro per i dettagli */
+    font-style: italic;
+    text-align: right;
+}
+
+/* Stili per il messaggio di "nessun cliente a rischio" */
+.clienti-a-rischio-widget .info {
+    text-align: center;
+    font-style: italic;
+    color: #cccccc;
+}
 
 
 

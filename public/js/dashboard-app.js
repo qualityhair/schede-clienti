@@ -14,6 +14,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const addNewClientButton = document.getElementById("add-new-client-button");
     const appointmentsListContainer = document.getElementById('lista-appuntamenti');
 	const newClientTagsInput = document.getElementById("new-client-tags");
+	
+	// --- RIFERIMENTI DOM PER I CLIENTI A RISCHIO (NUOVO) ---
+const clientiARischioContainer = document.getElementById('clienti-a-rischio-container');
+	
+	
 
 // --- RIFERIMENTI DOM PER IL RIEPILOGO GIORNALIERO (NUOVI) ---
 const summaryGreeting = document.getElementById('summary-greeting');
@@ -161,6 +166,68 @@ buoniLista.appendChild(item);
         // Puoi aggiungere un messaggio di errore nel pannello se vuoi
     }
 }
+
+
+// --- FUNZIONE PER CARICARE E MOSTRARE I CLIENTI "A RISCHIO" ---
+async function fetchAndDisplayClientiARischio() {
+    if (!clientiARischioContainer) {
+        console.error("Contenitore 'clienti-a-rischio-container' non trovato.");
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/clienti/a-rischio');
+        const clienti = await handleApiResponse(response);
+        if (!clienti) {
+            clientiARischioContainer.innerHTML = '<p class="error">Impossibile caricare la lista dei clienti.</p>';
+            return;
+        }
+
+        // Pulisce il contenitore prima di riempirlo
+        clientiARischioContainer.innerHTML = ''; 
+        
+        if (clienti.length === 0) {
+            clientiARischioContainer.innerHTML = '<p class="info">Fantastico! Nessun cliente "a rischio" attualmente.</p>';
+            return;
+        }
+
+        // Crea e aggiunge un elemento per ogni cliente
+        clienti.forEach(cliente => {
+            const listItem = document.createElement('div');
+            listItem.className = 'rischio-item'; // Classe CSS per stilizzare il widget
+
+            // Logica per determinare la severità del rischio e lo stile
+            let emoji = '⏳';
+            if (cliente.giorni_di_ritardo > 90) {
+                emoji = '🚨';
+                listItem.style.backgroundColor = 'rgba(255, 100, 100, 0.1)'; // Sfondo più scuro per avviso
+            } else if (cliente.giorni_di_ritardo > 60) {
+                emoji = '⚠️';
+                listItem.style.backgroundColor = 'rgba(255, 200, 0, 0.1)';
+            }
+            
+            const daysText = cliente.giorni_di_ritardo === 1 ? '1 giorno' : `${cliente.giorni_di_ritardo} giorni`;
+
+            listItem.innerHTML = `
+                <div class="rischio-info">
+                    <span class="rischio-emoji">${emoji}</span>
+                    <a href="/scheda-cliente.html?id=${cliente.id}" class="rischio-link">${cliente.nome} ${cliente.cognome}</a>
+                </div>
+                <div class="rischio-dettagli">
+                    <span>Manca da ${daysText}</span>
+                </div>
+            `;
+            
+            clientiARischioContainer.appendChild(listItem);
+        });
+
+    } catch (error) {
+        console.error('Errore nel caricamento dei clienti a rischio:', error);
+        clientiARischioContainer.innerHTML = '<p class="error">Errore nel caricamento.</p>';
+    }
+}
+
+
 	
 // --- FUNZIONE PER GESTIRE IL BLOCCO NOTE (NUOVA) ---
 function initBloccoNote() {
@@ -571,6 +638,8 @@ if (appointmentsListContainer) fetchAndDisplayAppointments();
 fetchAndDisplaySummary(); // <-- CHIAMATA ALLA NUOVA FUNZIONE!
 initCollapsibles();
 initBloccoNote();
+// === CHIAMATA ALLA NUOVA FUNZIONE! ===
+fetchAndDisplayClientiARischio();
 
 
 // Logica per chiudere le modali del riepilogo

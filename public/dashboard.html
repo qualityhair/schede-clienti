@@ -78,24 +78,32 @@
             </div>
 
             <!-- PANNELLO NUOVO CLIENTE -->
-<!-- NUOVA STRUTTURA COLLASSABILE -->
-<div class="panel dashboard-panel collapsible-panel closed">
-    <div class="collapsible-header">
-        <h2 class="panel-title">Nuovo Cliente</h2>
-        <span class="collapsible-arrow">▼</span>
-    </div>
-    <div class="collapsible-content">
-        <!-- Il form ora è qui dentro -->
-        <input type="text" id="new-client-name" placeholder="Nome" required class="input-field" />
-        <input type="text" id="new-client-surname" placeholder="Cognome" required class="input-field" />
-        <input type="text" id="new-client-nickname" placeholder="Soprannome (opzionale)" class="input-field" />
-        <input type="email" id="new-client-email" placeholder="Email (opzionale)" class="input-field" />
-        <input type="tel" id="new-client-phone" placeholder="Telefono (opzionale)" class="input-field" />
-        <input type="text" id="new-client-tags" placeholder="Tag (es: VIP, Allergia Tinta)" class="input-field" />
-        <button id="add-new-client-button" class="btn btn-primary">Aggiungi Cliente</button>
-    </div>
+			<!-- NUOVA STRUTTURA COLLASSABILE -->
+				<div class="panel dashboard-panel collapsible-panel closed">
+				<div class="collapsible-header">
+				<h2 class="panel-title">Nuovo Cliente</h2>
+				<span class="collapsible-arrow">▼</span>
+				</div>
+				<div class="collapsible-content">
+					<!-- Il form ora è qui dentro -->
+				<input type="text" id="new-client-name" placeholder="Nome" required class="input-field" />
+				<input type="text" id="new-client-surname" placeholder="Cognome" required class="input-field" />
+				<input type="text" id="new-client-nickname" placeholder="Soprannome (opzionale)" class="input-field" />
+				<input type="email" id="new-client-email" placeholder="Email (opzionale)" class="input-field" />
+				<input type="tel" id="new-client-phone" placeholder="Telefono (opzionale)" class="input-field" />
+				<input type="text" id="new-client-tags" placeholder="Tag (es: VIP, Allergia Tinta)" class="input-field" />
+				<button id="add-new-client-button" class="btn btn-primary">Aggiungi Cliente</button>
+				</div>
 </div>          
 
+
+<div class="panel dashboard-panel">
+    <h2 class="panel-title">Clienti da Contattare 🔔</h2>
+    <p class="panel-subtitle">Tieni d'occhio chi si sta allontanando.</p>
+    <div id="clienti-a-rischio-container" class="lista-clienti-rischio">
+        <p class="loading">Caricamento in corso...</p>
+    </div>
+</div>
 
         </div>
 

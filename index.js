@@ -724,6 +724,69 @@ app.get("/api/clienti/senza-appuntamento", ensureAuthenticated, async (req, res)
     }
 });
 
+// --- NUOVA API PER L'IDENTIFICAZIONE DEI CLIENTI "A RISCHIO" ---
+app.get("/api/clienti/a-rischio", ensureAuthenticated, async (req, res) => {
+    try {
+        // Query per recuperare tutti i clienti e le loro date di visita.
+        // Utilizziamo ARRAY_AGG per raggruppare tutte le date di ogni cliente in un unico array.
+        const query = `
+            SELECT
+                c.id,
+                c.nome,
+                c.cognome,
+                c.telefono,
+                c.email,
+                ARRAY_AGG(t.data_trattamento ORDER BY t.data_trattamento) AS date_visite
+            FROM
+                clienti c
+            LEFT JOIN
+                trattamenti t ON c.id = t.cliente_id
+            GROUP BY
+                c.id
+            ORDER BY
+                c.cognome, c.nome;
+        `;
+        const result = await db.query(query);
+
+        const now = new Date();
+        const clientiARischio = [];
+
+        for (const cliente of result.rows) {
+            if (cliente.date_visite && cliente.date_visite.length > 1) {
+                let intervalli = [];
+                for (let i = 0; i < cliente.date_visite.length - 1; i++) {
+                    const diff = cliente.date_visite[i + 1].getTime() - cliente.date_visite[i].getTime();
+                    intervalli.push(diff / (1000 * 60 * 60 * 24)); // Differenza in giorni
+                }
+
+                // Calcolo della frequenza media di visita
+                const mediaIntervallo = intervalli.reduce((a, b) => a + b, 0) / intervalli.length;
+                const ultimaVisita = cliente.date_visite[cliente.date_visite.length - 1];
+                const giorniDallUltimaVisita = (now.getTime() - ultimaVisita.getTime()) / (1000 * 60 * 60 * 24);
+
+                // Se l'intervallo attuale è superiore del 20% rispetto alla media, lo consideriamo "a rischio"
+                const sogliaRischio = mediaIntervallo * 1.20;
+
+                if (giorniDallUltimaVisita > sogliaRischio) {
+                    clientiARischio.push({
+                        id: cliente.id,
+                        nome: cliente.nome,
+                        cognome: cliente.cognome,
+                        telefono: cliente.telefono,
+                        giorni_di_ritardo: Math.round(giorniDallUltimaVisita - mediaIntervallo),
+                        frequenza_media: Math.round(mediaIntervallo)
+                    });
+                }
+            }
+        }
+
+        res.json(clientiARischio);
+    } catch (err) {
+        console.error("Errore nel calcolo dei clienti a rischio:", err);
+        res.status(500).json({ error: "Errore del server." });
+    }
+});
+
 
 
 
