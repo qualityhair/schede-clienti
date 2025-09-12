@@ -430,7 +430,7 @@ function getAppointmentColor(app) {
     };
 
     const coloreGenerale = googleColorMap['6']; // Arancione di default
-    const sigleTrattamenti = [ 'tg', 'tn', 'tratt', 'tr', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul' ];
+    const sigleTrattamenti = [ 'flash', 'tg', 'tn', 'tratt', 'tr', 'p', 'piega', 'perm', 'balajage', 'schiariture', 'meches', 'barba', 'pul' ];
 
     let backgroundColor = coloreGenerale;
     let textColor = '#FFFFFF'; // Default testo bianco
@@ -467,6 +467,10 @@ function getAppointmentColor(app) {
 // == GESTIONE APPUNTAMENTI CON MINI-CRUSCOTTO (SOSTITUISCE LA VECCHIA LOGICA) ==
 // =========================================================================
 
+// =========================================================================
+// == GESTIONE APPUNTAMENTI CON MINI-CRUSCOTTO (VERSIONE FINALE CORRETTA) ==
+// =========================================================================
+
 async function fetchAndDisplayAppointments() {
     if (!appointmentsListContainer) return;
     try {
@@ -485,40 +489,48 @@ async function fetchAndDisplayAppointments() {
             const { backgroundColor, textColor } = getAppointmentColor(app);
 
             const listItem = document.createElement('li');
-            listItem.className = 'appointment-item';
+            listItem.className = 'appointment-item clickable';
             listItem.style.backgroundColor = backgroundColor;
 
+            // Inizializza le variabili per gli elementi HTML
             let statusIconsHtml = '';
             let detailsPanelHtml = '';
             
-            // VERSIONE FINALE CON LOGICA CORRETTA PER LE ICONE
-if (app.cliente) {
-    listItem.classList.add('clickable');
-    listItem.dataset.clienteId = app.cliente.id;
+            // Aggiungi l'ID cliente se esiste
+            if (app.cliente) {
+                listItem.dataset.clienteId = app.cliente.id;
+            }
 
-    // --- LOGICA ICONE E TAG (DEFINITIVA) ---
-    // 1. Prima, creiamo i tag HTML (se esistono)
-    const tagsHtml = (app.cliente.tags && app.cliente.tags.length > 0)
-        ? app.cliente.tags.map(tag => `<span class="client-tag mini">${tag}</span>`).join('')
-        : '';
+            // ===============================================
+            // LOGICA ICONE E TAG (SEMPRE ESEGUITA)
+            // ===============================================
 
-    // 2. Poi, creiamo le icone di stato
-    let iconeDiStato = '';
-    if (app.cliente.haSospesi) iconeDiStato += '<span>🚨</span>';
-    if (app.cliente.haBuoniAttivi) iconeDiStato += '<span>🎁</span>';
+            // Aggiungi i tag solo se l'oggetto cliente e la sua proprietà tags esistono
+            const tagsHtml = (app.cliente && app.cliente.tags && app.cliente.tags.length > 0)
+                ? app.cliente.tags.map(tag => `<span class="client-tag mini">${tag}</span>`).join('')
+                : '';
 
-    // 3. [MODIFICA CHIAVE] Aggiungiamo l'icona delle note SOLO se ci sono note
-    let iconaNote = '';
-    if (app.cliente.note && app.cliente.note.trim() !== '') {
-        iconaNote = '<span>💬</span>';
-    }
+            // Aggiungi le icone di stato solo se le proprietà del cliente esistono
+            let iconeDiStato = '';
+            if (app.cliente && app.cliente.haSospesi) iconeDiStato += '<span>🚨</span>';
+            if (app.cliente && app.cliente.haBuoniAttivi) iconeDiStato += '<span>🎁</span>';
+            
+            // Aggiungi l'icona delle note solo se la proprietà del cliente esiste
+            let iconaNote = '';
+            if (app.cliente && app.cliente.note && app.cliente.note.trim() !== '') {
+                iconaNote = '<span>💬</span>';
+            }
 
-    // 4. Uniamo tutto insieme, dando la priorità ai tag
-    statusIconsHtml = `${tagsHtml}${iconeDiStato}${iconaNote}`;
-    // --- FINE LOGICA ---
-
-                // Costruisci il pannello a scomparsa con i dettagli
-                detailsPanelHtml += '<div class="appointment-details-panel">';
+            statusIconsHtml = `${tagsHtml}${iconeDiStato}${iconaNote}`;
+            
+            // ===============================================
+            // LOGICA PANNELLO A SCOMPARSA (SEMPRE ESEGUITA)
+            // ===============================================
+            
+            detailsPanelHtml += '<div class="appointment-details-panel">';
+            
+            // Controlla l'esistenza di app.cliente prima di accedere alle sue proprietà
+            if (app.cliente) {
                 if (app.cliente.note) {
                     detailsPanelHtml += `<div class="detail-section"><h5>Note e Preferenze</h5><p>${app.cliente.note}</p></div>`;
                 }
@@ -532,10 +544,10 @@ if (app.cliente) {
                 if (app.cliente.haBuoniAttivi) {
                     detailsPanelHtml += `<div class="detail-section"><h5>Info</h5><p class="detail-info">✅ Cliente con buoni o pacchetti attivi.</p></div>`;
                 }
-                detailsPanelHtml += '</div>';
             }
-            
-            // Assembla l'HTML finale dell'appuntamento
+            detailsPanelHtml += '</div>';
+
+            // Assembla l'HTML finale
             listItem.innerHTML = `
                 <div class="d-flex justify-content-between align-items-center w-100">
                     <div>
@@ -558,39 +570,63 @@ if (app.cliente) {
 
 // Listener con delegazione per gestire i click sulla lista appuntamenti
 // =========================================================================
-// == LISTENER POTENZIATO: GESTISCE CLICK E DOPPIO CLICK SULLA LISTA APPUNTAMENTI ==
-// =========================================================================
 
-if (appointmentsListContainer) {
-    appointmentsListContainer.addEventListener('click', (event) => {
-        const listItem = event.target.closest('li.appointment-item.clickable');
-        if (!listItem) return;
 
-        // Se l'utente clicca su un link o un bottone specifico all'interno, non facciamo nulla
-        if (event.target.closest('a, button')) {
+appointmentsListContainer.addEventListener('click', async (event) => {
+    const listItem = event.target.closest('li.appointment-item.clickable');
+    if (!listItem) return;
+
+    // Se l'ID cliente è già presente (dal server), usalo direttamente
+    const clienteId = listItem.dataset.clienteId;
+    if (clienteId) {
+        window.location.href = `/scheda-cliente.html?id=${clienteId}`;
+        return;
+    }
+
+    const appointmentSummary = listItem.querySelector('.appointment-summary').textContent.trim();
+    if (!appointmentSummary) return;
+
+    try {
+        const parole = appointmentSummary.split(' ').map(p => p.trim()).filter(p => p);
+        const nomeCompleto = (parole.length >= 2) ? `${parole[0]} ${parole[1]}` : parole[0];
+        
+        // Tentativo 1: Cerca il cliente con una corrispondenza esatta
+        let response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(nomeCompleto)}&exact=true`);
+        let data = await response.json();
+
+        if (data && data.length > 0) {
+            window.location.href = `/scheda-cliente.html?id=${data[0].id}`;
             return;
         }
 
-        const detailsPanel = listItem.querySelector('.appointment-details-panel');
-        if (detailsPanel) {
-            // Logica per mostrare/nascondere il pannello con un CLICK SINGOLO
-            const isVisible = detailsPanel.style.display === 'block';
-            detailsPanel.style.display = isVisible ? 'none' : 'block';
-        }
-    });
+        // Tentativo 2: Se la prima ricerca non ha funzionato, cerca con la prima parola
+        const soloPrimaParola = parole[0];
+        response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(soloPrimaParola)}&exact=true`);
+        data = await response.json();
 
-    // Aggiungiamo un listener SEPARATO per il DOPPIO CLICK (dblclick)
-    appointmentsListContainer.addEventListener('dblclick', (event) => {
-        const listItem = event.target.closest('li.appointment-item.clickable');
-        if (!listItem) return;
-
-        const clienteId = listItem.dataset.clienteId;
-        if (clienteId) {
-            // Logica per andare alla scheda cliente con DOPPIO CLICK
-            window.location.href = `/scheda-cliente.html?id=${clienteId}`;
+        if (data && data.length > 0) {
+            window.location.href = `/scheda-cliente.html?id=${data[0].id}`;
+            return;
         }
-    });
-}
+        
+        // Tentativo 3: Se nessuna delle precedenti ha funzionato, fai una ricerca generica
+        response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(nomeCompleto)}`);
+        data = await response.json();
+        
+        if (data && data.length > 0) {
+            const ids = data.map(c => c.id);
+            alert(`Trovate ${data.length} corrispondenze.`);
+            window.location.href = `/scheda-cliente.html?id=${ids[0]}&searchIds=${encodeURIComponent(JSON.stringify(ids))}&index=0`;
+        } else {
+            alert(`Nessuna corrispondenza trovata per "${nomeCompleto}".`);
+        }
+
+    } catch (error) {
+        console.error("Errore ricerca cliente:", error);
+        alert('Errore durante la ricerca.');
+    }
+});
+    
 
 
 
