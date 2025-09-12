@@ -1,0 +1,177 @@
+/* Sidebar e Controlli */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    height: 100%;
+    background-color: #1a1a1a; /* Nero profondo */
+    color: white;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.5);
+    padding: 20px 0;
+    overflow-y: auto; /* Per permettere lo scroll se ci sono molti elementi */
+}
+
+.sidebar.is-open {
+    transform: translateX(0);
+}
+
+.hamburger-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    font-size: 2rem;
+    background: none;
+    border: none;
+    color: #FFD700; /* Giallo oro */
+    cursor: pointer;
+    z-index: 1001;
+    transition: color 0.2s ease-in-out;
+}
+
+.hamburger-btn:hover {
+    color: #FFEA00; /* Giallo più brillante all'hover */
+}
+
+.close-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 2rem;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: color 0.2s ease-in-out;
+}
+
+.close-btn:hover {
+    color: #FFD700; /* Giallo oro all'hover */
+}
+
+/* Contenuto della Sidebar */
+.navbar-brand {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2); /* Sottile linea oro */
+    margin-bottom: 20px;
+}
+
+.navbar-brand img {
+    max-width: 250px;
+    height: auto;
+    border-radius: 5px; /* Leggera arrotondamento per l'immagine */
+}
+
+.navbar-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.navbar-links li {
+    /* Rimosso padding qui per spostarlo sul link per un'area cliccabile più ampia */
+}
+
+.navbar-links li a {
+    display: flex;
+    align-items: center;
+    padding: 12px 25px; /* Aumentato padding per un'area cliccabile migliore */
+    color: white;
+    text-decoration: none;
+    font-size: 0.95em; /* Scritte leggermente più piccole */
+    transition: all 0.2s ease-in-out; /* Transizione su tutto per un effetto più morbido */
+    border-left: 3px solid transparent; /* Linea per effetto hover */
+}
+
+.navbar-links li a:hover {
+    color: #FFD700; /* Giallo oro all'hover */
+    background-color: #2c2c2c; /* Grigio scuro per evidenziare */
+    border-left-color: #FFD700; /* Linea oro sul bordo sinistro */
+}
+
+/* Stili per il campo di ricerca */
+.navbar-search-item {
+    padding: 15px 20px; /* Padding coerente con i link */
+    border-top: 1px solid rgba(255, 215, 0, 0.2); /* Sottile linea oro */
+    border-bottom: 1px solid rgba(255, 215, 0, 0.2); /* Sottile linea oro */
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.navbar-search-item .input-field {
+    width: calc(100% - 20px); /* Regola la larghezza per il padding */
+    padding: 10px;
+    border: 1px solid #444;
+    background-color: #333; /* Sfondo scuro per l'input */
+    color: white;
+    border-radius: 5px;
+    font-size: 0.9em;
+}
+
+.navbar-search-item .input-field::placeholder {
+    color: #aaa; /* Colore placeholder */
+}
+
+.navbar-search-item .btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #FFD700; /* Bottone giallo oro */
+    color: #1a1a1a; /* Testo nero sul bottone */
+    border: none;
+    font-weight: bold;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.navbar-search-item .btn:hover {
+    background-color: #FFEA00; /* Giallo più brillante all'hover */
+    color: #000000;
+}
+
+/* Layout della Pagina */
+#content-wrapper {
+    transition: margin-left 0.3s ease-in-out;
+    padding: 20px;
+}
+
+/* Regola per spostare il contenuto quando la sidebar è aperta */
+.sidebar.is-open ~ #content-wrapper {
+    margin-left: 250px;
+}
+
+/* Media Query per Mobile (opzionale ma consigliato) */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%; /* La sidebar occupa tutta la larghezza su mobile */
+        transform: translateX(-100%);
+    }
+
+    .sidebar.is-open {
+        transform: translateX(0);
+    }
+
+    #content-wrapper {
+        margin-left: 0; /* Nessun margine a sinistra su mobile */
+    }
+
+    .sidebar.is-open ~ #content-wrapper {
+        margin-left: 0; /* Il contenuto non si sposta su mobile, la sidebar lo copre */
+    }
+
+    .hamburger-btn {
+        left: 10px;
+        top: 10px;
+    }
+
+    .close-btn {
+        right: 10px;
+        top: 10px;
+    }
+}
