@@ -2816,9 +2816,9 @@ animation: fadeInUp 0.5s ease-out forwards;
 }
 
 /* "Buongiorno!" più piccolo */
-#summary-greeting {
-    font-size: 1.2em; /* Ridotto */
-    font-weight: 500; /* Meno grassetto */
+.greeting-cell #summary-greeting {
+    font-size: 1.2em !important; 
+    font-weight: 500;
     color: #fff;
     margin: 0;
 }

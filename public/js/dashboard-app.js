@@ -94,11 +94,11 @@ const oraCorrente = new Date().getHours();
 let saluto;
 
 if (oraCorrente < 12) {
-    saluto = "👋 Buongiorno";
+    saluto = "👋 Buongiorno, che il vento soffi sempre alle tue spalle.";
 } else if (oraCorrente < 17) {
-    saluto = "👋 Buon Pomeriggio";
+    saluto = "👋 Buon Pomeriggio, il sole tramonta, ma non la tua determinazione.";
 } else {
-    saluto = "🌙 Buonasera";
+    saluto = "🌙 Buonasera, ogni storia finisce. E anche ogni giornata.";
 }
 
 summaryGreeting.textContent = saluto;

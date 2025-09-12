@@ -24,21 +24,27 @@
 
 <main class="container dashboard-main">
     <table class="header-table">
-        <tr>
-            <td class="logo-cell">
-                <img src="img/logo1.jpg" alt="Logo Quality Hair" class="page-logo">
-            </td>
-            <td class="greeting-cell">
-                <h2 id="summary-greeting">👋 Caricamento...</h2>
-            </td>
-            <td class="weather-cell">
-                <div id="summary-weather" class="weather-widget">
-                    <span id="weather-text">Meteo non disponibile</span>
-                    <img id="weather-icon" src="" alt="" style="display: none;">
-                </div>
-            </td>
-        </tr>
-    </table>
+    <tr>
+        <td class="logo-cell">
+            <img src="img/logo1.jpg" alt="Logo Quality Hair" class="page-logo">
+        </td>
+        <td class="greeting-cell">
+            <h2 id="summary-greeting">👋 Caricamento...</h2>
+            <div id="summary-aforisma" class="aforisma-widget">
+                <p id="aforisma-frase">“...”</p>
+                <footer id="aforisma-autore"></footer>
+            </div>
+        </td>
+        <td class="weather-cell">
+            <div id="summary-weather" class="weather-widget">
+                <span id="weather-text">Meteo non disponibile</span>
+                <img id="weather-icon" src="" alt="" style="display: none;">
+            </div>
+        </td>
+    </tr>
+</table>
+
+	
   
     <!-- ============================================= -->
     <!-- ========= NUOVA GRIGLIA A 3 COLONNE ========= -->
@@ -51,10 +57,7 @@
             <!-- PANNELLO RIEPILOGO MATTUTINO -->
            
                 <div class="summary-panel">
-                    <div id="summary-aforisma" class="aforisma-widget">
-                        <p id="aforisma-frase">“...”</p>
-                        <footer id="aforisma-autore"></footer>
-                    </div>
+
                     <div class="summary-metrics">
                         <div id="widget-sospesi" class="metric-widget clickable">
                             <div class="metric-icon">🚨</div>
