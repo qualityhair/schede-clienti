@@ -485,80 +485,45 @@ async function fetchAndDisplayAppointments() {
         }
 
         appointments.forEach(app => {
-            const appointmentTime = new Date(app.start_time).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+            const start = new Date(app.start_time);
+            const end = new Date(app.end_time);
+            const durationMinutes = (end - start) / 60000; // durata in minuti
+
+            const appointmentTime = `${start.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`;
             const { backgroundColor, textColor } = getAppointmentColor(app);
 
             const listItem = document.createElement('li');
             listItem.className = 'appointment-item clickable';
             listItem.style.backgroundColor = backgroundColor;
 
-            // Inizializza le variabili per gli elementi HTML
-            let statusIconsHtml = '';
-            let detailsPanelHtml = '';
-            
+            // Altezza proporzionale alla durata (base: 50px = 30 minuti)
+            const pixelsPerMinute = 50 / 30;
+            listItem.style.height = `${durationMinutes * pixelsPerMinute}px`;
+            listItem.style.minHeight = '50px'; // slot minimo
+
             // Aggiungi l'ID cliente se esiste
             if (app.cliente) {
                 listItem.dataset.clienteId = app.cliente.id;
             }
 
-            // ===============================================
-            // LOGICA ICONE E TAG (SEMPRE ESEGUITA)
-            // ===============================================
-
-            // Aggiungi i tag solo se l'oggetto cliente e la sua proprietà tags esistono
-            const tagsHtml = (app.cliente && app.cliente.tags && app.cliente.tags.length > 0)
-                ? app.cliente.tags.map(tag => `<span class="client-tag mini">${tag}</span>`).join('')
-                : '';
-
-            // Aggiungi le icone di stato solo se le proprietà del cliente esistono
-            let iconeDiStato = '';
-            if (app.cliente && app.cliente.haSospesi) iconeDiStato += '<span>🚨</span>';
-            if (app.cliente && app.cliente.haBuoniAttivi) iconeDiStato += '<span>🎁</span>';
-            
-            // Aggiungi l'icona delle note solo se la proprietà del cliente esiste
-            let iconaNote = '';
-            if (app.cliente && app.cliente.note && app.cliente.note.trim() !== '') {
-                iconaNote = '<span>💬</span>';
-            }
-
-            statusIconsHtml = `${tagsHtml}${iconeDiStato}${iconaNote}`;
-            
-            // ===============================================
-            // LOGICA PANNELLO A SCOMPARSA (SEMPRE ESEGUITA)
-            // ===============================================
-            
-            detailsPanelHtml += '<div class="appointment-details-panel">';
-            
-            // Controlla l'esistenza di app.cliente prima di accedere alle sue proprietà
-            if (app.cliente) {
-                if (app.cliente.note) {
-                    detailsPanelHtml += `<div class="detail-section"><h5>Note e Preferenze</h5><p>${app.cliente.note}</p></div>`;
-                }
-                if (app.cliente.tags && app.cliente.tags.length > 0) {
-                    const tagsHtml = app.cliente.tags.map(tag => `<span class="client-tag">${tag}</span>`).join('');
-                    detailsPanelHtml += `<div class="detail-section"><h5>Tags</h5><div class="tags-container">${tagsHtml}</div></div>`;
-                }
-                if (app.cliente.haSospesi) {
-                    detailsPanelHtml += `<div class="detail-section"><h5>Avvisi</h5><p class="detail-alert">❗️ Cliente con pagamenti in sospeso.</p></div>`;
-                }
-                if (app.cliente.haBuoniAttivi) {
-                    detailsPanelHtml += `<div class="detail-section"><h5>Info</h5><p class="detail-info">✅ Cliente con buoni o pacchetti attivi.</p></div>`;
-                }
+            // --- PANNELLO DETTAGLI ---
+            let detailsPanelHtml = '<div class="appointment-details-panel">';
+            if (app.cliente && app.cliente.note) {
+                detailsPanelHtml += `<div class="detail-section"><h5>Note e Preferenze</h5><p>${app.cliente.note}</p></div>`;
             }
             detailsPanelHtml += '</div>';
 
-            // Assembla l'HTML finale
+            // --- ASSEMBLA HTML FINALE ---
             listItem.innerHTML = `
                 <div class="d-flex justify-content-between align-items-center w-100">
                     <div>
                         <span class="appointment-time" style="color: ${textColor};">${appointmentTime}</span>
                         <span class="appointment-summary" style="color: ${textColor};">${app.summary}</span>
                     </div>
-                    <div class="appointment-status-icons">${statusIconsHtml}</div>
                 </div>
                 ${detailsPanelHtml}
             `;
-            
+
             appointmentsListContainer.appendChild(listItem);
         });
 
@@ -567,6 +532,11 @@ async function fetchAndDisplayAppointments() {
         appointmentsListContainer.innerHTML = '<li class="appointment-item error">Errore nel caricamento.</li>';
     }
 }
+
+
+
+
+
 
 // Listener con delegazione per gestire i click sulla lista appuntamenti
 // =========================================================================
