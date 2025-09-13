@@ -2,6 +2,7 @@
 // == FILE /public/js/dashboard-app.js - VERSIONE FINALE UNIFICATA ==
 // ===================================================================
 
+
 document.addEventListener("DOMContentLoaded", () => {
     
     // --- RIFERIMENTI AGLI ELEMENTI DOM ---
