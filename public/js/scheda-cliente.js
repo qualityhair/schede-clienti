@@ -1900,6 +1900,7 @@ async function handleAddAcquisto(event) {
 
 // --- SOSTITUISCI LA VECCHIA handleAddTrattamento CON QUESTA ---
 async function handleAddTrattamento(event) {
+	    console.count('handleAddTrattamento chiamata');
     event.preventDefault();
 
     if (pagaConBuonoTrattamentoCheckbox.checked && buonoValoreDisponibile) {
