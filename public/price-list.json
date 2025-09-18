@@ -1,0 +1,29 @@
+[
+    {
+        "categoria": "Uomo",
+        "servizi": [
+            {"nome": "Taglio", "prezzo": 20, "durata": "30 min"},
+			{"nome": "Taglio e shampoo", "prezzo": 25, "durata": "30 min"},
+			{"nome": "Taglio rasato tosatrice", "prezzo": 15, "durata": "20 min"},
+			{"nome": "Lavaggio e asciugatura", "prezzo": 15, "durata": "15 min"},
+			{"nome": "Barba", "prezzo": 15, "durata": "30 min"},
+			{"nome": "Colore", "prezzo": 30, "durata": "60 min"},
+            {"nome": "Flahback", "prezzo": 15, "durata": "10 min"},
+            {"nome": "Permanente", "prezzo": 40, "durata": "60 min"},
+			{"nome": "Trattamenti specifici", "prezzo": 20, "durata": "30 min"}
+        ]
+    },
+    {
+        "categoria": "Donna",
+        "servizi": [
+			{"nome": "Taglio", "prezzo": 22, "durata": "30 min"},
+			{"nome": "Lavaggio e piega", "prezzo": 22, "durata": "30 min"},
+            {"nome": "Colore ricrescita", "prezzo": 40, "durata": "60 min"},
+			{"nome": "Bagno di colore", "prezzo": 25, "durata": "40 min"},
+            {"nome": "Schiariture/Balayage", "prezzo": 50, "durata": "90 min"},
+			{"nome": "Tonalizzazione schariture", "prezzo": 20, "durata": "90 min"},
+			{"nome": "Permanente", "prezzo": 40, "durata": "90 min"},
+            {"nome": "Trattamenti Specifici", "prezzo": 20, "durata": "30 min"}
+        ]
+    }
+]

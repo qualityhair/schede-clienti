@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listino Prezzi Salone</title>
+
+    <style>
+	
+	/* Stile generale per la lista */
+.servizi-list {
+    list-style: none;
+    padding: 0;
+}
+
+/* Stile per ogni riga del servizio */
+.servizio-item {
+    display: flex;
+    justify-content: space-between; /* Spinge nome e dettagli alle estremità */
+    padding: 12px 0;
+    border-bottom: 1px dashed #555; /* Una linea più scura per leggibilità */
+}
+
+/* Stile per il nome del servizio */
+.nome-servizio {
+    font-weight: bold;
+    font-size: 1.2em; /* Rendi il nome un po' più grande */
+}
+
+/* Stile per i dettagli (prezzo e durata) */
+.dettagli-servizio {
+    color: #ffd700; /* Un colore giallo/oro per farli risaltare */
+    font-size: 1.2em;
+    font-weight: bold;
+}
+	
+	
+        body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+        .header-listino { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header-listino h1 { margin: 0; }
+        .loading-text { text-align: center; color: #777; margin-top: 50px; }
+        .categoria-listino { margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        .categoria-listino h3 { color: #555; }
+        .servizi-list { list-style: none; padding: 0; }
+        .servizio-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; }
+        .nome-servizio { font-weight: bold; }
+        .dettagli-servizio { color: #888; }
+        
+        /* Stili per la stampa - nascondi i pulsanti */
+        @media print {
+            .header-listino button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar"></div>
+
+    <div class="header-listino">
+        <h1>Listino Prezzi</h1>
+        <button id="stampa-listino-btn" class="btn btn-primary">Stampa</button>
+    </div>
+
+    <div id="listino-prezzi-container" class="loading-text">
+        Caricamento listino...
+    </div>
+
+    <script src="/js/listino.js"></script>
+	    <script src="/js/navbar-loader.js"></script>
+
+</body>
+</html>
