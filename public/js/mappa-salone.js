@@ -104,69 +104,81 @@ function aggiornaMappa() {
         }
 
         const inizio = new Date(app.start_time);
-            const fine = new Date(app.end_time);
-            if (oraAttuale < inizio) {
-                containers[areaAttesa].innerHTML += creaClienteToken(app, app.cliente, null);
-            } else if (oraAttuale >= inizio && oraAttuale < fine) {
-                const summaryLower = app.summary.toLowerCase();
-                const servizioKey = Object.keys(WORKFLOWS).find(s => summaryLower.includes(s));
-                const workflow = WORKFLOWS[servizioKey];
-                if (!workflow) {
-                    const postazioneLibera = postazioniLavoro.find(p => !postazioniLavoroOccupate.includes(p));
-                    if (postazioneLibera) {
-    let classeColore = 'operatore-nessuno';
-    if (app.color_id === '2') classeColore = 'operatore-sandro';
-    if (app.color_id === '7') classeColore = 'operatore-tino';
-    
-    // Inserisce il gettone del cliente
-containers[postazioneLibera].innerHTML = creaClienteToken(app, app.cliente, { stepCorrente: { step: 'In corso' } });
-    
-    // --- MODIFICA CHIAVE QUI ---
-    // Applica le classi di stato e colore al pannello corretto,
-    // che sia una postazione di lavoro O un lavaggio.
-    const pannelloCorrispondente = document.getElementById(postazioneLibera);
-    if (pannelloCorrispondente) {
-        pannelloCorrispondente.classList.add('occupata', classeColore);
-        if(stepCorrente.operatoreLibero) {
-            pannelloCorrispondente.classList.add('in-posa');
-        }
-    }
-    // --- FINE MODIFICA ---
-    
-    postazioniOccupateRef.push(postazioneLibera);
-}
-                    return;
-                }
-                const tempoTrascorsoMs = oraAttuale - inizio;
-                let tempoCumulativo = 0;
-                let stepCorrente = null;
-                for(const step of workflow) {
-                    const durataStepMs = step.durata * 60 * 1000;
-                    if (tempoTrascorsoMs >= tempoCumulativo && tempoTrascorsoMs < tempoCumulativo + durataStepMs) {
-                        stepCorrente = step;
-                        break;
+        const fine = new Date(app.end_time);
+        if (oraAttuale < inizio) {
+            containers[areaAttesa].innerHTML += creaClienteToken(app, app.cliente, null);
+        } else if (oraAttuale >= inizio && oraAttuale < fine) {
+            const summaryLower = app.summary.toLowerCase();
+            const servizioKey = Object.keys(WORKFLOWS).find(s => summaryLower.includes(s));
+            const workflow = WORKFLOWS[servizioKey];
+            if (!workflow) {
+                const postazioneLibera = postazioniLavoro.find(p => !postazioniLavoroOccupate.includes(p));
+                if (postazioneLibera) {
+                    // *** INIZIO MODIFICA 1 ***
+                    let classeColore = 'operatore-sandro';
+                    if (app.color_id === '7') {
+                        classeColore = 'operatore-tino';
+                    } else if (app.color_id === '6') { // Sostituisci '6' con l'ID reale del colore arancione se non è questo
+                        classeColore = 'operatore-nessuno';
                     }
-                    tempoCumulativo += durataStepMs;
-                }
-                if (stepCorrente) {
-                    let postazioniDisponibili = stepCorrente.tipoPostazione === 'lavoro' ? postazioniLavoro : postazioniLavaggio;
-                    let postazioniOccupateRef = stepCorrente.tipoPostazione === 'lavoro' ? postazioniLavoroOccupate : postazioniLavaggioOccupate;
-                    let postazioneLibera = postazioniDisponibili.find(p => !postazioniOccupateRef.includes(p));
-                    if (postazioneLibera) {
-                        containers[postazioneLibera].innerHTML = creaClienteToken(app, app.cliente, stepCorrente);
-                        let classeColore = 'operatore-nessuno';
-                        if (app.color_id === '2') classeColore = 'operatore-sandro';
-                        if (app.color_id === '7') classeColore = 'operatore-tino';
-                        pannelli[postazioneLibera].classList.add('occupata', classeColore);
-                        if(stepCorrente.operatoreLibero) { pannelli[postazioneLibera].classList.add('in-posa'); }
-                        postazioniOccupateRef.push(postazioneLibera);
-                    } else {
-                        containers[areaAttesa].innerHTML += creaClienteToken(app, app.cliente, { step: `Attesa per ${stepCorrente.tipoPostazione}` });
+                    // *** FINE MODIFICA 1 ***
+                    
+                    // Inserisce il gettone del cliente
+                    containers[postazioneLibera].innerHTML = creaClienteToken(app, app.cliente, { stepCorrente: { step: 'In corso' } });
+                    
+                    // --- MODIFICA CHIAVE QUI ---
+                    // Applica le classi di stato e colore al pannello corretto,
+                    // che sia una postazione di lavoro O un lavaggio.
+                    const pannelloCorrispondente = document.getElementById(postazioneLibera);
+                    if (pannelloCorrispondente) {
+                        pannelloCorrispondente.classList.add('occupata', classeColore);
+                        if(stepCorrente.operatoreLibero) {
+                            pannelloCorrispondente.classList.add('in-posa');
+                        }
                     }
+                    // --- FINE MODIFICA ---
+                    
+                    postazioniOccupateRef.push(postazioneLibera);
+                }
+                return;
+            }
+            const tempoTrascorsoMs = oraAttuale - inizio;
+            let tempoCumulativo = 0;
+            let stepCorrente = null;
+            for(const step of workflow) {
+                const durataStepMs = step.durata * 60 * 1000;
+                if (tempoTrascorsoMs >= tempoCumulativo && tempoTrascorsoMs < tempoCumulativo + durataStepMs) {
+                    stepCorrente = step;
+                    break;
+                }
+                tempoCumulativo += durataStepMs;
+            }
+            if (stepCorrente) {
+                let postazioniDisponibili = stepCorrente.tipoPostazione === 'lavoro' ? postazioniLavoro : postazioniLavaggio;
+                let postazioniOccupateRef = stepCorrente.tipoPostazione === 'lavoro' ? postazioniLavoroOccupate : postazioniLavaggioOccupate;
+                let postazioneLibera = postazioniDisponibili.find(p => !postazioniOccupateRef.includes(p));
+                if (postazioneLibera) {
+                    containers[postazioneLibera].innerHTML = creaClienteToken(app, app.cliente, stepCorrente);
+                    
+                    // *** INIZIO MODIFICA 2 ***
+                    let classeColore = 'operatore-sandro';
+                    if (app.color_id === '7') {
+                        classeColore = 'operatore-tino';
+                    } else if (app.color_id === '6') { // Sostituisci '6' con l'ID reale del colore arancione
+                        classeColore = 'operatore-nessuno';
+                    }
+                    // *** FINE MODIFICA 2 ***
+
+                    pannelli[postazioneLibera].classList.add('occupata', classeColore);
+                    if(stepCorrente.operatoreLibero) { pannelli[postazioneLibera].classList.add('in-posa'); }
+                    postazioniOccupateRef.push(postazioneLibera);
+                } else {
+                    containers[areaAttesa].innerHTML += creaClienteToken(app, app.cliente, { step: `Attesa per ${stepCorrente.tipoPostazione}` });
                 }
             }
-        });
-    }
+        }
+    });
+}
 
     // ======================================================================
 // == FUNZIONE INIT (CON LOGICA DI ABBINAMENTO CORRETTA)               ==
