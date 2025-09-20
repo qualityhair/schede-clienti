@@ -38,6 +38,10 @@ const ICONS = {
     [...postazioniLavoro, ...postazioniLavaggio].forEach(id => { pannelli[id] = document.getElementById(id); });
     let appuntamentiDiOggi = [], tuttiClienti = [], updateInterval = null;
 
+    // --- NUOVA COSTANTE PER LA URL DELLA SCHEDA CLIENTE ---
+    const URL_BASE_SCHEDA_CLIENTE = '/scheda-cliente.html?id=';
+    // ---------------------------------------------------
+
     function getInitials(nome, cognome) {
         const n = nome ? nome.trim().charAt(0).toUpperCase() : '';
         const c = cognome ? cognome.trim().charAt(0).toUpperCase() : '';
@@ -94,7 +98,7 @@ const ICONS = {
         const iconaHtml = servizioKey && ICONS[servizioKey] ? `<i class="${ICONS[servizioKey]} service-icon"></i>` : '';
 
         return `
-            <div class="cliente-token" ${clienteId ? `data-cliente-id="${clienteId}"` : 'style="cursor: default;"'}>
+            <div class="cliente-token ${clienteId ? 'clickable' : ''}" ${clienteId ? `data-cliente-id="${clienteId}"` : ''}>
                 <div class="avatar-container" style="background-color: #555;">${avatarHtml}</div>
                 <div class="info" style="flex-grow: 1;">
                     <h5>${nomeDaMostrare} ${iconaHtml}</h5>
@@ -115,7 +119,11 @@ const ICONS = {
     
     appuntamentiDiOggi.forEach(app => {
         if (!app.cliente) {
-            return;
+            // Se non c'è un cliente associato, crea comunque un token base per l'attesa
+            if (oraAttuale < new Date(app.start_time) && containers[areaAttesa]) {
+                containers[areaAttesa].innerHTML += creaClienteToken(app, null, null); // Passa null per clienteTrovato
+            }
+            return; // Continua a processare gli altri appuntamenti
         }
 
         const inizio = new Date(app.start_time);
@@ -143,7 +151,7 @@ const ICONS = {
                 if (postazioneLibera) {
                     const classeColore = getOperatoreClasse(app);
                     
-                    containers[postazioneLibera].innerHTML = creaClienteToken(app, app.cliente, { stepCorrente: { step: 'In corso' } });
+                    containers[postazioneLibera].innerHTML = creaClienteToken(app, app.cliente, { step: 'In corso' }); // Usato 'step' al posto di 'stepCorrente'
                     
                     const pannelloCorrispondente = document.getElementById(postazioneLibera);
                     if (pannelloCorrispondente) {
@@ -151,6 +159,9 @@ const ICONS = {
                     }
                     
                     postazioniLavoroOccupate.push(postazioneLibera);
+                } else {
+                    // Se non ci sono postazioni lavoro disponibili per un appuntamento senza workflow
+                    containers[areaAttesa].innerHTML += creaClienteToken(app, app.cliente, { step: 'Attesa per postazione' });
                 }
                 return;
             }
@@ -183,10 +194,31 @@ const ICONS = {
                 } else {
                     containers[areaAttesa].innerHTML += creaClienteToken(app, app.cliente, { step: `Attesa per ${stepCorrente.tipoPostazione}` });
                 }
+            } else if (oraAttuale > fine) {
+                // Appuntamento terminato, non mostrar nella mappa
+            } else {
+                // Se non c'è uno step corrente definito ma l'appuntamento è in corso
+                // Questo potrebbe significare che il tempo cumulativo ha superato la durata totale del workflow
+                // o che c'è un gap tra gli step. Potremmo volerlo mettere in attesa o in una postazione generica.
+                const postazioneLibera = postazioniLavoro.find(p => !postazioniLavoroOccupate.includes(p));
+                if (postazioneLibera) {
+                    const classeColore = getOperatoreClasse(app);
+                    containers[postazioneLibera].innerHTML = creaClienteToken(app, app.cliente, { step: 'Fase finale o transizione' });
+                    const pannelloCorrispondente = document.getElementById(postazioneLibera);
+                    if (pannelloCorrispondente) {
+                        pannelloCorrispondente.classList.add('occupata', classeColore);
+                    }
+                    postazioniLavoroOccupate.push(postazioneLibera);
+                } else {
+                     containers[areaAttesa].innerHTML += creaClienteToken(app, app.cliente, { step: 'Attesa (fase finale)' });
+                }
             }
+        } else {
+            // Appuntamento passato, non mostrarlo nella mappa
         }
     });
 }
+
 
     async function init() {
         try {
@@ -243,4 +275,25 @@ const ICONS = {
         }
     }
     init();
+
+    // --- NUOVO LISTENER PER I CLICK SUI CLIENTE-TOKEN ---
+    // Questo listener è delegato al body per catturare i click su elementi generati dinamicamente
+    document.body.addEventListener('click', (event) => {
+        const clienteToken = event.target.closest('.cliente-token.clickable');
+        if (clienteToken) {
+            const clienteId = clienteToken.dataset.clienteId;
+            if (clienteId) {
+                // MODIFICA QUI: Usa window.top.location.href per uscire dall'iframe (se presente)
+                if (window.self !== window.top) {
+                    window.top.location.href = `${URL_BASE_SCHEDA_CLIENTE}${clienteId}`;
+                } else {
+                    window.location.href = `${URL_BASE_SCHEDA_CLIENTE}${clienteId}`;
+                }
+            } else {
+                console.warn('ID cliente non trovato sul ticket cliccato:', clienteToken);
+            }
+        }
+    });
+    // ----------------------------------------------------
+
 });
