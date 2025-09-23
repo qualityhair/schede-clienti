@@ -665,6 +665,11 @@ fetchAndDisplayClientiARischio();
     }
 });
 
+
+
+
+
+
     // == LOGICA PER LA MODALE DELLA MAPPA SALONE (NUOVA) - DA AGGIUNGERE ==
     // ====================================================================
     if (apriMappaBtn) {
@@ -687,6 +692,36 @@ fetchAndDisplayClientiARischio();
             mappaIframe.src = 'about:blank';
         }
     })
+
+
+    // =======================================================
+    // === GESTIONE MODALE IMPOSTAZIONI E GESTIONE ===
+    // =======================================================
+    const impostazioniModal = document.getElementById('impostazioni-modal');
+    const apriImpostazioniBtn = document.getElementById('apri-impostazioni-btn');
+    const chiudiImpostazioniBtn = document.getElementById('close-impostazioni-btn');
+
+    // Funzione per aprire la modale
+    if (apriImpostazioniBtn) {
+        apriImpostazioniBtn.addEventListener('click', function() {
+            impostazioniModal.style.display = 'block';
+        });
+    }
+
+    // Funzione per chiudere la modale cliccando sulla 'X'
+    if (chiudiImpostazioniBtn) {
+        chiudiImpostazioniBtn.addEventListener('click', function() {
+            impostazioniModal.style.display = 'none';
+        });
+    }
+
+    // Funzione per chiudere la modale cliccando fuori dal contenuto
+    // (Aggiungo anche la tua modale a questa logica che probabilmente già esiste)
+    window.addEventListener('click', function(event) {
+        if (event.target == impostazioniModal) {
+            impostazioniModal.style.display = 'none';
+        }
+    });
 
 
 });
