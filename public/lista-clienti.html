@@ -5,9 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Lista Clienti</title>
     <link rel="stylesheet" href="/css/style.css"> <!-- Usa il nostro foglio di stile principale -->
+	  <link rel="stylesheet" href="./css/scheda-cliente-sidebar.css" /> 
 </head>
 <body>
-    <div id="navbar"></div>
+    <!-- LA SIDEBAR HA SOSTITUITO <div id="navbar"></div> -->
+    <div id="sidebar" class="sidebar">
+        <div class="navbar-brand">
+            <img src="/img/logo1.jpg" alt="Logo Quality Hair" id="navbar-logo">
+        </div>
+        <ul class="navbar-links">
+            <li><a href="/dashboard.html">Home</a></li>
+            <li><a href="/calendario.html">Agenda Settimanale</a></li>
+            <li><a href="/catalogo.html">Catalogo Foto</a></li>
+            <li><a href="/lista-clienti.html">Lista Clienti</a></li>
+            <li class="navbar-search-item">
+                <input type="text" id="navbar-search-input" placeholder="Cerca Cliente..." class="input-field" />
+                <button id="navbar-search-button" class="btn btn-primary">Cerca</button>
+            </li>
+            <li><a href="/logout" style="color: yellow;">Esci</a></li>
+        </ul>
+    </div>
+
+    <button id="open-sidebar-btn" class="hamburger-btn">☰</button>
 
     <main class="container">
         <h1 class="page-title">Lista Clienti <span id="totale-clienti"></span></h1>
@@ -39,7 +58,7 @@
         </div>
     </main>
 
-    <script src="/js/navbar-loader.js"></script>
+    <script src="/js/scheda-cliente-navbar.js"></script> 
     <script src="/js/lista-clienti.js"></script> <!-- Useremo un file JS separato e più pulito -->
 </body>
 </html>
