@@ -480,27 +480,49 @@ async function fetchAndDisplayAppointments() {
         const appointments = await handleApiResponse(response);
         if (!appointments) return;
 
-        appointmentsListContainer.innerHTML = ''; // Pulisci il contenitore esistente
+        appointmentsListContainer.innerHTML = '';
 
         const normalAppointments = [];
         const allDayAppointments = [];
+
+        // LOG: Mostra tutti gli appuntamenti in arrivo
+        console.log("=== Appuntamenti ricevuti ===");
+        appointments.forEach(app => {
+            console.log(
+                "summary:", app.summary,
+                "| start_time:", app.start_time,
+                "| end_time:", app.end_time,
+                "| allDay:", app.allDay
+            );
+        });
 
         appointments.forEach(app => {
             const start = new Date(app.start_time);
             const end = new Date(app.end_time);
 
-            // Se il backend fornisce un flag allDay, usalo direttamente
-            if (app.allDay) {
-                allDayAppointments.push(app);
-                return;
-            }
+            // LOG: Mostra i valori calcolati per ogni appuntamento
+            console.log(
+                `[${app.summary}] start:`, start,
+                "end:", end,
+                "start UTC:", start.getUTCHours(), start.getUTCMinutes(), start.getUTCSeconds(),
+                "end UTC:", end.getUTCHours(), end.getUTCMinutes(), end.getUTCSeconds()
+            );
 
-            // Controllo robusto per eventi all-day
-            const isMidnightStart = start.getHours() === 0 && start.getMinutes() === 0 && start.getSeconds() === 0;
-            const isMidnightEnd = end.getHours() === 0 && end.getMinutes() === 0 && end.getSeconds() === 0;
-            const diffDays = Math.round((end - start) / (1000 * 60 * 60 * 24));
+            // Identifica gli all-day sia in UTC che in locale
+            const isAllDay =
+                (app.allDay === true) ||
+                (
+                    (start.getUTCHours() === 0 || start.getHours() === 0) &&
+                    (start.getUTCMinutes() === 0 || start.getMinutes() === 0) &&
+                    (start.getUTCSeconds() === 0 || start.getSeconds() === 0) &&
+                    (end.getUTCHours() === 0 || end.getHours() === 0) &&
+                    (end.getUTCMinutes() === 0 || end.getMinutes() === 0) &&
+                    (end.getUTCSeconds() === 0 || end.getSeconds() === 0) &&
+                    Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) === 1
+                );
 
-            const isAllDay = isMidnightStart && isMidnightEnd && diffDays === 1;
+            // LOG: Mostra la decisione
+            console.log(`[${app.summary}] isAllDay:`, isAllDay);
 
             if (isAllDay) {
                 allDayAppointments.push(app);
@@ -509,17 +531,21 @@ async function fetchAndDisplayAppointments() {
             }
         });
 
-        // --- Renderizza gli eventi All-Day (se ce ne sono) ---
+        // LOG: Riepilogo separazione
+        console.log("--- All day appointments ---", allDayAppointments.map(a => a.summary));
+        console.log("--- Normal appointments ---", normalAppointments.map(a => a.summary));
+
+        // --- Rendering degli ALL-DAY: SOLO minHeight, MAI height ---
         allDayAppointments.forEach(app => {
             const { backgroundColor, textColor } = getAppointmentColor(app);
             const listItem = document.createElement('li');
             listItem.className = 'appointment-item all-day-item clickable';
             listItem.style.backgroundColor = backgroundColor;
             listItem.style.color = textColor;
+            listItem.style.minHeight = '50px'; // solo minHeight!
+            // NON impostare height per gli all-day!
 
-            if (app.cliente) {
-                listItem.dataset.clienteId = app.cliente.id;
-            }
+            if (app.cliente) listItem.dataset.clienteId = app.cliente.id;
 
             listItem.innerHTML = `
                 <div class="d-flex justify-content-between align-items-center w-100">
@@ -527,16 +553,17 @@ async function fetchAndDisplayAppointments() {
                 </div>
             `;
             appointmentsListContainer.appendChild(listItem);
+
+            // LOG: Verifica il rendering all-day
+            console.log(`[RENDER ALLDAY] ${app.summary}:`, listItem);
         });
 
-        // --- Renderizza gli eventi normali ---
+        // --- Rendering degli appuntamenti normali: height proporzionale ---
         if (normalAppointments.length === 0 && allDayAppointments.length === 0) {
             const emptyMsg = document.createElement('li');
             emptyMsg.className = 'appointment-item info';
             emptyMsg.textContent = 'Nessun appuntamento per oggi.';
             appointmentsListContainer.appendChild(emptyMsg);
-        } else if (normalAppointments.length === 0 && allDayAppointments.length > 0) {
-            // Nessun appuntamento normale: non mostrare scritte inutili
         } else if (normalAppointments.length > 0) {
             normalAppointments.forEach(app => {
                 const start = new Date(app.start_time);
@@ -550,13 +577,12 @@ async function fetchAndDisplayAppointments() {
                 listItem.className = 'appointment-item clickable';
                 listItem.style.backgroundColor = backgroundColor;
 
+                // Height proporzionale SOLO per appuntamenti normali!
                 const pixelsPerMinute = 50 / 30;
                 listItem.style.height = `${durationMinutes * pixelsPerMinute}px`;
                 listItem.style.minHeight = '50px';
 
-                if (app.cliente) {
-                    listItem.dataset.clienteId = app.cliente.id;
-                }
+                if (app.cliente) listItem.dataset.clienteId = app.cliente.id;
 
                 let detailsPanelHtml = '<div class="appointment-details-panel">';
                 if (app.cliente && app.cliente.note) {
@@ -575,6 +601,9 @@ async function fetchAndDisplayAppointments() {
                 `;
 
                 appointmentsListContainer.appendChild(listItem);
+
+                // LOG: Verifica il rendering normale
+                console.log(`[RENDER NORMALE] ${app.summary}: height ${listItem.style.height}`, listItem);
             });
         }
 

@@ -1069,6 +1069,14 @@ border-radius: 10px; /* <<< AGGIUNGI QUESTA RIGA */
     color: #e0e0e0;
 }
 
+/* Limita gli all-day a una dimensione normale */
+.appointment-item.all-day-item {
+    height: auto !important;
+    min-height: 50px !important;
+    max-height: 100px !important;
+    overflow: hidden;
+}
+
 /* ======================================================= */
 /* === Aggiunte e Correzioni per Lista Appuntamenti    === */
 /* ======================================================= */
