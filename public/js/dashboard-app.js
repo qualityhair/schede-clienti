@@ -485,83 +485,59 @@ async function fetchAndDisplayAppointments() {
         const normalAppointments = [];
         const allDayAppointments = [];
 
-        // Separa gli appuntamenti in base al fatto che siano all-day o meno
         appointments.forEach(app => {
-    const start = new Date(app.start_time);
-    const end = new Date(app.end_time);
+            const start = new Date(app.start_time);
+            const end = new Date(app.end_time);
 
-    // Se esiste una proprietà allDay nel dato, usala direttamente
-    if (app.allDay) {
-        allDayAppointments.push(app);
-        return;
-    }
+            // Se il backend fornisce un flag allDay, usalo direttamente
+            if (app.allDay) {
+                allDayAppointments.push(app);
+                return;
+            }
 
-    // Controllo robusto per eventi all-day
-    const isMidnightStart = start.getHours() === 0 && start.getMinutes() === 0 && start.getSeconds() === 0;
-    const isMidnightEnd = end.getHours() === 0 && end.getMinutes() === 0 && end.getSeconds() === 0;
-    // Calcolo la differenza in giorni
-    const diffDays = (end - start) / (1000 * 60 * 60 * 24);
+            // Controllo robusto per eventi all-day
+            const isMidnightStart = start.getHours() === 0 && start.getMinutes() === 0 && start.getSeconds() === 0;
+            const isMidnightEnd = end.getHours() === 0 && end.getMinutes() === 0 && end.getSeconds() === 0;
+            const diffDays = Math.round((end - start) / (1000 * 60 * 60 * 24));
 
-    // Considera all-day se inizia e finisce a mezzanotte e dura esattamente 1 giorno
-    const isAllDay = isMidnightStart && isMidnightEnd && diffDays === 1;
+            const isAllDay = isMidnightStart && isMidnightEnd && diffDays === 1;
 
-    if (isAllDay) {
-        allDayAppointments.push(app);
-    } else {
-        normalAppointments.push(app);
-    }
-});
+            if (isAllDay) {
+                allDayAppointments.push(app);
+            } else {
+                normalAppointments.push(app);
+            }
+        });
 
-        // --- Renderizza gli eventi All-Day (se ce ne sono) all'inizio del contenitore esistente ---
-        if (allDayAppointments.length > 0) {
-            // Crea un header per gli eventi all-day
-            const allDayHeader = document.createElement('li');
-            allDayHeader.className = 'all-day-header';
-            
-            appointmentsListContainer.appendChild(allDayHeader); // Aggiungi l'header
+        // --- Renderizza gli eventi All-Day (se ce ne sono) ---
+        allDayAppointments.forEach(app => {
+            const { backgroundColor, textColor } = getAppointmentColor(app);
+            const listItem = document.createElement('li');
+            listItem.className = 'appointment-item all-day-item clickable';
+            listItem.style.backgroundColor = backgroundColor;
+            listItem.style.color = textColor;
 
-            allDayAppointments.forEach(app => {
-                const { backgroundColor, textColor } = getAppointmentColor(app);
-                const listItem = document.createElement('li');
-                listItem.className = 'appointment-item all-day-item clickable'; // Classe specifica
-                listItem.style.backgroundColor = backgroundColor;
-                listItem.style.color = textColor;
+            if (app.cliente) {
+                listItem.dataset.clienteId = app.cliente.id;
+            }
 
-                 if (app.cliente) {
-                    listItem.dataset.clienteId = app.cliente.id;
-                }
-
-                listItem.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-center w-100">
-                        <span class="appointment-summary" style="color: ${textColor};">${app.summary}</span>
-                    </div>
-                `;
-                appointmentsListContainer.appendChild(listItem); // Aggiungi al container principale
-            });
-        }
+            listItem.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <span class="appointment-summary" style="color: ${textColor};">${app.summary}</span>
+                </div>
+            `;
+            appointmentsListContainer.appendChild(listItem);
+        });
 
         // --- Renderizza gli eventi normali ---
         if (normalAppointments.length === 0 && allDayAppointments.length === 0) {
-            // Se non ci sono appuntamenti di nessun tipo
-            appointmentsListContainer.innerHTML = '<li class="appointment-item info">Nessun appuntamento per oggi.</li>';
+            const emptyMsg = document.createElement('li');
+            emptyMsg.className = 'appointment-item info';
+            emptyMsg.textContent = 'Nessun appuntamento per oggi.';
+            appointmentsListContainer.appendChild(emptyMsg);
         } else if (normalAppointments.length === 0 && allDayAppointments.length > 0) {
-             // Se ci sono solo all-day, aggiungi un messaggio per gli appuntamenti normali
-             const normalHeader = document.createElement('li');
-             normalHeader.className = 'normal-appointments-header';
-             normalHeader.innerHTML = '<h5>Appuntamenti con orario specifico</h5>';
-             appointmentsListContainer.appendChild(normalHeader);
-             appointmentsListContainer.innerHTML += '<li class="appointment-item info">Nessun appuntamento con orario specifico.</li>';
-
+            // Nessun appuntamento normale: non mostrare scritte inutili
         } else if (normalAppointments.length > 0) {
-             // Se ci sono appuntamenti normali, aggiungi un header anche per loro se ci sono stati all-day
-             if (allDayAppointments.length > 0) {
-                 const normalHeader = document.createElement('li');
-                 normalHeader.className = 'normal-appointments-header';
-                 
-                 appointmentsListContainer.appendChild(normalHeader);
-             }
-
-
             normalAppointments.forEach(app => {
                 const start = new Date(app.start_time);
                 const end = new Date(app.end_time);
