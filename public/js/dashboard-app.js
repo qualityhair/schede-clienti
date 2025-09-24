@@ -149,7 +149,7 @@ summaryGreeting.textContent = saluto;
                     item.innerHTML = `
     <div>
         <strong>${buono.descrizione || 'Buono Prepagato'}</strong><br>
-        <small>per ${buono.beneficiario_nome} ${buono.beneficiario_cognome}</small><br>
+        <small>per </small><strong style="color: yellow;">${buono.beneficiario_nome} ${buono.beneficiario_cognome}</strong><br>
         <em>${dettagli}</em>
     </div>
     <a href="/scheda-cliente.html?id=${buono.beneficiario_id}" class="btn btn-sm btn-primary">Apri Scheda</a>
