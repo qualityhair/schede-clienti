@@ -474,59 +474,124 @@ function getAppointmentColor(app) {
 
 async function fetchAndDisplayAppointments() {
     if (!appointmentsListContainer) return;
+
     try {
         const response = await fetch('/api/appuntamenti/oggi');
         const appointments = await handleApiResponse(response);
         if (!appointments) return;
 
-        appointmentsListContainer.innerHTML = '';
-        if (appointments.length === 0) {
-            appointmentsListContainer.innerHTML = '<li class="appointment-item info">Nessun appuntamento per oggi.</li>';
-            return;
-        }
+        appointmentsListContainer.innerHTML = ''; // Pulisci il contenitore esistente
 
+        const normalAppointments = [];
+        const allDayAppointments = [];
+
+        // Separa gli appuntamenti in base al fatto che siano all-day o meno
         appointments.forEach(app => {
             const start = new Date(app.start_time);
             const end = new Date(app.end_time);
-            const durationMinutes = (end - start) / 60000; // durata in minuti
 
-            const appointmentTime = `${start.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`;
-            const { backgroundColor, textColor } = getAppointmentColor(app);
+            // LOGICA PER IDENTIFICARE L'EVENTO ALL-DAY
+            // Controlliamo se l'evento inizia a mezzanotte e finisce a mezzanotte del giorno successivo
+            const isAllDay = (start.getHours() === 0 && start.getMinutes() === 0 &&
+                              end.getHours() === 0 && end.getMinutes() === 0 &&
+                              end.getDate() === start.getDate() + 1);
 
-            const listItem = document.createElement('li');
-            listItem.className = 'appointment-item clickable';
-            listItem.style.backgroundColor = backgroundColor;
-
-            // Altezza proporzionale alla durata (base: 50px = 30 minuti)
-            const pixelsPerMinute = 50 / 30;
-            listItem.style.height = `${durationMinutes * pixelsPerMinute}px`;
-            listItem.style.minHeight = '50px'; // slot minimo
-
-            // Aggiungi l'ID cliente se esiste
-            if (app.cliente) {
-                listItem.dataset.clienteId = app.cliente.id;
+            if (isAllDay) {
+                allDayAppointments.push(app);
+            } else {
+                normalAppointments.push(app);
             }
+        });
 
-            // --- PANNELLO DETTAGLI ---
-            let detailsPanelHtml = '<div class="appointment-details-panel">';
-            if (app.cliente && app.cliente.note) {
-                detailsPanelHtml += `<div class="detail-section"><h5>Note e Preferenze</h5><p>${app.cliente.note}</p></div>`;
-            }
-            detailsPanelHtml += '</div>';
+        // --- Renderizza gli eventi All-Day (se ce ne sono) all'inizio del contenitore esistente ---
+        if (allDayAppointments.length > 0) {
+            // Crea un header per gli eventi all-day
+            const allDayHeader = document.createElement('li');
+            allDayHeader.className = 'all-day-header';
+            
+            appointmentsListContainer.appendChild(allDayHeader); // Aggiungi l'header
 
-            // --- ASSEMBLA HTML FINALE ---
-            listItem.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center w-100">
-                    <div>
-                        <span class="appointment-time" style="color: ${textColor};">${appointmentTime}</span>
+            allDayAppointments.forEach(app => {
+                const { backgroundColor, textColor } = getAppointmentColor(app);
+                const listItem = document.createElement('li');
+                listItem.className = 'appointment-item all-day-item clickable'; // Classe specifica
+                listItem.style.backgroundColor = backgroundColor;
+                listItem.style.color = textColor;
+
+                 if (app.cliente) {
+                    listItem.dataset.clienteId = app.cliente.id;
+                }
+
+                listItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center w-100">
                         <span class="appointment-summary" style="color: ${textColor};">${app.summary}</span>
                     </div>
-                </div>
-                ${detailsPanelHtml}
-            `;
+                `;
+                appointmentsListContainer.appendChild(listItem); // Aggiungi al container principale
+            });
+        }
 
-            appointmentsListContainer.appendChild(listItem);
-        });
+        // --- Renderizza gli eventi normali ---
+        if (normalAppointments.length === 0 && allDayAppointments.length === 0) {
+            // Se non ci sono appuntamenti di nessun tipo
+            appointmentsListContainer.innerHTML = '<li class="appointment-item info">Nessun appuntamento per oggi.</li>';
+        } else if (normalAppointments.length === 0 && allDayAppointments.length > 0) {
+             // Se ci sono solo all-day, aggiungi un messaggio per gli appuntamenti normali
+             const normalHeader = document.createElement('li');
+             normalHeader.className = 'normal-appointments-header';
+             normalHeader.innerHTML = '<h5>Appuntamenti con orario specifico</h5>';
+             appointmentsListContainer.appendChild(normalHeader);
+             appointmentsListContainer.innerHTML += '<li class="appointment-item info">Nessun appuntamento con orario specifico.</li>';
+
+        } else if (normalAppointments.length > 0) {
+             // Se ci sono appuntamenti normali, aggiungi un header anche per loro se ci sono stati all-day
+             if (allDayAppointments.length > 0) {
+                 const normalHeader = document.createElement('li');
+                 normalHeader.className = 'normal-appointments-header';
+                 
+                 appointmentsListContainer.appendChild(normalHeader);
+             }
+
+
+            normalAppointments.forEach(app => {
+                const start = new Date(app.start_time);
+                const end = new Date(app.end_time);
+                const durationMinutes = (end - start) / 60000;
+
+                const appointmentTime = `${start.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`;
+                const { backgroundColor, textColor } = getAppointmentColor(app);
+
+                const listItem = document.createElement('li');
+                listItem.className = 'appointment-item clickable';
+                listItem.style.backgroundColor = backgroundColor;
+
+                const pixelsPerMinute = 50 / 30;
+                listItem.style.height = `${durationMinutes * pixelsPerMinute}px`;
+                listItem.style.minHeight = '50px';
+
+                if (app.cliente) {
+                    listItem.dataset.clienteId = app.cliente.id;
+                }
+
+                let detailsPanelHtml = '<div class="appointment-details-panel">';
+                if (app.cliente && app.cliente.note) {
+                    detailsPanelHtml += `<div class="detail-section"><h5>Note e Preferenze</h5><p>${app.cliente.note}</p></div>`;
+                }
+                detailsPanelHtml += '</div>';
+
+                listItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center w-100">
+                        <div>
+                            <span class="appointment-time" style="color: ${textColor};">${appointmentTime}</span>
+                            <span class="appointment-summary" style="color: ${textColor};">${app.summary}</span>
+                        </div>
+                    </div>
+                    ${detailsPanelHtml}
+                `;
+
+                appointmentsListContainer.appendChild(listItem);
+            });
+        }
 
     } catch (error) {
         console.error('Errore caricamento appuntamenti:', error);

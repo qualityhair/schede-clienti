@@ -1032,7 +1032,7 @@ border-radius: 10px; /* <<< AGGIUNGI QUESTA RIGA */
     font-size: 0.95em;
     
     /* Regole per il bordo colorato a sinistra */
-    border-left-width: 5px;
+    border-left-width: 1px;
     border-left-style: solid;
     /* Il colore verrà impostato dal JavaScript */
 }
@@ -1076,7 +1076,7 @@ border-radius: 10px; /* <<< AGGIUNGI QUESTA RIGA */
 /* 1. Spazio tra orario e nome del cliente */
 .appointment-time {
     margin-right: 10px; /* Aggiunge spazio a destra dell'orario */
-    font-weight: bold;  /* Rende l'orario leggermente più evidente */
+    font-weight: normal;  /* Rende l'orario leggermente più evidente */
 }
 
 /* 2. Assicura che il nome del cliente si espanda per occupare lo spazio */
