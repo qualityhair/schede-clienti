@@ -1100,6 +1100,43 @@ border-radius: 10px; /* <<< AGGIUNGI QUESTA RIGA */
     transform: scale(1.2); /* Leggero ingrandimento al passaggio del mouse */
 }
 
+
+/* CSS per appuntamenti all-day - aggiungi o modifica nel tuo file dashboard-app.css */
+
+.all-day-item {
+  min-height: 28px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  font-size: 1em;
+  padding: 2px 12px !important;
+  margin-bottom: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  /* Facoltativo: colore di sfondo più leggero */
+  /* background-color: #f5f5f5; */
+}
+
+/* Per renderli visivamente sopra agli altri nella lista (se usi flex o grid) */
+#lista-appuntamenti .all-day-item {
+  order: -1;
+}
+
+/* (Opzionale) Header per gli all-day */
+.all-day-header {
+  font-size: 0.95em;
+  font-weight: bold;
+  color: #555;
+  background: transparent;
+  padding: 0 10px 2px 10px;
+  border: none;
+}
+
+/* (Opzionale) Se vuoi rimuovere il bordo dagli all-day */
+.all-day-item.appointment-item {
+  border: none !important;
+}
+
 /* =================================== */
 /* === STILI PANNELLO ANALISI TRICOLOGICA === */
 /* =================================== */
