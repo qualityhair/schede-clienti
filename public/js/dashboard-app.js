@@ -487,24 +487,21 @@ async function fetchAndDisplayAppointments() {
 
         // Separa gli appuntamenti in base al fatto che siano all-day o meno
         appointments.forEach(app => {
-    const start = new Date(app.start_time);
-    const end = new Date(app.end_time);
+            const start = new Date(app.start_time);
+            const end = new Date(app.end_time);
 
-    // LOGICA PER IDENTIFICARE L'EVENTO ALL-DAY (aggiornata)
-    const isAllDay = (
-        (start.getHours() === 0 && start.getMinutes() === 0 &&
-         end.getHours() === 0 && end.getMinutes() === 0 &&
-         end.getDate() === start.getDate() + 1)
-        ||
-        (start.getTime() === end.getTime())
-    );
+            // LOGICA PER IDENTIFICARE L'EVENTO ALL-DAY
+            // Controlliamo se l'evento inizia a mezzanotte e finisce a mezzanotte del giorno successivo
+            const isAllDay = (start.getHours() === 0 && start.getMinutes() === 0 &&
+                              end.getHours() === 0 && end.getMinutes() === 0 &&
+                              end.getDate() === start.getDate() + 1);
 
-    if (isAllDay) {
-        allDayAppointments.push(app);
-    } else {
-        normalAppointments.push(app);
-    }
-});
+            if (isAllDay) {
+                allDayAppointments.push(app);
+            } else {
+                normalAppointments.push(app);
+            }
+        });
 
         // --- Renderizza gli eventi All-Day (se ce ne sono) all'inizio del contenitore esistente ---
         if (allDayAppointments.length > 0) {
