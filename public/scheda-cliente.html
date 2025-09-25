@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/style.css" />
 	<link rel="stylesheet" href="./css/scheda-cliente-sidebar.css" />
+
 </head>
 
 <body>
@@ -23,7 +24,7 @@
                 <input type="text" id="navbar-search-input" placeholder="Cerca Cliente..." class="input-field" />
                 <button id="navbar-search-button" class="btn btn-primary">Cerca</button>
             </li>
-            <li><a href="/logout" style="color: yellow;">Esci</a></li>
+            <li><a href="/logout" style="color: brown;">Esci dal programma</a></li>
         </ul>
 
     </div>
@@ -34,7 +35,7 @@
 	
 	
     <main class="container">
-
+	<center><img src="/img/logo1.jpg" alt="Logo Quality Hair" id="navbar-logo"></center>
 
         <div class="client-navigation-controls">
             <button id="btnPrecedente" class="btn btn-nav">⬅️ Indietro</button>
@@ -78,10 +79,11 @@
             <!-- ========================================================== -->
 
             <!-- Questa "colonna invisibile" raggruppa i 3 pannelli -->
+		
             <div class="panel-column">
 
                 <!-- 1° PANNELLO: Clienti Correlati -->
-                <div class="panel collapsible-panel" id="relazioni-panel">
+                <div class="panel client-details-panel collapsible-panel" id="relazioni-panel">
                     <div class="collapsible-header">
                         <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                             <span>Clienti Correlati</span>
@@ -96,7 +98,7 @@
                     </div>
                 </div>
 
-    <div class="panel collapsible-panel" id="wishlist-panel">
+    <div class="panel client-details-panel collapsible-panel" id="wishlist-panel">
         <div class="collapsible-header">
             <h3 class="panel-subtitle">
                 <span>🌟 Wishlist Cliente</span>
@@ -117,7 +119,7 @@
     </div>
 
                 <!-- 2° PANNELLO: Buoni Ricevuti -->
-                <div class="panel collapsible-panel" id="buoni-ricevuti-panel">
+                <div class="panel client-details-panel collapsible-panel" id="buoni-ricevuti-panel">
                     <div class="collapsible-header">
                         <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                             <span>Buoni Ricevuti</span>
@@ -136,7 +138,7 @@
                 </div>
 
                 <!-- 3° PANNELLO: Buoni Acquistati per Altri -->
-                <div class="panel collapsible-panel" id="buoni-acquistati-panel">
+                <div class="panel client-details-panel collapsible-panel" id="buoni-acquistati-panel">
                     <div class="collapsible-header">
                         <h3 class="panel-subtitle" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                             <span>Buoni Acquistati per Altri</span>
@@ -157,7 +159,7 @@
             <!-- ========================================================== -->
 
             <!-- Pannello Servizi e Trattamenti (ora collassabile) -->
-            <div class="panel full-width-panel treatments-panel collapsible-panel">
+            <div class="panel full-width-panel treatments-panel collapsible-panel client-details-panel ">
                 <div class="collapsible-header">
                     <h2 class="panel-title">
                         <span>Servizi e Trattamenti <span class="panel-client-name"></span></span>
@@ -166,20 +168,11 @@
                     <span class="collapsible-arrow">▼</span>
                 </div>
                 <div class="collapsible-content">
-				        <!-- === INCOLLA QUESTO NUOVO BLOCCO HTML QUI DENTRO === -->
-        <div id="palette-colore-container" class="palette-container">
-            <h4 class="palette-title">🎨 Palette Colore</h4>
-            <div id="palette-colore-lista" class="palette-grid">
-                <!-- Il JavaScript popolerà questa sezione con i cartellini delle formule -->
-                <p class="loading-message">Caricamento palette...</p>
-            </div>
-        </div>
-        <hr class="panel-divider"> <!-- Una linea per separare -->
-        <!-- ====================================================== -->
+		
         
         <div class="filter-controls" id="trattamenti-filter-controls"></div>
         <div class="panel-content table-responsive">
-            <table class="trattamenti data-table">
+				<table class="trattamenti data-table">
 				
 				
                     <div class="filter-controls" id="trattamenti-filter-controls"></div>
@@ -197,13 +190,29 @@
                                 </tr>
                             </thead>
                             <tbody id="lista-trattamenti"></tbody>
-                        </table>
+                    </table>
+						
+									<!-- === INCOLLA QUESTO NUOVO BLOCCO HTML QUI DENTRO === -->
+									<div id="palette-colore-container" class="palette-container">
+									<h4 class="palette-title">🎨 Palette Colore</h4>
+										<div id="palette-colore-lista" class="palette-grid">
+										<!-- Il JavaScript popolerà questa sezione con i cartellini delle formule -->
+										<p class="loading-message">Caricamento palette...</p>
+										</div>
+									</div>
+        
+									<!-- ====================================================== -->
+						
+						
                     </div>
                 </div>
             </div>
+			
+
+			
 
             <!-- Pannello Acquisti Prodotti (ora collassabile) -->
-            <div class="panel full-width-panel purchases-panel collapsible-panel">
+            <div class="panel full-width-panel purchases-panel collapsible-panel client-details-panel">
                 <div class="collapsible-header">
                     <h2 class="panel-title">
                         <span>Acquisti Prodotti <span class="panel-client-name"></span></span>
@@ -234,7 +243,7 @@
             </div>
 
             <!-- Pannello Analisi Trico-Cosmetica (ora collassabile) -->
-            <div class="panel full-width-panel collapsible-panel" id="analisi-tricologica-panel">
+            <div class="panel full-width-panel collapsible-panel client-details-panel" id="analisi-tricologica-panel">
                 <div class="collapsible-header">
                     <h2 class="panel-title">
                         <span>Analisi Trico-Cosmetica <span class="panel-client-name"></span></span>
@@ -247,7 +256,7 @@
                         <p class="loading-message">Caricamento riepilogo analisi...</p>
                     </div>
                     <hr style="border-color: #444; margin: 20px 0;">
-                    <div class="panel" id="tricho-photo-gallery-panel" style="border: none; box-shadow: none; padding: 0; margin-top: 15px;">
+                    <div class="panel" id="tricho-photo-gallery-panel" style="background-color: transparent; border: none; box-shadow: none; padding: 0; margin-top: 15px;">
                         <h3 class="panel-title" style="font-size: 1.2em;">
                             <span>Foto Analisi</span>
                             <button class="btn btn-icon" id="add-tricho-photo-btn" title="Aggiungi Foto Trico">➕</button>
@@ -256,13 +265,13 @@
                         <div class="panel-content" id="tricho-photo-gallery-content" style="padding: 0;"></div>
                     </div>
                     <div class="panel-actions">
-                        <a href="#" id="storico-analisi-btn" class="btn btn-nav" style="display: none;">Vedi Storico Completo</a>
+                        <a href="#" id="storico-analisi-btn" class="btn btn-primary" style="display: none;">Vedi Storico Completo</a>
                     </div>
                 </div>
             </div>
 
             <!-- Pannello Archivio Foto (ora collassabile) -->
-            <div class="panel full-width-panel collapsible-panel" id="photo-gallery-panel">
+            <div class="panel full-width-panel collapsible-panel client-details-panel" id="photo-gallery-panel">
                 <div class="collapsible-header">
                     <h2 class="panel-title">
                         <span>Archivio Foto <span class="panel-client-name"></span></span>
