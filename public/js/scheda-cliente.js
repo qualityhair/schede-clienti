@@ -434,6 +434,38 @@ function capitalizeWords(str) {
 }
 
 
+
+
+/**
+ * Applica la classe di colore alla frequenza media in base ai giorni.
+ * Utilizza l'ID 'frequenza-media' che hai nel tuo HTML.
+ */
+function highlightFrequenzaMedia(giorni) {
+    const element = document.getElementById('frequenza-media');
+    if (!element) return;
+
+    // Rimuovi tutte le classi di colore esistenti per pulizia
+    element.classList.remove('frequenza-verde', 'frequenza-giallo', 'frequenza-rosso');
+
+    // Se non ci sono dati validi o la frequenza è 0, non colorare.
+    if (giorni === 'N/A' || giorni <= 0) {
+        return; 
+    }
+    
+    // Le soglie: 30 e 60 giorni
+    if (giorni >= 61) {
+        // 🔴 Rischio (61 giorni o più)
+        element.classList.add('frequenza-rosso');
+    } else if (giorni >= 31) {
+        // 🟡 Attenzione (31 a 60 giorni)
+        element.classList.add('frequenza-giallo');
+    } else { // giorni <= 30
+        // 🟢 Ottimale/VIP (1 a 30 giorni)
+        element.classList.add('frequenza-verde');
+    }
+}
+
+
   // --- 3. FUNZIONI DI CARICAMENTO E VISUALIZZAZIONE DATI ---
   
   // --- AGGIUNGI QUESTA NUOVA FUNZIONE ---
@@ -542,6 +574,7 @@ function calcolaEVisualizzaMetricheVisita(storicoTrattamenti) {
     if (dateVisite.length === 0) {
         document.getElementById('ultima-visita').textContent = 'Nessuna visita';
         document.getElementById('frequenza-media').textContent = 'N/A';
+		highlightFrequenzaMedia(0);
         return;
     }
 
@@ -553,6 +586,7 @@ function calcolaEVisualizzaMetricheVisita(storicoTrattamenti) {
     // --- B. FREQUENZA MEDIA ---
     if (dateVisite.length < 2) {
         document.getElementById('frequenza-media').textContent = 'Serve almeno 2 visite';
+		highlightFrequenzaMedia(0); 
         return;
     }
 
@@ -568,6 +602,21 @@ function calcolaEVisualizzaMetricheVisita(storicoTrattamenti) {
     const frequenzaMedia = Math.round(totaleGiorniTraVisite / numeroIntervalli);
     
     document.getElementById('frequenza-media').textContent = `${frequenzaMedia} giorni`;
+	highlightFrequenzaMedia(frequenzaMedia);
+	// <<< LOGICA TAG VIP AUTOMATICO >>>
+    const vipBadge = document.getElementById('vip-automatico-badge');
+
+    if (!vipBadge) return;
+
+    if (frequenzaMedia > 0 && frequenzaMedia <= 30) {
+        // Il cliente è VIP per frequenza!
+        vipBadge.textContent = '⭐️ VIP ';
+        vipBadge.classList.add('vip-auto-active');
+    } else {
+        // Nasconde il badge se la frequenza è sopra la soglia
+        vipBadge.textContent = '';
+        vipBadge.classList.remove('vip-auto-active');
+    }
 }
 
 // === FINE DELLE NUOVE FUNZIONI DI CALCOLO METRICHE ===

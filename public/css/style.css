@@ -3870,6 +3870,64 @@ body.iframe-mode .page-title {
     color: #cccccc;
 }
 
+/* Stili per la metrica Frequenza Media */
+#frequenza-media {
+    /* La tua Frequenza Media ha già un font-weight: bold; e un colore di base #FFD700 */
+    /* Aggiungiamo il padding e il raggio per farla sembrare un badge/alert */
+    padding: 2px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    color: #1a1a1a; /* Testo scuro di default quando ha uno sfondo colorato */
+	border-radius: 12px; /* Rende il badge arrotondato (a 'pillola') */
+}
+
+/* 🟢 Stato Ottimale/VIP (Frequenza <= 30 giorni) */
+.frequenza-verde {
+    background-color: #28a745; /* Verde scuro */
+    color: white !important; /* Forza il colore bianco sul testo */
+}
+
+/* 🟡 Stato Neutro/Attenzione (Frequenza 31-60 giorni) */
+.frequenza-giallo {
+    background-color: #ffc107; /* Giallo brillante */
+    color: #1a1a1a !important; /* Forza il colore scuro sul testo */
+}
+
+/* 🔴 Stato Rischio/Perdita (Frequenza >= 61 giorni) */
+.frequenza-rosso {
+    background-color: #dc3545; /* Rosso acceso */
+    color: white !important; /* Forza il colore bianco sul testo */
+}
+
+/* Stile base per il badge automatico */
+.vip-auto-badge {
+    display: none; 
+    padding: 2px 6px; /* Ridotto il padding */
+    margin-left: 0px; /* Rimosso il margine sinistro */
+    border-radius: 12px;
+    font-size: 0.5em; /* Ridotto il font size */
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* 🏆 Stile per lo stato VIP Attivo (Frequenza <= 30 giorni) */
+.vip-auto-active {
+    display: inline-block;
+    background-color: #007bff; /* Blu brillante */
+    color: white; /* Testo bianco per un alto contrasto */
+    border: 1px solid #0056b3; /* Bordo leggermente più scuro per profondità */
+}
+
+
+/* Stile per compattare le righe di dettaglio */
+.client-detail-row {
+    /* Rimuove gran parte del margine di default dei <p> */
+    margin-bottom: 3px; 
+    line-height: 1.4; /* Opzionale: assicura una buona altezza della riga */
+    padding: 0;
+}
 
 
 /* =================================== */
