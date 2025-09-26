@@ -206,6 +206,39 @@ const LISTA_SERVIZI_DISPONIBILI = [
 
 // --- 2. FUNZIONI DI UTILITÀ ---
 
+/**
+ * Ottiene e visualizza la data corrente (solo giorno e mese).
+ * Si auto-aggiorna ogni minuto.
+ */
+function updateCurrentDateTime() {
+    const displayElement = document.getElementById('current-date-display');
+    if (!displayElement) return;
+
+    const now = new Date();
+    
+    // Opzioni di formattazione: solo giorno della settimana, giorno e mese
+    const options = {
+        weekday: 'short', // es. Gio
+        day: '2-digit',   // es. 26
+        month: '2-digit'  // es. 09
+    };
+
+    // Formatta la data in italiano (es. Gio 26/09)
+    // Usiamo .split(',')[0] per eliminare la parte che riguarda l'ora
+    const formattedDate = now.toLocaleDateString('it-IT', options); 
+    
+    // Rimuovi la virgola e tutto ciò che segue, se presente
+    displayElement.textContent = formattedDate.split(',')[0];
+}
+
+// 1. Esegui la funzione immediatamente al caricamento
+updateCurrentDateTime();
+
+// 2. Imposta l'aggiornamento automatico (1 volta al minuto è sufficiente per la data)
+setInterval(updateCurrentDateTime, 60000);
+
+
+
 async function caricaCatalogoProdotti() {
     try {
         const response = await fetch('/api/prodotti');

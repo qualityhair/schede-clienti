@@ -3930,6 +3930,25 @@ body.iframe-mode .page-title {
 }
 
 
+/* Stile Definitivo: Data Fissa, Trasparente e Giallo Oro */
+.current-date-display {
+    position: fixed; /* La chiave: la mantiene sempre visibile */
+    top: 5px; 
+    left: 5px; /* Angolo in alto a sinistra */
+    
+    /* TRASPARENTE! */
+    background-color: transparent; 
+    
+    /* Colore Giallo Oro */
+    color: #FFD700; 
+    
+    font-size: 0.75em; 
+    font-weight: 500;
+    padding: 2px 4px; 
+    pointer-events: none; 
+    z-index: 9999; /* Z-index altissimo per sicurezza */
+}
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */
