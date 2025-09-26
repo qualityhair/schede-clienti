@@ -510,28 +510,93 @@ function displayStatoPagamento(stato) {
     }
 }
 
+// ... [La funzione displayStatoPagamento finisce qui] ...
 
-    // --- SOSTITUISCI LA TUA FUNZIONE loadClientData CON QUESTA ---
-async function loadClientData(clientId, anno = new Date().getFullYear().toString()) {
-    if (!clientId) {
-        showMessage("ID Cliente non fornito.", 'error');
+// === INIZIO DELLE NUOVE FUNZIONI DI CALCOLO METRICHE ===
+
+function calcolaEVisualizzaMetricheVisita(storicoTrattamenti) {
+    
+    // 1. Estrai le date valide e ordinale
+    const dateVisite = storicoTrattamenti
+        // FILTRA: Controlla che l'oggetto esista e abbia la chiave corretta 'data_trattamento'
+        .filter(trattamento => trattamento && trattamento.data_trattamento) 
+        // MAPPA: Crea l'oggetto Date usando la chiave corretta
+        .map(trattamento => {
+            // Il formato ISO 8601 viene gestito nativamente da new Date()
+            const dataOggetto = new Date(trattamento.data_trattamento); 
+            
+            // Filtro di sicurezza: assicurati che sia una data valida
+            if (!isNaN(dataOggetto)) {
+                return dataOggetto;
+            } else {
+                return null;
+            }
+        })
+        // Rimuove eventuali 'null' dal mapping
+        .filter(data => data !== null)
+        // Ordina le date in ordine crescente
+        .sort((a, b) => a - b);
+    
+    
+    // Controlla se ci sono visite (dopo il filtro)
+    if (dateVisite.length === 0) {
+        document.getElementById('ultima-visita').textContent = 'Nessuna visita';
+        document.getElementById('frequenza-media').textContent = 'N/A';
         return;
     }
-    try {
-        // --- PARTE 1: Carica i dati principali del cliente ---
-        const clientResponse = await fetch(`/api/clienti/${clientId}?anno=${anno}`);
-        const data = await handleApiResponse(clientResponse);
-        if (!data || !clientResponse.ok) throw new Error(data?.error || "Errore caricamento dati cliente.");
-        
-        const client = data.client;
-        if (!client) {
-            showMessage("Cliente non trovato.", 'error');
-            return;
-        }
-        currentClienteData = client;
+
+    // --- A. ULTIMO APPUNTAMENTO ---
+    const ultimaVisita = dateVisite[dateVisite.length - 1];
+    document.getElementById('ultima-visita').textContent = ultimaVisita.toLocaleDateString('it-IT');
+
+    
+    // --- B. FREQUENZA MEDIA ---
+    if (dateVisite.length < 2) {
+        document.getElementById('frequenza-media').textContent = 'Serve almeno 2 visite';
+        return;
+    }
+
+    let totaleGiorniTraVisite = 0;
+    
+    for (let i = 1; i < dateVisite.length; i++) {
+        const differenzaMs = dateVisite[i].getTime() - dateVisite[i - 1].getTime();
+        const giorniDiIntervallo = differenzaMs / (1000 * 60 * 60 * 24);
+        totaleGiorniTraVisite += giorniDiIntervallo;
+    }
+
+    const numeroIntervalli = dateVisite.length - 1; 
+    const frequenzaMedia = Math.round(totaleGiorniTraVisite / numeroIntervalli);
+    
+    document.getElementById('frequenza-media').textContent = `${frequenzaMedia} giorni`;
+}
+
+// === FINE DELLE NUOVE FUNZIONI DI CALCOLO METRICHE ===
+
+
+
+
+    // --- SOSTITUISCI LA TUA FUNZIONE loadClientData CON QUESTA ---
+// --- SOSTITUISCI LA TUA FUNZIONE loadClientData CON QUESTA ---
+async function loadClientData(clientId, anno = new Date().getFullYear().toString()) {
+    if (!clientId) {
+        showMessage("ID Cliente non fornito.", 'error');
+        return;
+    }
+    try {
+        // --- PARTE 1: Carica i dati principali del cliente ---
+        const clientResponse = await fetch(`/api/clienti/${clientId}?anno=${anno}`);
+        const data = await handleApiResponse(clientResponse);
+        if (!data || !clientResponse.ok) throw new Error(data?.error || "Errore caricamento dati cliente.");
+        
+        const client = data.client;
+        if (!client) {
+            showMessage("Cliente non trovato.", 'error');
+            return;
+        }
+        currentClienteData = client;
 		displayWishlist(client.wishlist || []);
 
-        // --- PARTE 2: Popola l'interfaccia con i dati principali ---
+        // --- PARTE 2: Popola l'interfaccia con i dati principali ---
 
 
 const avatarContainer = document.getElementById('avatar-container');
@@ -539,68 +604,73 @@ avatarContainer.innerHTML = ''; // Pulisce il contenitore ad ogni caricamento
 
 const photoResponse = await fetch(`/api/clienti/${clientId}/photos`);
 const allPhotos = await handleApiResponse(photoResponse) || [];
-currentClienteData.photos = allPhotos; 
+currentClienteData.photos = allPhotos; 
 const profilePhoto = allPhotos.find(p => (p.tags || []).includes('profilo'));
 
 if (profilePhoto && profilePhoto.url) {
-    // CASO 1: C'è una foto profilo. La mostriamo.
-    const img = document.createElement('img');
-    img.src = profilePhoto.url;
-    img.alt = `Foto profilo di ${client.nome}`;
-    avatarContainer.appendChild(img);
+    // CASO 1: C'è una foto profilo. La mostriamo.
+    const img = document.createElement('img');
+    img.src = profilePhoto.url;
+    img.alt = `Foto profilo di ${client.nome}`;
+    avatarContainer.appendChild(img);
 } else {
-    // CASO 2: Non c'è una foto. Generiamo le iniziali.
-    const initials = getInitials(client.nome, client.cognome);
+    // CASO 2: Non c'è una foto. Generiamo le iniziali.
+    const initials = getInitials(client.nome, client.cognome);
 
 const initialsDiv = document.createElement('div');
 initialsDiv.className = 'initials-avatar'; // Il CSS ora imposta lo sfondo grigio
 initialsDiv.textContent = initials;
-        
+        
 avatarContainer.appendChild(initialsDiv);
 }
 
-        const nomeFormattato = capitalizeWords(client.nome);
+        const nomeFormattato = capitalizeWords(client.nome);
 		const cognomeFormattato = capitalizeWords(client.cognome);
 
 		nomeCompletoSpan.textContent = `${nomeFormattato} ${cognomeFormattato}`;
-        document.querySelectorAll('.panel-client-name').forEach(span => { 
-		span.textContent = `(${nomeFormattato} ${cognomeFormattato})`; 
+        document.querySelectorAll('.panel-client-name').forEach(span => { 
+		span.textContent = `(${nomeFormattato} ${cognomeFormattato})`; 
 		});
-        soprannomeSpan.textContent = client.soprannome || "N/A";
-        emailSpan.textContent = client.email || "N/A";
-        telefonoSpan.textContent = client.telefono || "N/A";
-        clienteNoteTextarea.value = client.preferenze_note || '';
-        displayClientTags(client.tags);
-        displayStatoPagamento(client.stato_pagamento);
+        soprannomeSpan.textContent = client.soprannome || "N/A";
+        emailSpan.textContent = client.email || "N/A";
+        telefonoSpan.textContent = client.telefono || "N/A";
+        clienteNoteTextarea.value = client.preferenze_note || '';
+        displayClientTags(client.tags);
+        displayStatoPagamento(client.stato_pagamento);
+        
+        // --- PARTE 3: Mostra le tabelle, i filtri E GESTISCI I PANNELLI ---
+        
+        // Pannello Trattamenti
+        createYearFilters(trattamentiFilterControls, data.anniDisponibiliTrattamenti, anno, 'trattamenti');
+        displayTrattamenti(data.trattamenti || []);
         
-        // --- PARTE 3: Mostra le tabelle, i filtri E GESTISCI I PANNELLI ---
-        
-        // Pannello Trattamenti
-        createYearFilters(trattamentiFilterControls, data.anniDisponibiliTrattamenti, anno, 'trattamenti');
-        displayTrattamenti(data.trattamenti || []);
-        setupCollapsiblePanel('.treatments-panel', data.trattamenti); // <-- ECCO LA RIGA CHE AVEVO TOLTO
+        // <<< === NUOVA CHIAMATA PER CALCOLARE LE METRICHE DI VISITA === >>>
+        calcolaEVisualizzaMetricheVisita(data.trattamenti || []);
+        // <<< ======================================================= >>>
 
-        // Pannello Acquisti
-        createYearFilters(acquistiFilterControls, data.anniDisponibiliAcquisti, anno, 'acquisti');
-        const acquistiData = client.storico_acquisti ? JSON.parse(client.storico_acquisti) : [];
-        displayAcquisti(JSON.stringify(acquistiData), anno);
-        setupCollapsiblePanel('.purchases-panel', acquistiData); // <-- E L'ALTRA RIGA CHE AVEVO TOLTO
+        setupCollapsiblePanel('.treatments-panel', data.trattamenti);
 
-        // --- PARTE 4: Carica tutte le sezioni "extra" in modo asincrono ---
-        await Promise.all([
-    loadStyleClientPhotos(clientId),
-    loadTrichoClientPhotos(clientId),
-    caricaRiepilogoAnalisi(clientId),
-    loadAndDisplayRelazioni(clientId),
-    loadAndDisplayBuoni(clientId, false),
-    loadAndDisplayBuoniAcquistati(clientId, false),
-    caricaEVisualizzaPalette(clientId) // <-- AGGIUNGI QUESTA RIGA
+        // Pannello Acquisti
+        createYearFilters(acquistiFilterControls, data.anniDisponibiliAcquisti, anno, 'acquisti');
+        const acquistiData = client.storico_acquisti ? JSON.parse(client.storico_acquisti) : [];
+        displayAcquisti(JSON.stringify(acquistiData), anno);
+        setupCollapsiblePanel('.purchases-panel', acquistiData);
+
+        // --- PARTE 4: Carica tutte le sezioni "extra" in modo asincrono ---
+        await Promise.all([
+    loadStyleClientPhotos(clientId),
+    loadTrichoClientPhotos(clientId),
+    caricaRiepilogoAnalisi(clientId),
+    loadAndDisplayRelazioni(clientId),
+    loadAndDisplayBuoni(clientId, false),
+    loadAndDisplayBuoniAcquistati(clientId, false),
+    caricaEVisualizzaPalette(clientId) // <-- AGGIUNGI QUESTA RIGA
 ]);
 
-    } catch (error) {
-        console.error("Errore in loadClientData:", error);
-        showMessage(`Errore: ${error.message}`, 'error');
-    }
+    } catch (error) {
+        console.error("Errore in loadClientData:", error);
+        showMessage(`Errore: ${error.message}`, 'error');
+    }
 }
 
 
