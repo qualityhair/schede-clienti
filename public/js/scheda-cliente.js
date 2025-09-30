@@ -3191,6 +3191,52 @@ prodottoAcquistoSelect.addEventListener('change', (e) => {
 });
 
 
+// --- MODALE NUOVO CLIENTE ---
+const modal = document.getElementById("new-client-modal");
+const openBtn = document.getElementById("open-new-client-modal");
+const closeBtn = document.querySelector(".close-modal");
+
+// Apri modale
+openBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    modal.style.display = "block";
+});
+
+// Chiudi con X
+closeBtn.addEventListener("click", () => modal.style.display = "none");
+
+// Chiudi cliccando fuori dalla modale
+window.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+});
+
+// Aggiungi cliente tramite fetch al backend e vai alla nuova scheda
+document.getElementById("modal-add-client-button").addEventListener("click", () => {
+    const nome = document.getElementById("modal-client-name").value.trim();
+    const cognome = document.getElementById("modal-client-surname").value.trim();
+    const soprannome = document.getElementById("modal-client-nickname").value.trim();
+    const email = document.getElementById("modal-client-email").value.trim();
+    const telefono = document.getElementById("modal-client-phone").value.trim();
+    const tags = document.getElementById("modal-client-tags").value
+        .split(",")
+        .map(tag => tag.trim())
+        .filter(tag => tag.length > 0);
+
+    fetch("/api/clienti", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nome, cognome, soprannome, email, telefono, tags })
+    })
+    .then(res => res.json())
+    .then(data => {
+        // Chiude la modale
+        modal.style.display = "none";
+
+        // Redirect alla nuova scheda cliente usando l'ID restituito dal backend
+        window.location.href = `/scheda-cliente.html?id=${data.id}`;
+    })
+    .catch(err => console.error(err));
+});
 
 
 

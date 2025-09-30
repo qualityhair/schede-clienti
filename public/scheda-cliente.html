@@ -57,7 +57,7 @@
         <div class="panel-grid-new">
             
             <!-- Pannello Profilo (non collassabile) -->
-<div class="panel client-details-panel">
+            <div class="panel client-details-panel">
                 <h2 class="panel-title profile-title-container">
 				
                     <!-- NUOVO CONTENITORE DA INSERIRE AL POSTO DELL'IMMAGINE -->
@@ -68,53 +68,37 @@
                     <span id="nome-completo" class="main-client-name-elegant"></span>
 					<span id="vip-automatico-badge" class="vip-auto-badge"></span>
                 </h2>
-				
-	<div class="panel-content">
+<div class="panel-content">
     <div class="client-detail-row">
-        <strong>Soprannome:</strong> <span id="soprannome-cliente" style="color: #FFD700;">N/A</span>
+        <strong>🧑 Soprannome:</strong> <span id="soprannome-cliente" style="color: #FFD700;">N/A</span>
     </div>
     <div class="client-detail-row">
-        <strong>Email:</strong> <span id="email"></span>
+        <strong>📧 Email:</strong> <span id="email"></span>
     </div>
     <div class="client-detail-row">
-        <strong>Telefono:</strong> <span id="telefono"></span>
+        <strong>📞 Telefono:</strong> <span id="telefono"></span>
     </div>
     <div class="client-detail-row">
-        <strong>Ultima Visita:</strong> <span id="ultima-visita" style="color: #FFD700; font-weight: bold;">N/A</span>
+        <strong>🗓️ Ultima Visita:</strong> <span id="ultima-visita" style="color: #FFD700; font-weight: bold;">N/A</span>
     </div>
     <div class="client-detail-row">
-        <strong>Frequenza Media:</strong> <span id="frequenza-media" style="color: #FFD700; font-weight: bold;">N/A</span>
+        <strong>⏱️ Frequenza Media:</strong> <span id="frequenza-media" style="color: #FFD700; font-weight: bold;">N/A</span>
     </div>
     <div class="client-detail-row">
-        <strong>Stato Pagamenti:</strong> <span id="stato-pagamento-badge" class="status-badge">Caricamento...</span>
+        <strong>💰 Stato Pagamenti:</strong> <span id="stato-pagamento-badge" class="status-badge">Caricamento...</span>
     </div>
-	</div>
-			
-				<div class="detail-group" style="display:none">
-				    <label for="cliente-note" class="form-label" style="font-size: 0.8em; color: #FFD700;">Note e Preferenze:</label>
+</div>
+				<hr style="border-color: #444; margin: 20px 0;">
+				<div class="detail-group">
+				    <label for="cliente-note" class="form-label" style="font-size: 0.8em; color: #FFD700;">Note:</label>
 				    <textarea id="cliente-note" class="textarea-field" rows="2" placeholder="Aggiungi note..."></textarea>
 				</div>
-				
-				<div class="notepad-container">
-				<textarea id="blocco-note-textarea" class="textarea-field" rows="6" placeholder="Note e Preferenze..."></textarea>
-				<small id="blocco-note-status" class="notepad-status"></small>
-				</div>
-				<br>
-				
                 <div class="panel-actions-multiple">
-				
-				 <button id="salva-note-btn" class="btn btn-primary" style="display:none;">Salva Note</button>
+				    <button id="salva-note-btn" class="btn btn-primary">📝 Salva Note</button>
                     <button class="btn btn-primary" id="modificaDettagliBtn">✏️ Modifica Profilo</button>
+					 <button id="open-new-client-modal" class="btn btn-primary">➕ Nuovo Cliente</button>
                 </div>
-				
-
-				
-				
-				
-</div>
-			
-
-			
+            </div>
             <!-- ========================================================== -->
             <!-- === PANNELLO DESTRO - CORRETTO PER LAYOUT A COLONNE === -->
             <!-- ========================================================== -->
@@ -195,6 +179,7 @@
                         </div>
                     </div>
                 </div>
+				
 
             </div>
             <!-- ========================================================== -->
@@ -715,82 +700,23 @@
 </div>
 
 
-<script>
-    // --- RIFERIMENTO NECESSARIO: gestisce le risposte del server ---
-    // NOTA: Manca la funzione 'handleApiResponse' che era presente
-    // nell'originale. Se questa funzione non è definita, il codice
-    // fallirà. Ho aggiunto uno stub (un placeholder) qui sotto.
-    function handleApiResponse(response) {
-        if (!response.ok) {
-            throw new Error(`Errore HTTP: ${response.status}`);
-        }
-        return response.json();
-    }
-    
-    // --- RIFERIMENTI DOM PER IL BLOCCO NOTE ---
-    const bloccoNoteTextarea = document.getElementById('blocco-note-textarea');
-    const bloccoNoteStatus = document.getElementById('blocco-note-status');
+<div id="new-client-modal" class="modal">
+  <div class="modal-content panel dashboard-panel">
+    <span class="close-modal">&times;</span>
+    <h2 class="panel-title">Aggiungi Nuovo Cliente</h2>
+    <div class="modal-form">
+      <input type="text" id="modal-client-name" placeholder="Nome" required class="input-field" />
+      <input type="text" id="modal-client-surname" placeholder="Cognome" required class="input-field" />
+      <input type="text" id="modal-client-nickname" placeholder="Soprannome (opzionale)" class="input-field" />
+      <input type="email" id="modal-client-email" placeholder="Email (opzionale)" class="input-field" />
+      <input type="tel" id="modal-client-phone" placeholder="Telefono (opzionale)" class="input-field" />
+      <input type="text" id="modal-client-tags" placeholder="Tag (es: VIP, Allergia Tinta)" class="input-field" />
+      <button id="modal-add-client-button" class="btn btn-primary">Aggiungi Cliente</button>
+    </div>
+  </div>
+</div>
 
-    // --- FUNZIONE PER GESTIRE IL BLOCCO NOTE (COPIATA) ---
-    function initBloccoNote() {
-        if (!bloccoNoteTextarea || !bloccoNoteStatus) {
-            console.error("ERRORE: Elementi Blocco Note non trovati nel DOM.");
-            return; // Interrompe se gli ID non sono presenti
-        }
-        
-        let saveTimeout;
 
-        // 1. Carica la nota iniziale dal server
-        async function caricaNotaIniziale() {
-            try {
-                // USA L'ENDPOINT DEL SERVER PER RECUPERARE LA NOTA
-                const response = await fetch('/api/note');
-                const data = await handleApiResponse(response);
-                if (data && data.nota !== undefined) {
-                    bloccoNoteTextarea.value = data.nota;
-                }
-            } catch (error) {
-                console.error('Errore nel caricamento della nota:', error);
-                bloccoNoteStatus.textContent = "Errore di caricamento.";
-            }
-        }
-
-        // 2. Ascolta ogni modifica nella textarea
-        bloccoNoteTextarea.addEventListener('input', () => {
-            bloccoNoteStatus.textContent = "Salvataggio in corso...";
-            
-            clearTimeout(saveTimeout);
-            
-            saveTimeout = setTimeout(async () => {
-                try {
-                    const notaDaSalvare = bloccoNoteTextarea.value;
-                    // USA L'ENDPOINT DEL SERVER PER SALVARE LA NOTA
-                    const response = await fetch('/api/note', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ nota: notaDaSalvare })
-                    });
-                    
-                    if (!response.ok) throw new Error('Salvataggio fallito');
-
-                    // Messaggio di successo
-                    const oraSalvataggio = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-                    bloccoNoteStatus.textContent = `Salvato alle ${oraSalvataggio}`;
-
-                } catch (error) {
-                    console.error('Errore nel salvataggio della nota:', error);
-                    bloccoNoteStatus.textContent = "Errore di salvataggio.";
-                }
-            }, 1500); // 1.5 secondi di ritardo
-        });
-
-        // 3. Carica la nota quando la funzione viene chiamata
-        caricaNotaIniziale();
-    }
-
-    // *** AVVIA LA FUNZIONALITÀ DEL BLOCCO NOTE ***
-    initBloccoNote();
-</script>
 
 
 
