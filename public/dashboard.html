@@ -32,7 +32,7 @@
             <h2 id="summary-greeting">👋 Caricamento...</h2>
             <div id="summary-aforisma" class="aforisma-widget">
                 <p id="aforisma-frase">“...”</p>
-                
+                <footer id="aforisma-autore"></footer>
             </div>
         </td>
         <td class="weather-cell">
@@ -97,19 +97,31 @@
 				<input type="text" id="new-client-tags" placeholder="Tag (es: VIP, Allergia Tinta)" class="input-field" />
 				<button id="add-new-client-button" class="btn btn-primary">Aggiungi Cliente</button>
 				</div>
-				</div>          
+</div>          
 
 
-
-
+<!-- PANNELLO CLIENTI DA CONTATTARE (ORA COLLASSABILE) -->
+<div class="panel dashboard-panel collapsible-panel closed">
+    <div class="collapsible-header">
+        <h2 class="panel-title">Clienti da Contattare 🔔</h2>
+        <span class="collapsible-arrow">▼</span>
+    </div>
+    <div class="collapsible-content">
+        <p class="panel-subtitle">Tieni d'occhio chi si sta allontanando.</p>
+        <div id="clienti-a-rischio-container" class="lista-clienti-rischio">
+            <p class="loading">Caricamento in corso...</p>
+        </div>
+    </div>
 </div>
+
+        </div>
 
         <!-- === COLONNA CENTRALE === -->
         <div class="dashboard-column">
             <!-- PANNELLO APPUNTAMENTI DI OGGI -->
 			
             <div class="panel dashboard-panel">
-                
+                <h2 class="panel-title">Appuntamenti di Oggi</h2>
                 <ul class="appointments-list" id="lista-appuntamenti">
                     <li class="appointment-item loading">Caricamento in corso...</li>
                 </ul>
@@ -128,22 +140,6 @@
 			</div>
             
             <!-- PANNELLO STRUMENTI E LINK -->
-			
-			<!-- PANNELLO CLIENTI DA CONTATTARE (ORA COLLASSABILE) -->
-<div class="panel dashboard-panel collapsible-panel closed">
-    <div class="collapsible-header">
-        <h2 class="panel-title">Tieni d'occhio i Clienti</h2>
-        <span class="collapsible-arrow">▼</span>
-    </div>
-    <div class="collapsible-content">
-        <div id="clienti-a-rischio-container" class="lista-clienti-rischio">
-            <p class="loading">Caricamento in corso...</p>
-        </div>
-    </div>
-</div>
-			
-			
-			
             <div class="panel dashboard-panel collapsible-panel closed">
     <div class="collapsible-header">
         <h2 class="panel-title">Strumenti</h2>
@@ -164,10 +160,6 @@
         </div>
     </div>
 </div>
-
-
-
-
     </div>
     <!-- ============================================= -->
 	
