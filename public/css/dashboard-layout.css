@@ -1,0 +1,59 @@
+/* ================================ */
+/* Dashboard Layout Pulito e Leggibile */
+/* ================================ */
+
+.dashboard-panel {
+    padding: 12px 15px !important;
+    margin-bottom: 12px !important;
+    background-color: #2c2c2c !important; /* grigio scuro */
+    color: #f5f5f5 !important; /* testo chiaro */
+    border-radius: 6px !important;
+    box-shadow: none !important;
+    transition: background-color 0.2s !important;
+}
+
+/* Layout colonne */
+.dashboard-column {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+}
+
+/* Metriche */
+.metric-value {
+    font-size: 1.4rem !important;
+    font-weight: 600 !important;
+    color: #f5f5f5 !important;
+}
+
+.metric-label {
+    font-size: 0.85rem !important;
+    color: #ddd !important;
+}
+
+/* Widget cliccabili */
+.metric-widget.clickable {
+    transition: all 0.2s !important;
+    cursor: pointer !important;
+}
+
+.metric-widget.clickable:hover {
+    transform: scale(1.02) !important;
+    background-color: #444 !important; /* contrasto delicato */
+}
+
+/* Hover generale pannelli */
+.dashboard-panel:hover {
+    background-color: #383838 !important;
+}
+
+/* Colori icone metriche */
+#widget-sospesi .metric-icon { color: #e74c3c !important; } /* rosso */
+#widget-buoni .metric-icon { color: #f1c40f !important; } /* giallo oro */
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .dashboard-layout-grid-3-col {
+        flex-direction: column !important;
+    }
+}
