@@ -1,0 +1,189 @@
+/* ====================================== */
+/* Responsive CSS "Google Calendar Style"*/
+/* Dashboard + Calendario                */
+/* ====================================== */
+
+/* ====================================== */
+/* ===== DASHBOARD ====================== */
+/* ====================================== */
+
+/* Container principale */
+.dashboard-main {
+    padding: 8px;
+}
+
+/* Tabelle header */
+.header-table {
+    width: 100%;
+}
+
+/* Logo ridotto su mobile */
+.page-logo {
+    max-width: 100px;
+    height: auto;
+}
+
+/* Widget metriche più compatti */
+.metric-widget {
+    padding: 8px;
+    margin-bottom: 8px;
+    font-size: 0.85em;
+}
+
+/* Input campi e pulsanti */
+.input-field {
+    width: 100% !important;
+    margin-bottom: 8px;
+    font-size: 0.85em;
+}
+
+.btn {
+    width: 100%;
+    margin-bottom: 5px;
+    font-size: 0.85em;
+}
+
+/* Collapsible panels */
+.collapsible-panel .collapsible-header {
+    cursor: pointer;
+}
+.collapsible-panel.closed .collapsible-content {
+    display: none;
+}
+
+/* Sidebar e hamburger */
+.sidebar {
+    width: 220px;
+    font-size: 0.9em;
+}
+.hamburger-btn {
+    display: none;
+}
+
+/* ====================================== */
+/* ===== FULLCALENDAR =================== */
+/* ====================================== */
+
+/* Container calendario */
+#calendar {
+    max-width: 100% !important;
+    margin: 5px auto !important;
+    padding: 0 2px;
+}
+
+/* Altezza fasce orarie più compatta */
+.fc-timegrid-slot {
+    height: 1.8em !important;
+}
+
+/* Testo eventi più compatto, a capo */
+.fc-event {
+    font-size: 0.75em !important;
+    padding: 1px 2px !important;
+}
+.fc-event-title {
+    white-space: normal !important;
+}
+
+/* Toolbar FullCalendar wrap compatto */
+.fc-toolbar-chunk {
+    flex-wrap: wrap !important;
+}
+.fc-toolbar-title {
+    font-size: 0.9em !important;
+    text-align: center;
+    margin-bottom: 3px;
+}
+.fc-button {
+    padding: 0.2rem 0.4rem !important;
+    font-size: 0.7rem !important;
+    margin: 1px !important;
+}
+
+/* Modali appuntamenti più leggere */
+#addEventModal .form-control,
+#editEventModal .form-control {
+    font-size: 0.8em;
+}
+#addEventModal .form-label,
+#editEventModal .form-label {
+    font-size: 0.8em;
+}
+
+/* ====================================== */
+/* ===== MEDIA QUERY MOBILE ============= */
+/* ====================================== */
+
+@media (max-width: 992px) {
+
+    /* Layout dashboard a colonna singola */
+    .dashboard-layout-grid-3-col {
+        display: block;
+    }
+    .dashboard-column {
+        width: 100% !important;
+        margin-bottom: 12px;
+    }
+
+    /* Sidebar minimale */
+    .sidebar {
+        position: fixed;
+        left: -240px;
+        top: 0;
+        height: 100%;
+        z-index: 9999;
+        transition: left 0.25s ease;
+        font-size: 0.85em;
+    }
+    .sidebar.active {
+        left: 0;
+    }
+
+    .hamburger-btn {
+        display: block;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 10000;
+        font-size: 1.2em;
+    }
+
+    .container {
+        padding: 5px;
+        margin-left: 0 !important;
+    }
+
+    /* FullCalendar mobile style */
+    #calendar {
+        padding: 0 1px;
+    }
+    .fc-timegrid-axis,
+    .fc-col-header-cell-cushion {
+        font-size: 0.65em !important;
+    }
+    .fc-event-main {
+        padding: 0 2px !important;
+    }
+
+    /* Metriche e pulsanti più piccoli */
+    .metric-widget {
+        font-size: 0.8em;
+        padding: 5px;
+    }
+    .btn {
+        font-size: 0.8em;
+        padding: 4px;
+    }
+
+    /* Toolbar più compatta e a capo */
+    .fc-toolbar-chunk {
+        display: flex;
+        flex-wrap: wrap !important;
+        justify-content: center;
+    }
+    .fc-toolbar-title {
+        flex: 0 0 100%;
+        font-size: 0.85em !important;
+        margin-bottom: 3px;
+    }
+}
