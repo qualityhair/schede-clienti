@@ -765,7 +765,7 @@ avatarContainer.appendChild(initialsDiv);
 function displayTrattamenti(trattamenti) {
     listaTrattamentiBody.innerHTML = '';
     if (!trattamenti || trattamenti.length === 0) {
-        listaTrattamentiBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nessun trattamento registrato per questo periodo.</td></tr>';
+        listaTrattamentiBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Nessun trattamento registrato per questo periodo.</td></tr>';
         return;
     }
     
@@ -774,9 +774,16 @@ function displayTrattamenti(trattamenti) {
         
         let serviziNomi = 'N/A';
         let prezzoTotale = 0;
+        let prezziUnitari = 'N/A';
+        
         if (trattamento.servizi && trattamento.servizi.length > 0) {
             serviziNomi = trattamento.servizi.map(s => s.servizio).join(', ');
             prezzoTotale = trattamento.servizi.reduce((sum, s) => sum + parseFloat(s.prezzo || 0), 0);
+
+            // Prezzi unitari
+            prezziUnitari = trattamento.servizi
+                .map(s => `${s.servizio}: € ${parseFloat(s.prezzo || 0).toFixed(2)}`)
+                .join('<br>');
         } else {
             serviziNomi = trattamento.tipo_trattamento || 'N/D';
             prezzoTotale = parseFloat(trattamento.prezzo || 0);
@@ -785,15 +792,32 @@ function displayTrattamenti(trattamenti) {
         row.insertCell().textContent = serviziNomi;
         row.insertCell().textContent = trattamento.descrizione || ''; 
         row.insertCell().textContent = new Date(trattamento.data_trattamento).toLocaleDateString('it-IT');
-        
+
+        // Prezzo unitario
+        const prezzoUnitarioCell = row.insertCell();
+        prezzoUnitarioCell.innerHTML = prezziUnitari;
+        prezzoUnitarioCell.style.whiteSpace = 'pre-line';
+        prezzoUnitarioCell.style.fontSize = '0.85em';
+        prezzoUnitarioCell.style.paddingTop = '4px';
+        prezzoUnitarioCell.style.paddingBottom = '4px';
+
+        // Prezzo Totale con colore in base a pagato
         const prezzoTotaleCell = row.insertCell();
         prezzoTotaleCell.textContent = `€ ${prezzoTotale.toFixed(2)}`;
+        prezzoTotaleCell.style.fontWeight = 'bold';
+        if (trattamento.pagato) {
+            prezzoTotaleCell.style.color = '#28a745'; // verde
+        } else {
+            prezzoTotaleCell.style.color = '#ff4d4d'; // rosso
+        }
+
         if (trattamento.servizi && trattamento.servizi.length > 1) {
             const tooltipText = trattamento.servizi.map(s => `${s.servizio}: € ${parseFloat(s.prezzo || 0).toFixed(2)}`).join('\n');
             prezzoTotaleCell.title = tooltipText;
             prezzoTotaleCell.style.cursor = 'help';
         }
         
+        // Pagato checkbox
         const pagatoCell = row.insertCell();
         pagatoCell.style.textAlign = 'center';
         const pagatoCheckbox = document.createElement('input');
@@ -801,32 +825,32 @@ function displayTrattamenti(trattamenti) {
         pagatoCheckbox.checked = trattamento.pagato;
         pagatoCheckbox.addEventListener('change', () => {
             updateStatoPagamentoTrattamento(trattamento.id, pagatoCheckbox.checked);
+            // Aggiorna il colore del totale quando si cambia lo stato
+            prezzoTotaleCell.style.color = pagatoCheckbox.checked ? '#28a745' : '#ff4d4d';
         });
         pagatoCell.appendChild(pagatoCheckbox);
         
         row.insertCell().textContent = trattamento.note || "N/A";
         
+        // Azioni
         const actionCell = row.insertCell();
-        actionCell.style.whiteSpace = 'nowrap'; // Impedisce ai pulsanti di andare a capo
+        actionCell.style.whiteSpace = 'nowrap';
 
-        // --- PULSANTE COPIA (NUOVO) ---
+        // Pulsante Copia
         const copyButton = document.createElement("button");
         copyButton.textContent = "🔁 Copia";
-        copyButton.className = "btn btn-secondary"; // Un colore neutro
+        copyButton.className = "btn btn-secondary";
         copyButton.title = "Copia questo trattamento alla data di oggi";
         copyButton.style.marginRight = "5px";
-
         copyButton.onclick = async () => {
             if (!confirm("Sei sicuro di voler duplicare questo trattamento alla data di oggi?")) return;
 
-            // Prepara il nuovo oggetto trattamento
             const nuovoTrattamento = {
                 cliente_id: trattamento.cliente_id,
-                // Imposta la data di oggi in formato YYYY-MM-DD
                 data_trattamento: new Date().toISOString().split('T')[0],
                 descrizione: trattamento.descrizione,
                 servizi: trattamento.servizi,
-                pagato: false, // Un nuovo trattamento non è mai pagato di default
+                pagato: false,
                 note: trattamento.note 
             };
 
@@ -839,7 +863,7 @@ function displayTrattamenti(trattamenti) {
                 if (!response.ok) throw new Error('Errore durante la copia.');
                 
                 showMessage('Trattamento copiato con successo!', 'success');
-                await loadClientData(currentClientId); // Ricarica tutto per vedere la nuova riga
+                await loadClientData(currentClientId);
 
             } catch (error) {
                 console.error("Errore durante la copia del trattamento:", error);
@@ -848,13 +872,14 @@ function displayTrattamenti(trattamenti) {
         };
         actionCell.appendChild(copyButton);
 
-        // Pulsanti esistenti
+        // Pulsante Modifica
         const editButton = document.createElement("button");
         editButton.textContent = "✏️ Modifica";
         editButton.className = "btn btn-edit";
         editButton.onclick = () => { window.location.href = `/modifica-trattamento.html?id=${trattamento.id}`; };
         actionCell.appendChild(editButton);
         
+        // Pulsante Elimina
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "🗑️ Elimina";
         deleteButton.className = "btn btn-delete";
@@ -863,6 +888,7 @@ function displayTrattamenti(trattamenti) {
         actionCell.appendChild(deleteButton);
     });
 }
+
 
     // --- SOSTITUISCI LA TUA FUNZIONE displayAcquisti CON QUESTA ---
 function displayAcquisti(acquistiString, anno) {

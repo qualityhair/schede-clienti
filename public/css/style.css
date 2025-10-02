@@ -3949,6 +3949,88 @@ body.iframe-mode .page-title {
     z-index: 9999; /* Z-index altissimo per sicurezza */
 }
 
+/* =========================
+   Effetto Zebra sulle righe
+   ========================= */
+.trattamenti.data-table tbody tr:nth-child(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Evidenzia righe al passaggio del mouse */
+.trattamenti.data-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    transition: background-color 0.2s ease;
+}
+
+/* =========================
+   Prezzo unitario (quarta colonna)
+   ========================= */
+.trattamenti.data-table td:nth-child(4),
+.trattamenti.data-table th:nth-child(4) {
+    font-size: 0.85em; 
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+
+/* Hover Prezzi Unitari */
+.trattamenti.data-table td:nth-child(4):hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    cursor: default;
+    transition: background-color 0.2s ease;
+}
+
+/* =========================
+   Prezzo Totale (quinta colonna)
+   ========================= */
+.trattamenti.data-table tfoot td:nth-child(5),
+.trattamenti.data-table tbody td:nth-child(5) {
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+/* Hover Prezzo Totale con piccolo ingrandimento */
+.trattamenti.data-table td:nth-child(5):hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    cursor: default;
+    transform: scale(1.03);
+}
+
+/* =========================
+   Badge “Pagato/Non Pagato”
+   ========================= */
+.trattamenti.data-table td.pagato-badge {
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-align: center;
+    color: #fff;
+}
+
+.trattamenti.data-table td.pagato-badge.pagato {
+    background-color: #28a745; /* verde */
+}
+
+.trattamenti.data-table td.pagato-badge.non-pagato {
+    background-color: #ff4d4d; /* rosso */
+}
+
+/* =========================
+   Pulsanti più morbidi
+   ========================= */
+.trattamenti.data-table button {
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.trattamenti.data-table button:hover {
+    transform: scale(1.05);
+    cursor: pointer;
+}
+
+
+
+
+
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */
