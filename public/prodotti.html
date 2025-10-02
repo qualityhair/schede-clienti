@@ -5,59 +5,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestione Prodotti</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="./css/scheda-cliente-sidebar.css" /> 
+    <style>
+        /* Stili aggiuntivi per il layout affiancato */
+        .main-content {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        
+        .form-container {
+            flex: 0 0 350px;
+            padding: 0;
+        }
+        
+        .table-container {
+            flex: 1;
+            min-width: 0; /* Per evitare problemi di overflow */
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .form-container {
+                flex: none;
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div id="navbar"></div>
+    <!-- LA SIDEBAR HA SOSTITUITO <div id="navbar"></div> -->
+    <div id="sidebar" class="sidebar">
+        <div class="navbar-brand">
+            <img src="/img/logo1.jpg" alt="Logo Quality Hair" id="navbar-logo">
+        </div>
+        <ul class="navbar-links">
+            <li><a href="/dashboard.html">Home</a></li>
+            <li><a href="/calendario.html">Agenda Settimanale</a></li>
+            <li><a href="/catalogo.html">Catalogo Foto</a></li>
+            <li><a href="/lista-clienti.html">Lista Clienti</a></li>
+            <li class="navbar-search-item">
+                <input type="text" id="navbar-search-input" placeholder="Cerca Cliente..." class="input-field" />
+                <button id="navbar-search-button" class="btn btn-primary">Cerca</button>
+            </li>
+            <li><a href="/logout" style="color: yellow;">Esci</a></li>
+        </ul>
+    </div>
 
+    <button id="open-sidebar-btn" class="hamburger-btn">☰</button>
     <main class="container">
         <h1 class="page-title">Gestione Catalogo Prodotti</h1>
 
-        <!-- Pannello per Aggiungere/Modificare un Prodotto -->
-        <div class="panel">
-            <h2 id="form-title" class="panel-title">Aggiungi Nuovo Prodotto</h2>
-            <form id="prodotto-form" class="form-grid">
-                <input type="hidden" id="prodotto-id">
-                <div class="form-group">
-                    <label for="prodotto-nome">Nome Prodotto:</label>
-                    <input type="text" id="prodotto-nome" class="input-field" required>
+        <div class="main-content">
+            <!-- Pannello per Aggiungere/Modificare un Prodotto - ORA A SINISTRA -->
+            <div class="form-container">
+                <div class="panel">
+                    <h2 id="form-title" class="panel-title">Aggiungi Nuovo Prodotto</h2>
+                    <form id="prodotto-form" class="form-grid">
+                        <input type="hidden" id="prodotto-id">
+                        <div class="form-group">
+                            <label for="prodotto-nome">Nome Prodotto:</label>
+                            <input type="text" id="prodotto-nome" class="input-field" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="prodotto-prezzo">Prezzo Vendita (€):</label>
+                            <input type="number" id="prodotto-prezzo" class="input-field" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="prodotto-categoria">Categoria (es. Shampoo, Styling):</label>
+                            <input type="text" id="prodotto-categoria" class="input-field">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Salva Prodotto</button>
+                            <button type="button" id="annulla-modifica-btn" class="btn btn-secondary" style="display: none;">Annulla Modifica</button>
+                        </div>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="prodotto-prezzo">Prezzo Vendita (€):</label>
-                    <input type="number" id="prodotto-prezzo" class="input-field" step="0.01" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="prodotto-categoria">Categoria (es. Shampoo, Styling):</label>
-                    <input type="text" id="prodotto-categoria" class="input-field">
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Salva Prodotto</button>
-                    <button type="button" id="annulla-modifica-btn" class="btn btn-secondary" style="display: none;">Annulla Modifica</button>
-                </div>
-            </form>
-        </div>
+            </div>
 
-        <!-- Tabella con la Lista dei Prodotti -->
-        <div class="panel">
-            <h2 class="panel-title">Prodotti Attualmente in Catalogo</h2>
-            <div class="table-responsive">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Nome Prodotto</th>
-                            <th>Categoria</th>
-                            <th>Prezzo Vendita</th>
-                            <th>Azioni</th>
-                        </tr>
-                    </thead>
-                    <tbody id="lista-prodotti">
-                        <!-- Il JavaScript popolerà questa tabella -->
-                    </tbody>
-                </table>
+            <!-- Tabella con la Lista dei Prodotti - ORA A DESTRA -->
+            <div class="table-container">
+                <div class="panel">
+                    <h2 class="panel-title">Prodotti Attualmente in Catalogo</h2>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nome Prodotto</th>
+                                    <th>Categoria</th>
+                                    <th>Prezzo Vendita</th>
+                                    <th>Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-prodotti">
+                                <!-- Il JavaScript popolerà questa tabella -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
 
-    <script src="/js/navbar-loader.js"></script>
+    <script src="/js/scheda-cliente-navbar.js"></script> 
     <script src="/js/prodotti.js"></script> <!-- Nuovo file JS dedicato -->
 </body>
 </html>
