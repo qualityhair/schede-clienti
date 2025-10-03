@@ -90,30 +90,84 @@ async function fetchAndDisplaySummary() {
             weatherIcon.src = `https://openweathermap.org/img/wn/${data.meteo.icona}.png`;
             weatherIcon.style.display = 'inline-block';
         }
+        
         // === LOGICA PER IL SALUTO DINAMICO ===
-const oraCorrente = new Date().getHours();
-let saluto;
-
-if (oraCorrente < 12) {
-    saluto = "☕ Buongiorno,";
-} else if (oraCorrente < 17) {
-    saluto = "🪒 Buon Pomeriggio, ";
-} else {
-    saluto = "✂️ Buonasera, ";
-}
-
-summaryGreeting.textContent = saluto;
-// ===================================
+        const oraCorrente = new Date().getHours();
+        let saluto;
+        if (oraCorrente < 12) {
+            saluto = "☕ Buongiorno,";
+        } else if (oraCorrente < 17) {
+            saluto = "🪒 Buon Pomeriggio, ";
+        } else {
+            saluto = "✂️ Buonasera, ";
+        }
+        summaryGreeting.textContent = saluto;
 
         // 2. Popola Aforisma
         if (data.aforisma) {
-            aforismaFrase.textContent = `“${data.aforisma.frase}”`;
+            aforismaFrase.textContent = `"${data.aforisma.frase}"`;
             aforismaAutore.textContent = `– ${data.aforisma.autore}`;
         }
 
         // 3. Popola Metriche e prepara le modali
         sospesiCount.textContent = data.clientiSospesi.count;
         buoniCount.textContent = data.buoniAttivi.count;
+
+        // === NUOVA PARTE: WIDGET SCORTE BASSE ===
+        // === NUOVA PARTE: WIDGET SCORTE BASSE CON COLORI DI GRAVITÀ ===
+const scorteCount = document.getElementById('scorte-count');
+const widgetScorte = document.getElementById('widget-scorte');
+const scorteIcon = widgetScorte ? widgetScorte.querySelector('.metric-icon') : null;
+
+if (scorteCount && widgetScorte && scorteIcon) {
+    // Carica i prodotti con scorte basse
+    const prodottiScorteBasse = await caricaProdottiScorteBasse();
+    scorteCount.textContent = prodottiScorteBasse.length;
+    
+    // Conta i prodotti per gravità
+    const prodottiEsauriti = prodottiScorteBasse.filter(p => p.quantita === 0).length;
+    const prodottiMoltoBassi = prodottiScorteBasse.filter(p => p.quantita === 1).length;
+    
+    // Applica i colori in base alla gravità
+    if (prodottiEsauriti > 0) {
+        // 🔴 ROSSO - Prodotti esauriti (quantità = 0)
+        scorteCount.style.color = '#dc3545';
+        scorteIcon.textContent = '🚨'; // Icona di emergenza
+        widgetScorte.style.border = '2px solid #dc3545';
+        widgetScorte.style.background = 'rgba(220, 53, 69, 0.15)';
+    } else if (prodottiMoltoBassi > 0) {
+        // 🟡 GIALLO - Prodotti molto bassi (quantità = 1)
+        scorteCount.style.color = '#ffc107';
+        scorteIcon.textContent = '⚠️'; // Icona di avviso
+        widgetScorte.style.border = '2px solid #ffc107';
+        widgetScorte.style.background = 'rgba(255, 193, 7, 0.15)';
+    } else if (prodottiScorteBasse.length > 0) {
+        // 🟢 VERDE - Prodotti bassi (quantità = 2+)
+        scorteCount.style.color = '#28a745';
+        scorteIcon.textContent = '📦'; // Icona normale
+        widgetScorte.style.border = '2px solid #28a745';
+        widgetScorte.style.background = 'rgba(40, 167, 69, 0.15)';
+    } else {
+        // 🔵 BLU - Tutto ok
+        scorteCount.style.color = '#007bff';
+        scorteIcon.textContent = '📦'; // Icona normale
+        widgetScorte.style.border = '1px solid #dee2e6';
+        widgetScorte.style.background = '';
+    }
+    
+    // Aggiungi tooltip con i dettagli
+    if (prodottiScorteBasse.length > 0) {
+        const tooltipText = prodottiScorteBasse.map(p => 
+            `${p.nome}: ${p.quantita} rim.`
+        ).join('\n');
+        widgetScorte.title = tooltipText;
+    }
+    
+    // Click sul widget: apre la pagina prodotti
+    widgetScorte.onclick = () => {
+        window.location.href = '/prodotti.html';
+    };
+}
 
         widgetSospesi.onclick = () => {
             sospesiLista.innerHTML = ''; // Pulisce la tabella
@@ -164,7 +218,6 @@ buoniLista.appendChild(item);
 
     } catch (error) {
         console.error("Errore nel caricamento del riepilogo:", error);
-        // Puoi aggiungere un messaggio di errore nel pannello se vuoi
     }
 }
 
@@ -802,5 +855,26 @@ fetchAndDisplayClientiARischio();
         }
     });
 
+
+// === NUOVA FUNZIONE PER CARICARE I PRODOTTI CON SCORTE BASSE ===
+async function caricaProdottiScorteBasse() {
+    try {
+        const response = await fetch('/api/prodotti');
+        const prodotti = await handleApiResponse(response);
+        if (!prodotti) return [];
+
+        // Filtra i prodotti con quantità inferiore a 2
+        const scorteBasse = prodotti.filter(prodotto => 
+            prodotto.quantita !== null && prodotto.quantita < 2
+        );
+        
+        console.log(`📦 Prodotti con scorte basse: ${scorteBasse.length}`);
+        return scorteBasse;
+        
+    } catch (error) {
+        console.error('Errore nel caricamento prodotti scorte basse:', error);
+        return [];
+    }
+}
 
 });

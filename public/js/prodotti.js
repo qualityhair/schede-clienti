@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const prodottoNomeInput = document.getElementById('prodotto-nome');
     const prodottoPrezzoInput = document.getElementById('prodotto-prezzo');
     const prodottoCategoriaInput = document.getElementById('prodotto-categoria');
+    const prodottoQuantitaInput = document.getElementById('prodotto-quantita'); // NUOVO
     const annullaModificaBtn = document.getElementById('annulla-modifica-btn');
     const listaProdottiBody = document.getElementById('lista-prodotti');
 
@@ -22,23 +23,29 @@ document.addEventListener('DOMContentLoaded', () => {
             renderListaProdotti();
         } catch (error) {
             console.error(error);
-            listaProdottiBody.innerHTML = `<tr><td colspan="4" class="text-center">Impossibile caricare i prodotti.</td></tr>`;
+            listaProdottiBody.innerHTML = `<tr><td colspan="5" class="text-center">Impossibile caricare i prodotti.</td></tr>`;
         }
     }
 
-    // "Disegna" la tabella dei prodotti
+    // "Disegna" la tabella dei prodotti - AGGIUNGI COLONNA QUANTITÀ
     function renderListaProdotti() {
         listaProdottiBody.innerHTML = '';
         if (tuttiProdotti.length === 0) {
-            listaProdottiBody.innerHTML = `<tr><td colspan="4" class="text-center">Nessun prodotto in catalogo.</td></tr>`;
+            listaProdottiBody.innerHTML = `<tr><td colspan="5" class="text-center">Nessun prodotto in catalogo.</td></tr>`;
             return;
         }
         tuttiProdotti.forEach(prodotto => {
             const row = document.createElement('tr');
+            
+            // Aggiungi logica colore per scorte basse
+            const quantitaCellClass = prodotto.quantita < 2 ? 'scorta-bassa' : '';
+            const quantitaWarning = prodotto.quantita < 2 ? ' ⚠️' : '';
+            
             row.innerHTML = `
                 <td>${prodotto.nome}</td>
                 <td>${prodotto.categoria || 'N/A'}</td>
                 <td>€ ${parseFloat(prodotto.prezzo_vendita).toFixed(2)}</td>
+                <td class="${quantitaCellClass}">${prodotto.quantita}${quantitaWarning}</td>
                 <td>
                     <button class="btn btn-sm btn-secondary btn-edit" data-id="${prodotto.id}">Modifica</button>
                     <button class="btn btn-sm btn-danger btn-delete" data-id="${prodotto.id}">Elimina</button>
@@ -48,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Gestisce il salvataggio (creazione o modifica)
+    // Gestisce il salvataggio (creazione o modifica) - AGGIUNGI QUANTITÀ
     async function handleFormSubmit(event) {
         event.preventDefault();
         const id = prodottoIdInput.value;
@@ -57,7 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const prodottoData = {
             nome: prodottoNomeInput.value.trim(),
             prezzo_vendita: parseFloat(prodottoPrezzoInput.value) || 0,
-            categoria: prodottoCategoriaInput.value.trim()
+            categoria: prodottoCategoriaInput.value.trim(),
+            quantita: parseInt(prodottoQuantitaInput.value) || 0 // NUOVO CAMPO
         };
 
         if (!prodottoData.nome) {
@@ -89,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Prepara il form per la modifica di un prodotto
+    // Prepara il form per la modifica di un prodotto - AGGIUNGI QUANTITÀ
     function preparaModifica(id) {
         const prodotto = tuttiProdotti.find(p => p.id == id);
         if (!prodotto) return;
@@ -99,8 +107,9 @@ document.addEventListener('DOMContentLoaded', () => {
         prodottoNomeInput.value = prodotto.nome;
         prodottoPrezzoInput.value = prodotto.prezzo_vendita;
         prodottoCategoriaInput.value = prodotto.categoria || '';
+        prodottoQuantitaInput.value = prodotto.quantita || 0; // NUOVO
         annullaModificaBtn.style.display = 'inline-block';
-        window.scrollTo(0, 0); // Scorre la pagina in cima per vedere il form
+        window.scrollTo(0, 0);
     }
 
     // Disattiva un prodotto
@@ -123,6 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
         prodottoIdInput.value = '';
         formTitle.textContent = 'Aggiungi Nuovo Prodotto';
         annullaModificaBtn.style.display = 'none';
+        prodottoQuantitaInput.value = '0'; // NUOVO
     }
 
     // --- EVENT LISTENERS ---

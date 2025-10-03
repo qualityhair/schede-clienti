@@ -2328,14 +2328,14 @@ app.put("/api/clienti/:id/wishlist", ensureAuthenticated, async (req, res) => {
 
 
 
+
 // =======================================================
-// === API PER LA GESTIONE PRODOTTI (NUOVA)            ===
+// === API PER LA GESTIONE PRODOTTI (AGGIORNATE)       ===
 // =======================================================
 
 // 1. API per RECUPERARE tutti i prodotti (filtrando per attivi)
 app.get("/api/prodotti", ensureAuthenticated, async (req, res) => {
     try {
-        // Seleziona solo i prodotti attivi per i menu a tendina
         const query = "SELECT * FROM prodotti WHERE attivo = TRUE ORDER BY nome ASC";
         const result = await db.query(query);
         res.json(result.rows);
@@ -2345,9 +2345,9 @@ app.get("/api/prodotti", ensureAuthenticated, async (req, res) => {
     }
 });
 
-// 2. API per SALVARE un nuovo prodotto
+// 2. API per SALVARE un nuovo prodotto - AGGIUNTA QUANTITÀ
 app.post("/api/prodotti", ensureAuthenticated, async (req, res) => {
-    const { nome, prezzo_vendita, categoria } = req.body;
+    const { nome, prezzo_vendita, categoria, quantita } = req.body;
 
     if (!nome) {
         return res.status(400).json({ error: "Il nome del prodotto è obbligatorio." });
@@ -2355,14 +2355,13 @@ app.post("/api/prodotti", ensureAuthenticated, async (req, res) => {
 
     try {
         const query = `
-            INSERT INTO prodotti (nome, prezzo_vendita, categoria) 
-            VALUES ($1, $2, $3) 
+            INSERT INTO produtos (nome, prezzo_vendita, categoria, quantita) 
+            VALUES ($1, $2, $3, $4) 
             RETURNING *;
         `;
-        const result = await db.query(query, [nome, prezzo_vendita || 0, categoria]);
+        const result = await db.query(query, [nome, prezzo_vendita || 0, categoria, quantita || 0]);
         res.status(201).json(result.rows[0]);
     } catch (err) {
-        // Errore '23505' è il codice per violazione del vincolo UNIQUE (prodotto già esistente)
         if (err.code === '23505') {
             return res.status(409).json({ error: "Un prodotto con questo nome esiste già." });
         }
@@ -2371,10 +2370,10 @@ app.post("/api/prodotti", ensureAuthenticated, async (req, res) => {
     }
 });
 
-// 3. API per MODIFICARE un prodotto esistente
+// 3. API per MODIFICARE un prodotto esistente - AGGIUNTA QUANTITÀ
 app.put("/api/prodotti/:id", ensureAuthenticated, async (req, res) => {
     const { id } = req.params;
-    const { nome, prezzo_vendita, categoria } = req.body;
+    const { nome, prezzo_vendita, categoria, quantita } = req.body;
 
     if (!nome) {
         return res.status(400).json({ error: "Il nome del prodotto è obbligatorio." });
@@ -2383,11 +2382,11 @@ app.put("/api/prodotti/:id", ensureAuthenticated, async (req, res) => {
     try {
         const query = `
             UPDATE prodotti 
-            SET nome = $1, prezzo_vendita = $2, categoria = $3 
-            WHERE id = $4
+            SET nome = $1, prezzo_vendita = $2, categoria = $3, quantita = $4
+            WHERE id = $5
             RETURNING *;
         `;
-        const result = await db.query(query, [nome, prezzo_vendita || 0, categoria, id]);
+        const result = await db.query(query, [nome, prezzo_vendita || 0, categoria, quantita || 0, id]);
         if (result.rowCount === 0) {
             return res.status(404).json({ error: "Prodotto non trovato." });
         }
@@ -2401,12 +2400,10 @@ app.put("/api/prodotti/:id", ensureAuthenticated, async (req, res) => {
     }
 });
 
-
-// 4. API per ELIMINARE (disattivare) un prodotto
+// 4. API per ELIMINARE (disattivare) un prodotto - RIMANE UGUALE
 app.delete("/api/prodotti/:id", ensureAuthenticated, async (req, res) => {
     const { id } = req.params;
     try {
-        // Non cancelliamo il record, lo impostiamo come non attivo
         const query = "UPDATE prodotti SET attivo = FALSE WHERE id = $1";
         const result = await db.query(query, [id]);
         if (result.rowCount === 0) {
@@ -2415,6 +2412,35 @@ app.delete("/api/prodotti/:id", ensureAuthenticated, async (req, res) => {
         res.status(200).json({ message: "Prodotto disattivato con successo." });
     } catch (err) {
         console.error(`Errore disattivazione prodotto ${id}:`, err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// 5. NUOVA API per SCALARE la quantità di un prodotto
+app.patch("/api/prodotti/:id/scala-quantita", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    const { quantita } = req.body;
+
+    if (!quantita || quantita <= 0) {
+        return res.status(400).json({ error: "Quantità non valida." });
+    }
+
+    try {
+        const query = `
+            UPDATE prodotti 
+            SET quantita = quantita - $1 
+            WHERE id = $2 AND quantita >= $1
+            RETURNING *;
+        `;
+        const result = await db.query(query, [quantita, id]);
+        
+        if (result.rowCount === 0) {
+            return res.status(400).json({ error: "Quantità insufficiente o prodotto non trovato." });
+        }
+        
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(`Errore scalatura quantità prodotto ${id}:`, err);
         res.status(500).json({ error: "Errore del server" });
     }
 });

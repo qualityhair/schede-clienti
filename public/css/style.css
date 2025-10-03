@@ -4026,7 +4026,11 @@ body.iframe-mode .page-title {
     cursor: pointer;
 }
 
-
+.scorta-bassa {
+    background-color: #fff3cd !important;
+    color: #856404 !important;
+    font-weight: bold;
+}
 
 
 

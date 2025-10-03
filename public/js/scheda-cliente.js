@@ -2020,6 +2020,7 @@ async function updateStatoPagamentoAcquisto(acquistoIndex, nuovoStato) {
 
 
 // --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
+// --- SOSTITUISCI QUESTA INTERA FUNZIONE ---
 async function handleAddAcquisto(event) {
     event.preventDefault();
     
@@ -2045,6 +2046,10 @@ async function handleAddAcquisto(event) {
     const nuovoAcquisto = { prodotto, data, prezzo_unitario, quantita, pagato, note };
     
     try {
+        // 1. PRIMA scala la quantità dal prodotto
+        await scalareQuantitaProdotto(prodotto, quantita);
+        
+        // 2. POI salva l'acquisto (come prima)
         let storicoAcquisti = [];
         if (currentClienteData && currentClienteData.storico_acquisti) {
             try {
@@ -2065,7 +2070,7 @@ async function handleAddAcquisto(event) {
             throw new Error(dataResponse.error || "Errore durante l'aggiunta dell'acquisto.");
         }
         
-        showMessage("Acquisto aggiunto!", 'success');
+        showMessage("Acquisto aggiunto e quantità scalata!", 'success');
         closeModal(modalAggiungiAcquisto, formAggiungiAcquisto);
         await loadClientData(currentClientId);
 
@@ -3264,7 +3269,64 @@ document.getElementById("modal-add-client-button").addEventListener("click", () 
     .catch(err => console.error(err));
 });
 
+// --- AGGIUNGI QUESTE NUOVE FUNZIONI ---
 
+// Funzione per scalare la quantità
+async function scalareQuantitaProdotto(nomeProdotto, quantitaVenduta) {
+    try {
+        // Trova il prodotto nel catalogo
+        const prodotto = catalogoProdotti.find(p => p.nome === nomeProdotto);
+        if (!prodotto) {
+            throw new Error(`Prodotto "${nomeProdotto}" non trovato nel catalogo`);
+        }
+        
+        // Scala la quantità chiamando la nuova API
+        const response = await fetch(`/api/prodotti/${prodotto.id}/scala-quantita`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quantita: quantitaVenduta })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Errore nella scalatura delle quantità');
+        }
+        
+        const prodottoAggiornato = await response.json();
+        console.log(`Scalate ${quantitaVenduta} unità di ${nomeProdotto}. Rimaste: ${prodottoAggiornato.quantita}`);
+        
+        // Aggiorna il catalogo locale
+        prodotto.quantita = prodottoAggiornato.quantita;
+        
+        // Controlla se le scorte sono basse
+        if (prodottoAggiornato.quantita < 2) {
+            mostraAvvisoScorteBasse(prodottoAggiornato);
+        }
+        
+    } catch (error) {
+        console.error("Errore nella scalatura quantità:", error);
+        throw error; // Rilancia l'errore per gestirlo nella funzione chiamante
+    }
+}
+
+// Funzione per mostrare avviso scorte basse
+function mostraAvvisoScorteBasse(prodotto) {
+    const avviso = document.createElement('div');
+    avviso.className = 'avviso-scorta-bassa';
+    avviso.innerHTML = `
+        ⚠️ <strong>Scorta Bassa!</strong> 
+        ${prodotto.nome} - Solo ${prodotto.quantita} unità rimaste
+    `;
+    
+    document.body.appendChild(avviso);
+    
+    // Rimuovi l'avviso dopo 5 secondi
+    setTimeout(() => {
+        if (avviso.parentNode) {
+            avviso.remove();
+        }
+    }, 5000);
+}
 
 
     // --- 7. AVVIO ---
