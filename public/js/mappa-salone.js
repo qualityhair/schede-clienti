@@ -28,6 +28,124 @@ const ICONS = {
     'p': 'fas fa-wind'
 };
 
+
+// === FUNZIONE 1: Genera Timeline Visiva ===
+function generaTimelineCliente(app, workflow) {
+    if (!workflow) return '';
+    
+    const inizio = new Date(app.start_time);
+    const oraAttuale = new Date();
+    const tempoTrascorsoMs = oraAttuale - inizio;
+    
+    let tempoCumulativo = 0;
+    let timelineHtml = '<div class="cliente-timeline">';
+    
+    workflow.forEach((step, index) => {
+        const durataStepMs = step.durata * 60 * 1000;
+        const inizioStep = tempoCumulativo;
+        const fineStep = tempoCumulativo + durataStepMs;
+        
+        let stato = '';
+        let icona = '';
+        let tempoInfo = '';
+        
+        if (tempoTrascorsoMs >= fineStep) {
+            stato = 'completato';
+            icona = '✅';
+        } else if (tempoTrascorsoMs >= inizioStep && tempoTrascorsoMs < fineStep) {
+            stato = 'in-corso';
+            icona = '🟡';
+            const minutiRimanenti = Math.ceil((fineStep - tempoTrascorsoMs) / 60000);
+            tempoInfo = `<span class="timeline-step-tempo">${minutiRimanenti} min</span>`;
+        } else {
+            stato = 'da-fare';
+            icona = '⏳';
+            const minutiPrimaInizio = Math.ceil((inizioStep - tempoTrascorsoMs) / 60000);
+            tempoInfo = `<span class="timeline-step-tempo">tra ${minutiPrimaInizio} min</span>`;
+        }
+        
+        timelineHtml += `
+            <div class="timeline-step ${stato}">
+                <span class="timeline-step-icon">${icona}</span>
+                <span>${step.step}</span>
+                ${tempoInfo}
+            </div>
+        `;
+        
+        tempoCumulativo += durataStepMs;
+    });
+    
+    timelineHtml += '</div>';
+    return timelineHtml;
+}
+
+// === FUNZIONE 2: Aggiorna Statistiche ===
+function aggiornaStatistiche() {
+    const oraAttuale = new Date();
+    
+    let serviti = 0;
+    let inCorso = 0;
+    let inArrivo = 0;
+    let durateTotali = 0;
+    let conteggioCompletati = 0;
+    
+    appuntamentiDiOggi.forEach(app => {
+        const inizio = new Date(app.start_time);
+        const fine = new Date(app.end_time);
+        
+        if (oraAttuale >= fine) {
+            serviti++;
+            durateTotali += (fine - inizio) / 60000;
+            conteggioCompletati++;
+        } else if (oraAttuale >= inizio && oraAttuale < fine) {
+            inCorso++;
+        } else if (oraAttuale < inizio) {
+            inArrivo++;
+        }
+    });
+    
+    document.getElementById('stat-serviti').textContent = serviti;
+    document.getElementById('stat-in-corso').textContent = inCorso;
+    document.getElementById('stat-in-arrivo').textContent = inArrivo;
+    
+    if (conteggioCompletati > 0) {
+        const mediaMinuti = Math.round(durateTotali / conteggioCompletati);
+        const ore = Math.floor(mediaMinuti / 60);
+        const minuti = mediaMinuti % 60;
+        document.getElementById('stat-tempo-medio').textContent = 
+            ore > 0 ? `${ore}h ${minuti}min` : `${minuti}min`;
+    } else {
+        document.getElementById('stat-tempo-medio').textContent = '--';
+    }
+    
+    calcolaProssimoSlotLibero();
+}
+
+// === FUNZIONE 3: Calcola Prossimo Slot ===
+function calcolaProssimoSlotLibero() {
+    const oraAttuale = new Date();
+    
+    const appuntamentiAttivi = appuntamentiDiOggi.filter(app => {
+        const fine = new Date(app.end_time);
+        return fine > oraAttuale;
+    }).sort((a, b) => new Date(a.end_time) - new Date(b.end_time));
+    
+    if (appuntamentiAttivi.length === 0 || appuntamentiAttivi.length < 3) {
+        document.getElementById('stat-prossimo-slot').textContent = 'Ora';
+        return;
+    }
+    
+    const prossimaFine = new Date(appuntamentiAttivi[2].end_time);
+    
+    if (prossimaFine <= oraAttuale) {
+        document.getElementById('stat-prossimo-slot').textContent = 'Ora';
+    } else {
+        const ore = prossimaFine.getHours().toString().padStart(2, '0');
+        const minuti = prossimaFine.getMinutes().toString().padStart(2, '0');
+        document.getElementById('stat-prossimo-slot').textContent = `${ore}:${minuti}`;
+    }
+}
+
     const postazioniLavoro = ['postazione-1', 'postazione-2', 'postazione-3'];
     const postazioniLavaggio = ['lavaggio-1', 'lavaggio-2'];
     const areaAttesa = 'area-attesa';
@@ -93,6 +211,20 @@ const ICONS = {
         }
 
         const stepInfo = stepCorrente ? `<p style="color: #FFD700; font-weight: bold; margin-top: 5px;">${stepCorrente.step}</p>` : '';
+		// Genera timeline se c'è un workflow
+let timelineHtml = '';
+if (stepCorrente) {
+    const summaryLower = app.summary.toLowerCase();
+    const matchingKeys = Object.keys(WORKFLOWS).filter(s => summaryLower.includes(s));
+    if (matchingKeys.length > 0) {
+        matchingKeys.sort((a, b) => b.length - a.length);
+        const servizioKey = matchingKeys[0];
+        const workflow = WORKFLOWS[servizioKey];
+        if (workflow) {
+            timelineHtml = generaTimelineCliente(app, workflow);
+        }
+    }
+}
         
         const servizioKey = Object.keys(WORKFLOWS).find(s => app.summary.toLowerCase().includes(s));
         const iconaHtml = servizioKey && ICONS[servizioKey] ? `<i class="${ICONS[servizioKey]} service-icon"></i>` : '';
@@ -105,6 +237,7 @@ const ICONS = {
                     <p>${inizio.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'})} - ${fine.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'})}</p>
                     <div class="progress-bar-container"><div class="progress-bar" style="width: ${progresso}%;"></div></div>
                     ${stepInfo}
+					${timelineHtml}
                 </div>
             </div>`;
     }
@@ -217,6 +350,8 @@ const ICONS = {
             // Appuntamento passato, non mostrarlo nella mappa
         }
     });
+	// Aggiorna anche le statistiche
+aggiornaStatistiche();
 }
 
 
