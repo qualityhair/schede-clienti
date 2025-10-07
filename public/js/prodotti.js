@@ -6,15 +6,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const prodottoNomeInput = document.getElementById('prodotto-nome');
     const prodottoPrezzoInput = document.getElementById('prodotto-prezzo');
     const prodottoCategoriaInput = document.getElementById('prodotto-categoria');
-    const prodottoQuantitaInput = document.getElementById('prodotto-quantita'); // NUOVO
+    const prodottoQuantitaInput = document.getElementById('prodotto-quantita');
     const annullaModificaBtn = document.getElementById('annulla-modifica-btn');
     const listaProdottiBody = document.getElementById('lista-prodotti');
+    const mostraDisattivatiBtn = document.getElementById('mostra-disattivati-btn');
 
     let tuttiProdotti = [];
+    let visualizzazioneCorrente = 'attivi';
 
-    // --- FUNZIONI ---
+    // --- FUNZIONI PRINCIPALI ---
 
-    // Carica e visualizza tutti i prodotti
+    // Carica e visualizza tutti i prodotti ATTIVI
     async function caricaProdotti() {
         try {
             const response = await fetch('/api/prodotti');
@@ -27,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // "Disegna" la tabella dei prodotti - AGGIUNGI COLONNA QUANTITÀ
+    // "Disegna" la tabella dei prodotti ATTIVI
     function renderListaProdotti() {
         listaProdottiBody.innerHTML = '';
         if (tuttiProdotti.length === 0) {
@@ -55,7 +57,63 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Gestisce il salvataggio (creazione o modifica) - AGGIUNGI QUANTITÀ
+    // Funzione per mostrare i prodotti DISATTIVATI
+    async function mostraProdottiDisattivati() {
+        try {
+            const response = await fetch('/api/prodotti/disattivati');
+            if (!response.ok) throw new Error('Errore nel caricamento dei prodotti disattivati.');
+            const prodottiDisattivati = await response.json();
+            
+            // Modifica l'interfaccia per mostrare i disattivati
+            document.querySelector('.panel-title').textContent = 'Prodotti Eliminati (Nascosti)';
+            mostraDisattivatiBtn.textContent = '↩️ Torna ai Prodotti Attivi';
+            
+            renderListaProdottiDisattivati(prodottiDisattivati);
+            visualizzazioneCorrente = 'disattivati';
+            
+        } catch (error) {
+            console.error(error);
+            alert('Errore nel caricamento dei prodotti eliminati.');
+        }
+    }
+
+    // Funzione per tornare ai prodotti ATTIVI
+    function mostraProdottiAttivi() {
+        document.querySelector('.panel-title').textContent = 'Prodotti Attualmente in Catalogo';
+        mostraDisattivatiBtn.textContent = '📁 Prodotti Eliminati';
+        
+        caricaProdotti(); // Ricarica i prodotti attivi
+        visualizzazioneCorrente = 'attivi';
+    }
+
+    // Funzione per renderizzare i prodotti DISATTIVATI
+    // Funzione per renderizzare i prodotti DISATTIVATI
+function renderListaProdottiDisattivati(prodottiDisattivati) {
+    listaProdottiBody.innerHTML = '';
+    
+    if (prodottiDisattivati.length === 0) {
+        listaProdottiBody.innerHTML = `<tr><td colspan="5" class="text-center">Nessun prodotto eliminato.</td></tr>`;
+        return;
+    }
+    
+    prodottiDisattivati.forEach(prodotto => {
+        const row = document.createElement('tr');
+        row.style.opacity = '0.7'; // Rende visivamente "spenti" i prodotti disattivati
+        row.innerHTML = `
+            <td>${prodotto.nome}</td>
+            <td>${prodotto.categoria || 'N/A'}</td>
+            <td>€ ${parseFloat(prodotto.prezzo_vendita).toFixed(2)}</td>
+            <td>${prodotto.quantita}</td>
+            <td>
+                <button class="btn btn-sm btn-success btn-riattiva" data-id="${prodotto.id}">Riattiva</button>
+                <button class="btn btn-sm btn-danger btn-elimina-definitivo" data-id="${prodotto.id}">Elimina Definitivamente</button>
+            </td>
+        `;
+        listaProdottiBody.appendChild(row);
+    });
+}
+
+    // Gestisce il salvataggio (creazione o modifica)
     async function handleFormSubmit(event) {
         event.preventDefault();
         const id = prodottoIdInput.value;
@@ -65,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
             nome: prodottoNomeInput.value.trim(),
             prezzo_vendita: parseFloat(prodottoPrezzoInput.value) || 0,
             categoria: prodottoCategoriaInput.value.trim(),
-            quantita: parseInt(prodottoQuantitaInput.value) || 0 // NUOVO CAMPO
+            quantita: parseInt(prodottoQuantitaInput.value) || 0
         };
 
         if (!prodottoData.nome) {
@@ -89,7 +147,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             resetForm();
-            await caricaProdotti(); // Ricarica la lista aggiornata
+            
+            // Ricarica la vista appropriata dopo il salvataggio
+            if (visualizzazioneCorrente === 'disattivati') {
+                await mostraProdottiDisattivati();
+            } else {
+                await caricaProdotti();
+            }
             
         } catch (error) {
             console.error(error);
@@ -97,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Prepara il form per la modifica di un prodotto - AGGIUNGI QUANTITÀ
+    // Prepara il form per la modifica di un prodotto
     function preparaModifica(id) {
         const prodotto = tuttiProdotti.find(p => p.id == id);
         if (!prodotto) return;
@@ -107,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         prodottoNomeInput.value = prodotto.nome;
         prodottoPrezzoInput.value = prodotto.prezzo_vendita;
         prodottoCategoriaInput.value = prodotto.categoria || '';
-        prodottoQuantitaInput.value = prodotto.quantita || 0; // NUOVO
+        prodottoQuantitaInput.value = prodotto.quantita || 0;
         annullaModificaBtn.style.display = 'inline-block';
         window.scrollTo(0, 0);
     }
@@ -118,13 +182,70 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const response = await fetch(`/api/prodotti/${id}`, { method: 'DELETE' });
-             if (!response.ok) throw new Error('Eliminazione fallita.');
-            await caricaProdotti();
+            if (!response.ok) throw new Error('Eliminazione fallita.');
+            
+            // Ricarica la vista appropriata
+            if (visualizzazioneCorrente === 'disattivati') {
+                await mostraProdottiDisattivati();
+            } else {
+                await caricaProdotti();
+            }
+            
         } catch (error) {
-             console.error(error);
-             alert('Errore durante l\'eliminazione.');
+            console.error(error);
+            alert('Errore durante l\'eliminazione.');
         }
     }
+
+    // Riattiva un prodotto disattivato
+    async function riattivaProdotto(id) {
+        if (!confirm('Sei sicuro di voler riattivare questo prodotto?')) return;
+        
+        try {
+            const response = await fetch(`/api/prodotti/${id}/riattiva`, { 
+                method: 'PATCH' 
+            });
+            
+            if (!response.ok) throw new Error('Riattivazione fallita.');
+            
+            alert('Prodotto riattivato con successo!');
+            
+            // Ricarica la vista appropriata
+            if (visualizzazioneCorrente === 'disattivati') {
+                await mostraProdottiDisattivati();
+            } else {
+                await caricaProdotti();
+            }
+            
+        } catch (error) {
+            console.error(error);
+            alert('Errore durante la riattivazione.');
+        }
+    }
+	
+	// Elimina DEFINITIVAMENTE un prodotto disattivato
+async function eliminaDefinitivamente(id) {
+    if (!confirm('⚠️ ATENZIONE: Stai per eliminare DEFINITIVAMENTE questo prodotto!\n\nQuesta azione non può essere annullata. Il prodotto verrà rimosso permanentemente dal database.\n\nSei assolutamente sicuro?')) return;
+    
+    try {
+        const response = await fetch(`/api/prodotti/${id}/definitivo`, { 
+            method: 'DELETE' 
+        });
+        
+        if (!response.ok) throw new Error('Eliminazione definitiva fallita.');
+        
+        alert('Prodotto eliminato definitivamente con successo!');
+        
+        // Ricarica la vista dei prodotti disattivati
+        await mostraProdottiDisattivati();
+        
+    } catch (error) {
+        console.error(error);
+        alert('Errore durante l\'eliminazione definitiva.');
+    }
+}
+	
+	
     
     // Resetta il form allo stato iniziale
     function resetForm() {
@@ -132,25 +253,40 @@ document.addEventListener('DOMContentLoaded', () => {
         prodottoIdInput.value = '';
         formTitle.textContent = 'Aggiungi Nuovo Prodotto';
         annullaModificaBtn.style.display = 'none';
-        prodottoQuantitaInput.value = '0'; // NUOVO
+        prodottoQuantitaInput.value = '0';
     }
 
     // --- EVENT LISTENERS ---
     form.addEventListener('submit', handleFormSubmit);
     annullaModificaBtn.addEventListener('click', resetForm);
-
-    // Usa la delegazione di eventi per i pulsanti modifica/elimina
-    listaProdottiBody.addEventListener('click', (event) => {
-        const target = event.target;
-        if (target.tagName === 'BUTTON') {
-            const id = target.dataset.id;
-            if (target.classList.contains('btn-edit')) {
-                preparaModifica(id);
-            } else if (target.classList.contains('btn-delete')) {
-                eliminaProdotto(id);
-            }
+    mostraDisattivatiBtn.addEventListener('click', () => {
+        if (visualizzazioneCorrente === 'attivi') {
+            mostraProdottiDisattivati();
+        } else {
+            mostraProdottiAttivi();
         }
     });
+
+    // Usa la delegazione di eventi per i pulsanti modifica/elimina/riattiva
+    // Usa la delegazione di eventi per i pulsanti modifica/elimina/riattiva
+listaProdottiBody.addEventListener('click', (event) => {
+    const target = event.target;
+    if (target.tagName === 'BUTTON') {
+        const id = target.dataset.id;
+        if (target.classList.contains('btn-edit')) {
+            preparaModifica(id);
+        } else if (target.classList.contains('btn-delete')) {
+            eliminaProdotto(id);
+        } else if (target.classList.contains('btn-riattiva')) {
+            riattivaProdotto(id);
+        } else if (target.classList.contains('btn-elimina-definitivo')) {
+            eliminaDefinitivamente(id);
+        }
+    }
+});
+	
+	
+	
 
     // --- AVVIO ---
     caricaProdotti();

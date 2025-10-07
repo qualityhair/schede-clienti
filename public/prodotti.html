@@ -7,34 +7,89 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="./css/scheda-cliente-sidebar.css" /> 
     <style>
-        /* Stili aggiuntivi per il layout affiancato */
-        .main-content {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-        }
-        
-        .form-container {
-            flex: 0 0 350px;
-            padding: 0;
-        }
-        
-        .table-container {
-            flex: 1;
-            min-width: 0; /* Per evitare problemi di overflow */
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .main-content {
-                flex-direction: column;
-            }
-            
-            .form-container {
-                flex: none;
-                width: 100%;
-            }
-        }
+       /* SOSTITUISCI la parte degli stili aggiuntivi con questo codice: */
+
+/* Stili aggiuntivi per il layout affiancato */
+.main-content {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.form-container {
+    flex: 0 0 450px; /* Aumentato da 350px a 450px */
+    padding: 0;
+}
+
+.table-container {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Miglioramenti per il form */
+.form-container .panel {
+    padding: 25px;
+}
+
+.form-container .input-field {
+    width: 100%; /* Assicura che occupi tutta la larghezza disponibile */
+    min-width: 100%; /* Previene riduzioni indesiderate */
+    padding: 12px 15px; /* Padding più generoso */
+    font-size: 16px; /* Leggermente più grande per migliore leggibilità */
+}
+
+.form-container .form-group {
+    margin-bottom: 20px; /* Più spazio tra i campi */
+}
+
+.form-container .form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.form-container .btn {
+    padding: 12px 24px;
+    flex: 1; /* I pulsanti occupano spazio uguale */
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .main-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .form-container {
+        flex: none;
+        width: 100%;
+    }
+    
+    .form-container .form-actions {
+        flex-direction: column;
+    }
+}
+
+/* Se vuoi ancora più spazio, puoi aggiungere questo: */
+@media (min-width: 1200px) {
+    .form-container {
+        flex: 0 0 500px; /* Ancora più largo su schermi grandi */
+    }
+}
+
+.btn-elimina-definitivo {
+    background-color: #dc3545;
+    color: white;
+    border: 1px solid #dc3545;
+    margin-left: 5px;
+}
+
+.btn-elimina-definitivo:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+
     </style>
 </head>
 <body>
@@ -80,9 +135,9 @@
                             <input type="text" id="prodotto-categoria" class="input-field">
                         </div>
 						<div class="form-group">
-    <label for="prodotto-quantita">Quantità Iniziale:</label>
-    <input type="number" id="prodotto-quantita" class="input-field" min="0" value="0" required>
-</div>
+						<label for="prodotto-quantita">Quantità Iniziale:</label>
+						<input type="number" id="prodotto-quantita" class="input-field" min="0" value="0" required>
+						</div>
 						
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary">Salva Prodotto</button>
@@ -93,28 +148,32 @@
             </div>
 
             <!-- Tabella con la Lista dei Prodotti - ORA A DESTRA -->
-            <div class="table-container">
-                <div class="panel">
-                    <h2 class="panel-title">Prodotti Attualmente in Catalogo</h2>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Nome Prodotto</th>
-                                    <th>Categoria</th>
-                                    <th>Prezzo Vendita</th>
-									<th>Quantità</th>
-                                    <th>Azioni</th>
-                                </tr>
-                            </thead>
-                            <tbody id="lista-prodotti">
-                                <!-- Il JavaScript popolerà questa tabella -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+<div class="table-container">
+    <div class="panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 class="panel-title">Prodotti Attualmente in Catalogo</h2>
+            <button id="mostra-disattivati-btn" class="btn btn-primary">
+                📁 Prodotti Eliminati
+            </button>
         </div>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nome Prodotto</th>
+                        <th>Categoria</th>
+                        <th>Prezzo Vendita</th>
+                        <th>Quantità</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody id="lista-prodotti">
+                    <!-- Il JavaScript popolerà questa tabella -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>>
     </main>
 
     <script src="/js/scheda-cliente-navbar.js"></script> 

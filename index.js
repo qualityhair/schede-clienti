@@ -2355,7 +2355,7 @@ app.post("/api/prodotti", ensureAuthenticated, async (req, res) => {
 
     try {
         const query = `
-            INSERT INTO produtos (nome, prezzo_vendita, categoria, quantita) 
+            INSERT INTO prodotti (nome, prezzo_vendita, categoria, quantita) 
             VALUES ($1, $2, $3, $4) 
             RETURNING *;
         `;
@@ -2444,6 +2444,56 @@ app.patch("/api/prodotti/:id/scala-quantita", ensureAuthenticated, async (req, r
         res.status(500).json({ error: "Errore del server" });
     }
 });
+
+// =======================================================
+// === API PER GESTIONE PRODOTTI DISATTIVATI (NUOVE)   ===
+// =======================================================
+
+// 6. API per RECUPERARE i prodotti disattivati
+app.get("/api/prodotti/disattivati", ensureAuthenticated, async (req, res) => {
+    try {
+        const query = "SELECT * FROM prodotti WHERE attivo = FALSE ORDER BY nome ASC";
+        const result = await db.query(query);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(`Errore recupero prodotti disattivati:`, err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// 7. API per RIATTIVARE un prodotto
+app.patch("/api/prodotti/:id/riattiva", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const query = "UPDATE prodotti SET attivo = TRUE WHERE id = $1 RETURNING *";
+        const result = await db.query(query, [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Prodotto non trovato." });
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error(`Errore riattivazione prodotto ${id}:`, err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+// 8. API per ELIMINARE DEFINITIVAMENTE un prodotto
+app.delete("/api/prodotti/:id/definitivo", ensureAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const query = "DELETE FROM prodotti WHERE id = $1 AND attivo = FALSE";
+        const result = await db.query(query, [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: "Prodotto non trovato o già eliminato." });
+        }
+        res.status(200).json({ message: "Prodotto eliminato definitivamente." });
+    } catch (err) {
+        console.error(`Errore eliminazione definitiva prodotto ${id}:`, err);
+        res.status(500).json({ error: "Errore del server" });
+    }
+});
+
+
 
 
 // =======================================================
