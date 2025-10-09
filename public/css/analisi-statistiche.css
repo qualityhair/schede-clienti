@@ -1,0 +1,217 @@
+/* ANALISI STATISTICHE - STILI SPECIFICI */
+
+.analisi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #444;
+}
+
+.analisi-header h1 {
+    color: #FFD700;
+    margin: 0;
+}
+
+.filtri-periodo {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.analisi-panel {
+    margin-bottom: 25px;
+    background: #2a2a2a;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.analisi-panel h2 {
+    color: #FFD700;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* CLASSIFICHE */
+.classifica-container {
+    display: grid;
+    gap: 15px;
+}
+
+.cliente-item, .servizio-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #333;
+    border-radius: 8px;
+    border-left: 4px solid #FFD700;
+}
+
+.cliente-info, .servizio-info {
+    flex: 1;
+}
+
+.cliente-nome {
+    font-weight: bold;
+    color: #FFD700;
+    font-size: 1.1em;
+}
+
+.cliente-dettagli, .servizio-dettagli {
+    font-size: 0.9em;
+    color: #ccc;
+    margin-top: 5px;
+}
+
+.cliente-statistiche, .servizio-statistiche {
+    text-align: right;
+}
+
+.visite-count, .richieste-count {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+.frequenza-media {
+    font-size: 0.9em;
+    color: #888;
+}
+
+/* MAPPA FEDELTA */
+.mappa-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.categoria-fidelita {
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    background: #333;
+}
+
+.categoria-vip { border-left: 4px solid #4CAF50; }
+.categoria-regolari { border-left: 4px solid #FFC107; }
+.categoria-occasionali { border-left: 4px solid #FF9800; }
+.categoria-rischio { border-left: 4px solid #F44336; }
+
+.categoria-titolo {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.categoria-count {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #FFD700;
+}
+
+.categoria-intervallo {
+    font-size: 0.8em;
+    color: #ccc;
+}
+
+/* TREND MENSILE */
+.trend-container {
+    margin-top: 15px;
+}
+
+.trend-mese {
+    margin-bottom: 10px;
+}
+
+.mese-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.mese-nome {
+    font-weight: bold;
+    color: #FFD700;
+    min-width: 80px;
+}
+
+.barra-trend {
+    height: 20px;
+    background: #333;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.barra-interna {
+    height: 100%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+/* INSIGHTS */
+.insights-panel {
+    border-left: 4px solid #2196F3;
+}
+
+.insight-item {
+    padding: 15px;
+    margin-bottom: 10px;
+    background: #333;
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.insight-allerta { border-left-color: #F44336; }
+.insight-suggerimento { border-left-color: #4CAF50; }
+.insight-info { border-left-color: #2196F3; }
+
+.insight-titolo {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #FFD700;
+}
+
+.insight-descrizione {
+    color: #ccc;
+    font-size: 0.95em;
+}
+
+/* LOADING STATES */
+.loading-message {
+    text-align: center;
+    padding: 40px;
+    color: #888;
+    font-style: italic;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .analisi-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .filtri-periodo {
+        justify-content: center;
+    }
+    
+    .mappa-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .cliente-item, .servizio-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .cliente-statistiche, .servizio-statistiche {
+        text-align: center;
+    }
+}

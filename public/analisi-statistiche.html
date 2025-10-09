@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analisi e Statistiche - Quality Hair</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/scheda-cliente-sidebar.css" />
+    <link rel="stylesheet" href="./css/analisi-statistiche.css" />
+</head>
+
+<body>
+    <!-- SIDEBAR -->
+    <div id="sidebar" class="sidebar">
+        <div class="navbar-brand">
+            <br><br>
+            <img src="/img/logo1.jpg" alt="Logo Quality Hair" id="navbar-logo">
+        </div>
+        <ul class="navbar-links">
+            <li><a href="/dashboard.html">Home</a></li>
+            <li><a href="/calendario.html">Agenda Settimanale</a></li>
+            <li><a href="/catalogo.html">Catalogo Foto</a></li>
+            <li><a href="/lista-clienti.html">Lista Clienti</a></li>
+
+            <li class="navbar-search-item">
+                <input type="text" id="navbar-search-input" placeholder="Cerca Cliente..." class="input-field" />
+                <button id="navbar-search-button" class="btn btn-primary">Cerca</button>
+            </li>
+            <li><a href="/logout" style="color: brown;">Esci dal programma</a></li>
+        </ul>
+    </div>
+
+    <button id="open-sidebar-btn" class="hamburger-btn">☰</button>
+
+    <div id="content-wrapper">
+        <main class="container">
+            <!-- HEADER PAGINA -->
+            <div class="analisi-header">
+                <h1>📊 Analisi e Statistiche</h1>
+                <div class="filtri-periodo">
+                    <select id="filtro-periodo" class="select-field">
+                        <option value="ultimo-mese">Ultimo Mese</option>
+                        <option value="ultimi-3-mesi" selected>Ultimi 3 Mesi</option>
+                        <option value="ultimi-6-mesi">Ultimi 6 Mesi</option>
+                        <option value="ultimo-anno">Ultimo Anno</option>
+                    </select>
+                    <button id="aggiorna-dati-btn" class="btn btn-primary">🔄 Aggiorna</button>
+                </div>
+            </div>
+
+            <!-- SEZIONE CLIENTI TOP -->
+            <div class="panel analisi-panel">
+                <h2>👥 Clienti più Fedeli</h2>
+                <div class="panel-content">
+                    <div id="classifica-clienti" class="classifica-container">
+                        <div class="loading-message">Caricamento classifica clienti...</div>
+                    </div>
+                    
+                    <div class="distribuzione-fidelita">
+                        <h3>📋 Distribuzione Fedeltà</h3>
+                        <div id="mappa-fidelita" class="mappa-container">
+                            <div class="loading-message">Caricamento distribuzione...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEZIONE SERVIZI POPOLARI -->
+            <div class="panel analisi-panel">
+                <h2>✂️ Servizi più Richiesti</h2>
+                <div class="panel-content">
+                    <div id="classifica-servizi" class="classifica-container">
+                        <div class="loading-message">Caricamento servizi...</div>
+                    </div>
+                    
+                    <div class="trend-mensile">
+                        <h3>📅 Andamento Ultimi 3 Mesi</h3>
+                        <div id="grafico-trend" class="trend-container">
+                            <div class="loading-message">Caricamento trend...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEZIONE INSIGHTS -->
+            <div class="panel analisi-panel insights-panel">
+                <h2>💡 Insights e Raccomandazioni</h2>
+                <div class="panel-content">
+                    <div id="insights-container">
+                        <div class="loading-message">Analisi in corso...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+<!-- PROVA QUESTA VERSIONE -->
+<script src="./js/navbar-loader.js"></script>
+<script src="./js/analisi-statistiche.js"></script>
+
+
+
+</body>
+</html>

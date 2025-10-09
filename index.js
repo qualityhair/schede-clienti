@@ -66,6 +66,8 @@ async function getProfilePhotoUrl(clienteId) {
 
 
 
+
+
 // --- INIZIO: AGGIUNTE NECESSARIE PER GOOGLE CALENDAR ---
 const { google } = require('googleapis');
 
@@ -493,7 +495,6 @@ app.get("/api/buono/public/:token", async (req, res) => {
 });
 
 
-
 // ===========================================
 // ROTTE PROTETTE
 // ===========================================
@@ -862,6 +863,222 @@ app.get("/api/clienti/:id", async (req, res) => {
 });
 
 
+// =======================================================
+// === API ANALISI E STATISTICHE - VERSIONE SEMPLIFICATA ==
+// =======================================================
+
+/**
+ * API per clienti più assidui - VERSIONE SEMPLIFICATA
+ */
+app.get('/api/analisi/clienti-assidui', ensureAuthenticated, async (req, res) => {
+    try {
+        const { periodo = 'ultimi-3-mesi' } = req.query;
+        console.log('API clienti-assidui chiamata con periodo:', periodo);
+        
+        const dataInizio = calcolaDataInizio(periodo);
+        console.log('Data inizio filtro:', dataInizio);
+        
+        const query = `
+            SELECT 
+                c.id,
+                c.nome,
+                c.cognome,
+                c.soprannome,
+                COUNT(t.id) as visite_totali,
+                MAX(t.data_trattamento) as ultima_visita
+            FROM clienti c
+            LEFT JOIN trattamenti t ON c.id = t.cliente_id 
+            WHERE t.data_trattamento >= $1  -- ⚠️ CORRETTO: "WHERE" non "FILTRO"
+            GROUP BY c.id, c.nome, c.cognome, c.soprannome
+            HAVING COUNT(t.id) > 0
+            ORDER BY visite_totali DESC
+            LIMIT 10
+        `;
+        
+        const result = await db.query(query, [dataInizio]);
+        console.log('Clienti trovati per periodo', periodo, ':', result.rows.length);
+        
+        const clientiFormattati = result.rows.map(cliente => ({
+            id: cliente.id,
+            nome: cliente.nome,
+            cognome: cliente.cognome,
+            soprannome: cliente.soprannome,
+            visite: parseInt(cliente.visite_totali),
+            frequenzaMedia: 30,
+            ultimaVisita: formattaUltimaVisita(cliente.ultima_visita)
+        }));
+        
+        res.json(clientiFormattati);
+        
+    } catch (error) {
+        console.error('ERRORE API clienti assidui:', error);
+        res.status(500).json({ error: 'Errore nel caricamento dei dati clienti' });
+    }
+});
+
+/**
+ * API per servizi più richiesti - VERSIONE SEMPLIFICATA
+ */
+app.get('/api/analisi/servizi-popolari', ensureAuthenticated, async (req, res) => {
+    try {
+        const { periodo = 'ultimi-3-mesi' } = req.query;
+        console.log('API servizi-popolari chiamata con periodo:', periodo);
+        
+        const dataInizio = calcolaDataInizio(periodo);
+        console.log('Data inizio filtro:', dataInizio);
+        
+        const query = `
+            SELECT 
+                servizio,
+                COUNT(*) as totale_richieste
+            FROM (
+                SELECT 
+                    jsonb_array_elements(servizi)->>'servizio' as servizio
+                FROM trattamenti 
+                WHERE data_trattamento >= $1  -- ⚠️ CORRETTO: "WHERE" non "FILTRO"
+            ) as servizi_estratti
+            WHERE servizio IS NOT NULL AND servizio != ''
+            GROUP BY servizio
+            ORDER BY totale_richieste DESC
+            LIMIT 10
+        `;
+        
+        const servizi = await db.query(query, [dataInizio]);
+        console.log('Servizi trovati per periodo', periodo, ':', servizi.rows.length);
+        
+        res.json(servizi.rows);
+        
+    } catch (error) {
+        console.error('Errore API servizi popolari:', error);
+        res.status(500).json({ error: 'Errore nel caricamento dei servizi' });
+    }
+});
+
+/**
+ * API per distribuzione fedeltà - VERSIONE SEMPLIFICATA
+ */
+app.get('/api/analisi/distribuzione-fedelta', ensureAuthenticated, async (req, res) => {
+    try {
+        console.log('API distribuzione-fedelta chiamata');
+        
+        // Dati mock per testing
+        const distribuzione = [
+            { categoria: "VIP", count: 8, intervallo: "≤ 30 giorni" },
+            { categoria: "Regolari", count: 12, intervallo: "31-60 giorni" },
+            { categoria: "Occasionali", count: 5, intervallo: "61-90 giorni" },
+            { categoria: "A rischio", count: 3, intervallo: "> 90 giorni" }
+        ];
+        
+        console.log('Distribuzione fedeltà restituita');
+        res.json(distribuzione);
+        
+    } catch (error) {
+        console.error('ERRORE API distribuzione fedeltà:', error.message);
+        res.status(500).json({ error: 'Errore nel calcolo distribuzione: ' + error.message });
+    }
+});
+
+/**
+ * API per trend mensile - VERSIONE SEMPLIFICATA
+ */
+app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
+    try {
+        console.log('API trend-mensile chiamata');
+        
+        // Dati mock per testing
+        const trend = [
+            { mese: "Gennaio 2024", colore: 12, taglio: 8, meches: 5, tonalizzazione: 3, trattamento: 2 },
+            { mese: "Febbraio 2024", colore: 15, taglio: 10, meches: 7, tonalizzazione: 4, trattamento: 3 },
+            { mese: "Marzo 2024", colore: 18, taglio: 12, meches: 9, tonalizzazione: 5, trattamento: 4 }
+        ];
+        
+        console.log('Trend mensile restituito');
+        res.json(trend);
+        
+    } catch (error) {
+        console.error('ERRORE API trend mensile:', error.message);
+        res.status(500).json({ error: 'Errore nel caricamento trend: ' + error.message });
+    }
+});
+
+/**
+ * API per insights - VERSIONE SEMPLIFICATA
+ */
+app.get('/api/analisi/insights', ensureAuthenticated, async (req, res) => {
+    try {
+        console.log('API insights chiamata');
+        
+        // Insights mock per testing
+        const insights = [
+            { 
+                tipo: "info", 
+                titolo: "Benvenuto nelle Analisi", 
+                descrizione: "Il sistema di analisi è attivo e funzionante!" 
+            },
+            { 
+                tipo: "suggerimento", 
+                titolo: "Prova i filtri", 
+                descrizione: "Usa il selettore periodo per vedere dati di periodi diversi" 
+            }
+        ];
+        
+        console.log('Insights restituiti');
+        res.json(insights);
+        
+    } catch (error) {
+        console.error('ERRORE API insights:', error.message);
+        res.status(500).json({ error: 'Errore nel calcolo insights: ' + error.message });
+    }
+});
+
+// =======================================================
+// === FUNZIONI HELPER PER ANALISI ======================
+// =======================================================
+
+function calcolaDataInizio(periodo) {
+    const oggi = new Date();
+    
+    switch (periodo) {
+        case 'ultimo-mese':
+            return new Date(oggi.getFullYear(), oggi.getMonth() - 1, oggi.getDate()).toISOString().split('T')[0];
+        case 'ultimi-3-mesi':
+            return new Date(oggi.getFullYear(), oggi.getMonth() - 3, oggi.getDate()).toISOString().split('T')[0];
+        case 'ultimi-6-mesi':
+            return new Date(oggi.getFullYear(), oggi.getMonth() - 6, oggi.getDate()).toISOString().split('T')[0];
+        case 'ultimo-anno':
+            return new Date(oggi.getFullYear() - 1, oggi.getMonth(), oggi.getDate()).toISOString().split('T')[0];
+        default:
+            return new Date(oggi.getFullYear(), oggi.getMonth() - 3, oggi.getDate()).toISOString().split('T')[0];
+    }
+}
+
+function formattaUltimaVisita(dataSQL) {
+    if (!dataSQL) return 'Mai';
+    
+    const ultimaVisita = new Date(dataSQL);
+    const oggi = new Date();
+    const diffGiorni = Math.floor((oggi - ultimaVisita) / (1000 * 60 * 60 * 24));
+    
+    if (diffGiorni === 0) return 'Oggi';
+    if (diffGiorni === 1) return 'Ieri';
+    if (diffGiorni < 7) return `${diffGiorni} giorni fa`;
+    if (diffGiorni < 30) return `${Math.floor(diffGiorni / 7)} settimane fa`;
+    
+    return `${Math.floor(diffGiorni / 30)} mesi fa`;
+}
+
+function formattaMeseItaliano(meseSQL) {
+    const [anno, mese] = meseSQL.split('-');
+    const mesi = [
+        'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+        'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
+    ];
+    
+    return `${mesi[parseInt(mese) - 1]} ${anno}`;
+}
+
+
+
 // --- NUOVA API PER IL RIEPILOGO DELL'ULTIMA ANALISI TRICOLOGICA ---
 app.get("/api/clienti/:id/analisi/riepilogo", ensureAuthenticated, async (req, res) => {
     const { id } = req.params;
@@ -969,6 +1186,12 @@ app.post("/api/analisi", ensureAuthenticated, async (req, res) => {
         res.status(500).json({ error: "Errore del server durante il salvataggio dell'analisi." });
     }
 });
+
+
+
+
+
+
 
 // --- NUOVA API PER RECUPERARE I DETTAGLI DI UNA SINGOLA ANALISI ---
 // Sostituisci la vecchia app.get("/api/analisi/:id", ...) con questa
@@ -2238,6 +2461,10 @@ app.get("/api/dashboard/summary", ensureAuthenticated, async (req, res) => {
         res.status(500).json({ error: "Errore del server." });
     }
 });
+
+
+
+
 
 // =======================================================
 // === API PER LA PALETTE COLORE (NUOVA)               ===

@@ -133,25 +133,25 @@ if (scorteCount && widgetScorte && scorteIcon) {
         // 🔴 ROSSO - Prodotti esauriti (quantità = 0)
         scorteCount.style.color = '#dc3545';
         scorteIcon.textContent = '🚨'; // Icona di emergenza
-        widgetScorte.style.border = '2px solid #dc3545';
+        //widgetScorte.style.border = '2px solid #dc3545';
         widgetScorte.style.background = 'rgba(220, 53, 69, 0.15)';
     } else if (prodottiMoltoBassi > 0) {
         // 🟡 GIALLO - Prodotti molto bassi (quantità = 1)
         scorteCount.style.color = '#ffc107';
         scorteIcon.textContent = '⚠️'; // Icona di avviso
-        widgetScorte.style.border = '2px solid #ffc107';
+        //widgetScorte.style.border = '2px solid #ffc107';
         widgetScorte.style.background = 'rgba(255, 193, 7, 0.15)';
     } else if (prodottiScorteBasse.length > 0) {
         // 🟢 VERDE - Prodotti bassi (quantità = 2+)
         scorteCount.style.color = '#28a745';
         scorteIcon.textContent = '📦'; // Icona normale
-        widgetScorte.style.border = '2px solid #28a745';
+        //widgetScorte.style.border = '2px solid #28a745';
         widgetScorte.style.background = 'rgba(40, 167, 69, 0.15)';
     } else {
         // 🔵 BLU - Tutto ok
         scorteCount.style.color = '#007bff';
         scorteIcon.textContent = '📦'; // Icona normale
-        widgetScorte.style.border = '1px solid #dee2e6';
+        //widgetScorte.style.border = '1px solid #dee2e6';
         widgetScorte.style.background = '';
     }
     
