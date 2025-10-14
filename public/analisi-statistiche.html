@@ -4,14 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Analisi e Statistiche - Quality Hair</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/style.css" />
     <link rel="stylesheet" href="./css/scheda-cliente-sidebar.css" />
     <link rel="stylesheet" href="./css/analisi-statistiche.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
 </head>
 
 <body>
-    <!-- SIDEBAR -->
     <div id="sidebar" class="sidebar">
         <div class="navbar-brand">
             <br><br>
@@ -35,7 +37,6 @@
 
     <div id="content-wrapper">
         <main class="container">
-            <!-- HEADER PAGINA -->
             <div class="analisi-header">
                 <h1>📊 Analisi e Statistiche</h1>
                 <div class="filtri-periodo">
@@ -45,61 +46,50 @@
                         <option value="ultimi-6-mesi">Ultimi 6 Mesi</option>
                         <option value="ultimo-anno">Ultimo Anno</option>
                     </select>
-                    <button id="aggiorna-dati-btn" class="btn btn-primary">🔄 Aggiorna</button>
+ 
                 </div>
             </div>
 
-            <!-- SEZIONE CLIENTI TOP -->
-            <div class="panel analisi-panel">
-                <h2>👥 Clienti più Fedeli</h2>
-                <div class="panel-content">
-                    <div id="classifica-clienti" class="classifica-container">
-                        <div class="loading-message">Caricamento classifica clienti...</div>
-                    </div>
-                    
-                    <div class="distribuzione-fidelita">
-                        <h3>📋 Distribuzione Fedeltà</h3>
-                        <div id="mappa-fidelita" class="mappa-container">
-                            <div class="loading-message">Caricamento distribuzione...</div>
+            <div class="classifiche-affiancate">
+                
+                <div class="panel analisi-panel">
+                    <h2>👥 Clienti più Fedeli</h2>
+                    <div class="panel-content">
+                        <div id="classifica-clienti" class="classifica-container">
+                            <div class="loading-message">Caricamento classifica clienti...</div>
+                        </div>
+                        
+                        <div class="distribuzione-fidelita">
+                            <h3>📋 Distribuzione Fedeltà</h3>
+                            <div id="mappa-fidelita" class="mappa-container">
+                                <div class="loading-message">Caricamento distribuzione...</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- SEZIONE SERVIZI POPOLARI -->
-            <div class="panel analisi-panel">
-                <h2>✂️ Servizi più Richiesti</h2>
-                <div class="panel-content">
-                    <div id="classifica-servizi" class="classifica-container">
-                        <div class="loading-message">Caricamento servizi...</div>
-                    </div>
-                    
-                    <div class="trend-mensile">
-                        <h3>📅 Andamento Ultimi 3 Mesi</h3>
-                        <div id="grafico-trend" class="trend-container">
-                            <div class="loading-message">Caricamento trend...</div>
+                <div class="panel analisi-panel">
+                    <h2>✂️ Servizi più Richiesti</h2>
+                    <div class="panel-content">
+                        <div id="classifica-servizi" class="classifica-container">
+                            <div class="loading-message">Caricamento servizi...</div>
+                        </div>
+                        
+                        <div class="trend-mensile">
+                            <h3>📅 Grafico Andamento</h3>
+                            <div id="grafico-trend" class="trend-container">
+                                <div class="loading-message">Caricamento trend...</div>
+                            </div>
                         </div>
                     </div>
                 </div>
+                
             </div>
-
-            <!-- SEZIONE INSIGHTS -->
-            <div class="panel analisi-panel insights-panel">
-                <h2>💡 Insights e Raccomandazioni</h2>
-                <div class="panel-content">
-                    <div id="insights-container">
-                        <div class="loading-message">Analisi in corso...</div>
-                    </div>
-                </div>
-            </div>
-        </main>
+            </main>
     </div>
-
-<!-- PROVA QUESTA VERSIONE -->
-<script src="./js/navbar-loader.js"></script>
-<script src="./js/analisi-statistiche.js"></script>
-
-
+    <script src="/js/scheda-cliente-navbar.js"></script> 
+    <script src="./js/navbar-loader.js"></script>
+    <script src="./js/analisi-statistiche.js"></script> 
 
 </body>
 </html>

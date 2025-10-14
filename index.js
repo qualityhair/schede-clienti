@@ -919,40 +919,47 @@ app.get('/api/analisi/clienti-assidui', ensureAuthenticated, async (req, res) =>
 /**
  * API per servizi più richiesti - VERSIONE SEMPLIFICATA
  */
+/**
+ * API per servizi più richiesti - VERSIONE REALE
+ */
+/**
+ * API per servizi più richiesti - VERSIONE CORRETTA
+ */
 app.get('/api/analisi/servizi-popolari', ensureAuthenticated, async (req, res) => {
     try {
         const { periodo = 'ultimi-3-mesi' } = req.query;
         console.log('API servizi-popolari chiamata con periodo:', periodo);
-        
+
         const dataInizio = calcolaDataInizio(periodo);
         console.log('Data inizio filtro:', dataInizio);
-        
+
         const query = `
             SELECT 
-                servizio,
+                s.servizio,
                 COUNT(*) as totale_richieste
             FROM (
-                SELECT 
-                    jsonb_array_elements(servizi)->>'servizio' as servizio
+                SELECT jsonb_array_elements(trattamenti.servizi)->>'servizio' as servizio
                 FROM trattamenti 
-                WHERE data_trattamento >= $1  -- ⚠️ CORRETTO: "WHERE" non "FILTRO"
-            ) as servizi_estratti
-            WHERE servizio IS NOT NULL AND servizio != ''
-            GROUP BY servizio
+                WHERE data_trattamento >= $1
+            ) AS s
+            WHERE s.servizio IS NOT NULL AND s.servizio != ''
+            GROUP BY s.servizio
             ORDER BY totale_richieste DESC
             LIMIT 10
         `;
-        
+
         const servizi = await db.query(query, [dataInizio]);
         console.log('Servizi trovati per periodo', periodo, ':', servizi.rows.length);
-        
+
         res.json(servizi.rows);
-        
+
     } catch (error) {
         console.error('Errore API servizi popolari:', error);
         res.status(500).json({ error: 'Errore nel caricamento dei servizi' });
     }
 });
+
+
 
 /**
  * API per distribuzione fedeltà - VERSIONE SEMPLIFICATA
@@ -978,28 +985,80 @@ app.get('/api/analisi/distribuzione-fedelta', ensureAuthenticated, async (req, r
     }
 });
 
-/**
- * API per trend mensile - VERSIONE SEMPLIFICATA
- */
+
+// =======================================================
+// === API per trend mensile - VERSIONE FINALE E UNIFORME ===
+// =======================================================
+// =======================================================
+// === API per trend mensile - VERSIONE FINALE E FUNZIONANTE ===
+// =======================================================
 app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
     try {
-        console.log('API trend-mensile chiamata');
+        console.log('API trend-mensile chiamata (versione uniforme)');
+
+        const mesiDaConsiderare = parseInt(req.query.mesi) || 3;
+        const oggi = new Date();
+        const dataInizio = new Date(oggi.getFullYear(), oggi.getMonth() - (mesiDaConsiderare - 1), 1);
         
-        // Dati mock per testing
-        const trend = [
-            { mese: "Gennaio 2024", colore: 12, taglio: 8, meches: 5, tonalizzazione: 3, trattamento: 2 },
-            { mese: "Febbraio 2024", colore: 15, taglio: 10, meches: 7, tonalizzazione: 4, trattamento: 3 },
-            { mese: "Marzo 2024", colore: 18, taglio: 12, meches: 9, tonalizzazione: 5, trattamento: 4 }
-        ];
+        // Query SQL: estrae i servizi e li normalizza (es. 'taglio & barba' diventa 'tagliobarba')
+        const query = `
+            SELECT 
+                TO_CHAR(t.data_trattamento, 'TMMonth YYYY') AS mese_label,
+                -- Normalizzazione: usiamo REPLACE per sostituire gli spazi e il simbolo &, è più robusto.
+                REPLACE(
+                    REPLACE(TRIM(LOWER(jsonb_array_elements(t.servizi)->>'servizio')), ' ', ''), 
+                    '&', ''
+                ) AS servizio_normalizzato,
+                -- Mantiene il nome originale per la legenda
+                TRIM(jsonb_array_elements(t.servizi)->>'servizio') AS servizio_originale
+            FROM trattamenti t
+            WHERE t.data_trattamento >= $1
+        `;
+
+        const result = await db.query(query, [dataInizio]);
         
-        console.log('Trend mensile restituito');
-        res.json(trend);
+        const trendMap = {};
+        for (const row of result.rows) {
+            const mese = row.mese_label.charAt(0).toUpperCase() + row.mese_label.slice(1).toLowerCase();
+            
+            // Chiave dinamica (normalizzata)
+            const chiaveDinamica = row.servizio_normalizzato || 'sconosciuto';
+            // Nome leggibile per la legenda (originale)
+            const nomePerLegenda = row.servizio_originale;
+
+            if (!trendMap[mese]) {
+                trendMap[mese] = { mese };
+            }
+
+            // 💡 1. Salviamo il nome originale in un oggetto 'nomiServizi'
+            if (!trendMap[mese].nomiServizi) {
+                trendMap[mese].nomiServizi = {};
+            }
+            // Salviamo il nome originale usando la chiave normalizzata (es. 'tagliobarba': 'Taglio & Barba')
+            trendMap[mese].nomiServizi[chiaveDinamica] = nomePerLegenda;
+
+            // 💡 2. Aggiunge o incrementa il conteggio per la chiave normalizzata
+            trendMap[mese][chiaveDinamica] = (trendMap[mese][chiaveDinamica] || 0) + 1;
+        }
         
+        // 🛑 LOGICA DI ORDINAMENTO CHE DEVE ESSERE INCLUSA 🛑
+        const mesiOrdinati = Object.values(trendMap).sort((a, b) => {
+            const [ma, aa] = a.mese.split(' ');
+            const [mb, ab] = b.mese.split(' ');
+            const mesi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+            
+            // Ordina prima per anno, poi per mese
+            return parseInt(aa) - parseInt(ab) || mesi.indexOf(ma.toLowerCase()) - mesi.indexOf(mb.toLowerCase());
+        });
+
+        res.json(mesiOrdinati);
+
     } catch (error) {
-        console.error('ERRORE API trend mensile:', error.message);
+        console.error('ERRORE API trend mensile (uniforme):', error.message);
         res.status(500).json({ error: 'Errore nel caricamento trend: ' + error.message });
     }
-});
+}); // Chiusura corretta della funzione app.get
+
 
 /**
  * API per insights - VERSIONE SEMPLIFICATA

@@ -538,30 +538,10 @@ async function fetchAndDisplayAppointments() {
         const normalAppointments = [];
         const allDayAppointments = [];
 
-        // LOG: Mostra tutti gli appuntamenti in arrivo
-        console.log("=== Appuntamenti ricevuti ===");
-        appointments.forEach(app => {
-            console.log(
-                "summary:", app.summary,
-                "| start_time:", app.start_time,
-                "| end_time:", app.end_time,
-                "| allDay:", app.allDay
-            );
-        });
-
         appointments.forEach(app => {
             const start = new Date(app.start_time);
             const end = new Date(app.end_time);
 
-            // LOG: Mostra i valori calcolati per ogni appuntamento
-            console.log(
-                `[${app.summary}] start:`, start,
-                "end:", end,
-                "start UTC:", start.getUTCHours(), start.getUTCMinutes(), start.getUTCSeconds(),
-                "end UTC:", end.getUTCHours(), end.getUTCMinutes(), end.getUTCSeconds()
-            );
-
-            // Identifica gli all-day sia in UTC che in locale
             const isAllDay =
                 (app.allDay === true) ||
                 (
@@ -574,19 +554,12 @@ async function fetchAndDisplayAppointments() {
                     Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) === 1
                 );
 
-            // LOG: Mostra la decisione
-            console.log(`[${app.summary}] isAllDay:`, isAllDay);
-
             if (isAllDay) {
                 allDayAppointments.push(app);
             } else {
                 normalAppointments.push(app);
             }
         });
-
-        // LOG: Riepilogo separazione
-        console.log("--- All day appointments ---", allDayAppointments.map(a => a.summary));
-        console.log("--- Normal appointments ---", normalAppointments.map(a => a.summary));
 
         // --- Rendering degli ALL-DAY: SOLO minHeight, MAI height ---
         allDayAppointments.forEach(app => {
@@ -596,7 +569,6 @@ async function fetchAndDisplayAppointments() {
             listItem.style.backgroundColor = backgroundColor;
             listItem.style.color = textColor;
             listItem.style.minHeight = '50px'; // solo minHeight!
-            // NON impostare height per gli all-day!
 
             if (app.cliente) listItem.dataset.clienteId = app.cliente.id;
 
@@ -606,9 +578,6 @@ async function fetchAndDisplayAppointments() {
                 </div>
             `;
             appointmentsListContainer.appendChild(listItem);
-
-            // LOG: Verifica il rendering all-day
-            console.log(`[RENDER ALLDAY] ${app.summary}:`, listItem);
         });
 
         // --- Rendering degli appuntamenti normali: height proporzionale ---
@@ -630,7 +599,6 @@ async function fetchAndDisplayAppointments() {
                 listItem.className = 'appointment-item clickable';
                 listItem.style.backgroundColor = backgroundColor;
 
-                // Height proporzionale SOLO per appuntamenti normali!
                 const pixelsPerMinute = 50 / 30;
                 listItem.style.height = `${durationMinutes * pixelsPerMinute}px`;
                 listItem.style.minHeight = '50px';
@@ -654,9 +622,6 @@ async function fetchAndDisplayAppointments() {
                 `;
 
                 appointmentsListContainer.appendChild(listItem);
-
-                // LOG: Verifica il rendering normale
-                console.log(`[RENDER NORMALE] ${app.summary}: height ${listItem.style.height}`, listItem);
             });
         }
 
@@ -665,6 +630,7 @@ async function fetchAndDisplayAppointments() {
         appointmentsListContainer.innerHTML = '<li class="appointment-item error">Errore nel caricamento.</li>';
     }
 }
+
 
 
 

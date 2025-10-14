@@ -120,6 +120,20 @@
 /* TREND MENSILE */
 .trend-container {
     margin-top: 15px;
+    /* 🛑 IMPORTANTE: Per centrare il grafico se è più piccolo del suo pannello contenitore */
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+}
+
+/* 🛑 NUOVO STILE CRITICO: Limita la dimensione del contenitore CANVAS */
+#grafico-trend {
+    /* Imposta la dimensione massima desiderata per il grafico (es. 400x400) */
+    max-width: 600px;
+    max-height: 600px; 
+    
+    /* Nota: Se non è già un div separato, Chart.js crea il canvas direttamente qui. */
+    /* Garantiamo che lo spazio che occupa il canvas sia limitato. */
 }
 
 .trend-mese {
@@ -213,5 +227,29 @@
     
     .cliente-statistiche, .servizio-statistiche {
         text-align: center;
+    }
+}
+
+
+/* ========================================= */
+/* === AFFIANCAMENTO PANNELLI CLASSIFICA === */
+/* ========================================= */
+.classifiche-affiancate {
+    display: flex;     /* 1. Attiva l'affiancamento */
+    gap: 20px;         /* 2. Spazio tra i due pannelli */
+    margin-bottom: 25px; /* Spazio sotto il contenitore */
+}
+
+/* Fa in modo che i due pannelli occupino equamente lo spazio */
+.classifiche-affiancate .analisi-panel {
+    flex: 1; 
+    min-width: 0; /* Importante per la flessibilità */
+}
+
+/* Manteniamo la responsività per schermi piccoli */
+@media (max-width: 768px) {
+    .classifiche-affiancate {
+        flex-direction: column; /* Torna in colonna su schermi piccoli */
+        gap: 0;
     }
 }
