@@ -873,10 +873,10 @@ app.get("/api/clienti/:id", async (req, res) => {
 app.get('/api/analisi/clienti-assidui', ensureAuthenticated, async (req, res) => {
     try {
         const { periodo = 'ultimi-3-mesi' } = req.query;
-        console.log('API clienti-assidui chiamata con periodo:', periodo);
+        
         
         const dataInizio = calcolaDataInizio(periodo);
-        console.log('Data inizio filtro:', dataInizio);
+        
         
         const query = `
             SELECT 
@@ -966,7 +966,7 @@ app.get('/api/analisi/servizi-popolari', ensureAuthenticated, async (req, res) =
  */
 app.get('/api/analisi/distribuzione-fedelta', ensureAuthenticated, async (req, res) => {
     try {
-        console.log('API distribuzione-fedelta chiamata');
+        
         
         // Dati mock per testing
         const distribuzione = [
@@ -976,7 +976,7 @@ app.get('/api/analisi/distribuzione-fedelta', ensureAuthenticated, async (req, r
             { categoria: "A rischio", count: 3, intervallo: "> 90 giorni" }
         ];
         
-        console.log('Distribuzione fedeltà restituita');
+        
         res.json(distribuzione);
         
     } catch (error) {
@@ -986,25 +986,29 @@ app.get('/api/analisi/distribuzione-fedelta', ensureAuthenticated, async (req, r
 });
 
 
-// =======================================================
-// === API per trend mensile - VERSIONE FINALE E UNIFORME ===
-// =======================================================
+
 // =======================================================
 // === API per trend mensile - VERSIONE FINALE E FUNZIONANTE ===
 // =======================================================
+// =======================================================
+// === API per trend mensile - VERSIONE FINALE E FUNZIONANTE ===
+// === ORA USA CALCOLADATAINIZIO PER UNIFORMARE IL FILTRO ===
+// =======================================================
 app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
     try {
-        console.log('API trend-mensile chiamata (versione uniforme)');
-
-        const mesiDaConsiderare = parseInt(req.query.mesi) || 3;
-        const oggi = new Date();
-        const dataInizio = new Date(oggi.getFullYear(), oggi.getMonth() - (mesiDaConsiderare - 1), 1);
         
+
+        const periodo = req.query.periodo || 'ultimi-3-mesi'; // Ottieni il periodo dal frontend
+        
+        // 🛑 CAMBIO CHIAVE: USIAMO LA STESSA LOGICA DI FILTRO DEGLI ALTRI ENDPOINT 🛑
+        const dataInizio = calcolaDataInizio(periodo);
+        
+
         // Query SQL: estrae i servizi e li normalizza (es. 'taglio & barba' diventa 'tagliobarba')
         const query = `
             SELECT 
                 TO_CHAR(t.data_trattamento, 'TMMonth YYYY') AS mese_label,
-                -- Normalizzazione: usiamo REPLACE per sostituire gli spazi e il simbolo &, è più robusto.
+                -- Normalizzazione: usiamo REPLACE per sostituire gli spazi e il simbolo &.
                 REPLACE(
                     REPLACE(TRIM(LOWER(jsonb_array_elements(t.servizi)->>'servizio')), ' ', ''), 
                     '&', ''
@@ -1034,14 +1038,13 @@ app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
             if (!trendMap[mese].nomiServizi) {
                 trendMap[mese].nomiServizi = {};
             }
-            // Salviamo il nome originale usando la chiave normalizzata (es. 'tagliobarba': 'Taglio & Barba')
             trendMap[mese].nomiServizi[chiaveDinamica] = nomePerLegenda;
 
             // 💡 2. Aggiunge o incrementa il conteggio per la chiave normalizzata
             trendMap[mese][chiaveDinamica] = (trendMap[mese][chiaveDinamica] || 0) + 1;
         }
         
-        // 🛑 LOGICA DI ORDINAMENTO CHE DEVE ESSERE INCLUSA 🛑
+        // 🛑 LOGICA DI ORDINAMENTO (Mantenuta) 🛑
         const mesiOrdinati = Object.values(trendMap).sort((a, b) => {
             const [ma, aa] = a.mese.split(' ');
             const [mb, ab] = b.mese.split(' ');
@@ -1051,13 +1054,14 @@ app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
             return parseInt(aa) - parseInt(ab) || mesi.indexOf(ma.toLowerCase()) - mesi.indexOf(mb.toLowerCase());
         });
 
-        res.json(mesiOrdinati);
+        // La risposta corretta
+        return res.json(mesiOrdinati); 
 
     } catch (error) {
         console.error('ERRORE API trend mensile (uniforme):', error.message);
         res.status(500).json({ error: 'Errore nel caricamento trend: ' + error.message });
     }
-}); // Chiusura corretta della funzione app.get
+});
 
 
 /**
@@ -1065,7 +1069,7 @@ app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
  */
 app.get('/api/analisi/insights', ensureAuthenticated, async (req, res) => {
     try {
-        console.log('API insights chiamata');
+     
         
         // Insights mock per testing
         const insights = [
@@ -1089,6 +1093,73 @@ app.get('/api/analisi/insights', ensureAuthenticated, async (req, res) => {
         res.status(500).json({ error: 'Errore nel calcolo insights: ' + error.message });
     }
 });
+
+// =======================================================
+// === NUOVA API: Clienti per Servizio (Richiesta Modale) ===
+// =======================================================
+app.get('/api/analisi/clienti-per-servizio', ensureAuthenticated, async (req, res) => {
+    try {
+        const { servizio, periodo = 'ultimi-3-mesi' } = req.query;
+
+        if (!servizio) {
+            // Usa 'return' per uscire immediatamente
+            return res.status(400).json({ error: 'Parametro servizio mancante' });
+        }
+        
+        console.log(`API clienti-per-servizio chiamata per: ${servizio} (Periodo: ${periodo})`);
+
+        const dataInizio = calcolaDataInizio(periodo);
+
+        // La tua query SQL è corretta e include c.id
+        const query = `
+            SELECT
+                c.id,
+                c.nome,
+                c.cognome,
+                COUNT(t.id) as visite,
+                MAX(t.data_trattamento) as ultima_visita
+            FROM clienti c
+            JOIN trattamenti t ON c.id = t.cliente_id
+            WHERE 
+                t.data_trattamento >= $1
+                AND EXISTS (
+                    SELECT 1 
+                    FROM jsonb_array_elements(t.servizi) AS s(servizio_obj)
+                    WHERE 
+                        REPLACE(
+                            REPLACE(TRIM(LOWER(s.servizio_obj->>'servizio')), ' ', ''), 
+                            '&', ''
+                        ) = $2
+                )
+            GROUP BY c.id, c.nome, c.cognome
+            ORDER BY ultima_visita DESC;
+        `;
+
+        const result = await db.query(query, [dataInizio, servizio]);
+        
+        console.log(`Clienti trovati per ${servizio}: ${result.rows.length}`);
+
+        const clientiFormattati = result.rows.map(cliente => ({
+            id: cliente.id, // ✅ ID incluso per il frontend
+            nome: cliente.nome,
+            cognome: cliente.cognome,
+            visite: parseInt(cliente.visite),
+            ultimaVisita: formattaUltimaVisita(cliente.ultima_visita)
+        }));
+        
+        // 🛑 Rimosso il LOG e la CHIAMATA RES.JSON duplicata
+        console.log('CLIENTI PER SERVIZIO TROVATI:', JSON.stringify(clientiFormattati)); 
+        
+        // 🚀 Risposta finale singola (Usa 'return' per uscire)
+        return res.json(clientiFormattati);
+
+    } catch (error) {
+        console.error('ERRORE API clienti-per-servizio:', error);
+        res.status(500).json({ error: 'Errore nel caricamento della lista clienti per servizio' });
+    }
+});
+
+
 
 // =======================================================
 // === FUNZIONI HELPER PER ANALISI ======================

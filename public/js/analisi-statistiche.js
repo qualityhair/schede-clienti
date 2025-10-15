@@ -31,12 +31,13 @@ const coloriServiziMappati = {
 // =======================================================
 // === FUNZIONE DI CHIAMATA API REALE ===
 // =======================================================
+// =======================================================
+// === FUNZIONE DI CHIAMATA API REALE (VERSIONE CORRETTA) ===
+// =======================================================
 async function fetchDati(endpoint, parametri = {}) {
     const url = new URL(endpoint, window.location.origin);
     Object.keys(parametri).forEach(key => {
-        if (endpoint.includes('trend-mensile') && key === 'periodo') {
-            return;
-        }
+        // 🛑 RIMOZIONE DELLA CONDIZIONE BLOCCANTE: ORA TUTTI I PARAMETRI VENGONO AGGIUNTI
         url.searchParams.append(key, parametri[key]);
     });
     
@@ -54,64 +55,64 @@ async function fetchDati(endpoint, parametri = {}) {
 // =======================================================
 
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("📊 Pagina Analisi e Statistiche caricata!");
+
 
     // ===== ELEMENTI DOM =====
     const filtroPeriodo = document.getElementById('filtro-periodo');
     const aggiornaDatiBtn = document.getElementById('aggiorna-dati-btn');
+    const modal = document.getElementById('modal-clienti-servizio');
+    const closeBtn = document.querySelector('.close-btn');
 
-    // Mappa periodi per API
-    const mappaPeriodi = {
-        'ultimo-mese': '1',
-        'ultimi-3-mesi': '3', 
-        'ultimi-6-mesi': '6',
-        'ultimo-anno': '12'
-    };
+   
 
     // ============================
     // === FUNZIONE CARICAMENTO ===
     // ============================
-    async function caricaDatiAnalisi() {
-        console.log("=== DEBUG INIZIO CARICAMENTO ===");
+async function caricaDatiAnalisi() {
+    
 
-        if (aggiornaDatiBtn) {
-            aggiornaDatiBtn.disabled = true;
-            aggiornaDatiBtn.textContent = "🔄 Caricamento...";
-        }
-
-        const periodo = filtroPeriodo.value;
-        // Il parametro 'mesi' per l'API trend-mensile
-        const parametriAPI = mappaPeriodi[periodo] || '3'; 
-
-        try {
-            console.log("Caricamento dati in parallelo...");
-
-            const [clientiAssidui, serviziPopolari, distribuzioneFedelta, trendMensile, insights] = await Promise.all([
-                fetchDati('/api/analisi/clienti-assidui', { periodo }),
-                fetchDati('/api/analisi/servizi-popolari', { periodo }),
-                fetchDati('/api/analisi/distribuzione-fedelta'),
-                fetchDati('/api/analisi/trend-mensile', { mesi: parametriAPI }),
-                fetchDati('/api/analisi/insights')
-            ]);
-
-            popolaPagina({
-                clientiAssidui, serviziPopolari, distribuzioneFedelta, trendMensile, insights
-            });
-
-            mostraMessaggioTemporaneo("Dati aggiornati!", "success");
-
-        } catch (error) {
-            console.error("ERRORE nel caricamento:", error);
-            mostraErrore(`Impossibile caricare i dati. Dettaglio: ${error.message}`);
-            mostraMessaggioTemporaneo("Errore nel caricamento", "error");
-        } finally {
-            if (aggiornaDatiBtn) {
-                aggiornaDatiBtn.disabled = false;
-                aggiornaDatiBtn.textContent = "🔄 Aggiorna";
-            }
-            console.log("=== DEBUG FINE CARICAMENTO ===");
-        }
+    if (!filtroPeriodo) {
+        console.error("ERRORE: Elemento filtro-periodo non trovato nel DOM.");
+        return;
     }
+
+    if (aggiornaDatiBtn) {
+        aggiornaDatiBtn.disabled = true;
+        aggiornaDatiBtn.textContent = "🔄 Caricamento...";
+    }
+
+    const periodo = filtroPeriodo.value; // Ottiene 'ultimo-mese', 'ultimi-3-mesi', etc.
+    // L'oggetto 'mappaPeriodi' e 'parametriAPI' non è più necessario!
+
+    try {
+       
+
+        // VERSIONE CORRETTA:
+const [clientiAssidui, distribuzioneFedelta, trendMensile, insights] = await Promise.all([
+    fetchDati('/api/analisi/clienti-assidui', { periodo }),
+    fetchDati('/api/analisi/distribuzione-fedelta'),
+    fetchDati('/api/analisi/trend-mensile', { periodo }), // 🚀 CORRETTO
+    fetchDati('/api/analisi/insights')
+]);
+
+        popolaPagina({
+            clientiAssidui, distribuzioneFedelta, trendMensile, insights
+        });
+
+        mostraMessaggioTemporaneo("Dati aggiornati!", "success");
+
+    } catch (error) {
+        console.error("ERRORE nel caricamento:", error);
+        mostraErrore(`Impossibile caricare i dati. Dettaglio: ${error.message}`);
+        mostraMessaggioTemporaneo("Errore nel caricamento", "error");
+    } finally {
+        if (aggiornaDatiBtn) {
+            aggiornaDatiBtn.disabled = false;
+            aggiornaDatiBtn.textContent = "🔄 Aggiorna";
+        }
+        
+    }
+}
     
     // =============================
     // === FUNZIONI POPOLA PAGINA ===
@@ -127,15 +128,67 @@ document.addEventListener("DOMContentLoaded", () => {
         `).join('');
     }
 
-    function popolaServiziPopolari(servizi) {
+    // NUOVA FUNZIONE: Classifica Servizi Popolari Aggregata (per coerenza)
+    function popolaServiziPopolariAggregati(trend) {
         const container = document.getElementById('classifica-servizi');
         if (!container) return;
-        container.innerHTML = servizi.map((s, i) => `
-            <div class="servizio-item">
-                <div>${i + 1}. <strong>${s.servizio.charAt(0).toUpperCase() + s.servizio.slice(1)}</strong></div>
+        
+        const aggregati = {};
+        let nomiServiziOriginali = {};
+
+        // 1. Aggrega i dati totali per TUTTO il periodo
+        trend.forEach(t => {
+            Object.keys(t).forEach(key => {
+                if (key !== 'mese' && key !== 'nomiServizi') { 
+                    // CORREZIONE CRUCIALE: Normalizza a minuscolo per aggregazione
+                    const chiavePulita = key.trim().toLowerCase();
+                    const valore = t[key] || 0;
+                    aggregati[chiavePulita] = (aggregati[chiavePulita] || 0) + valore;
+                    
+                    if (t.nomiServizi && t.nomiServizi[key]) {
+                        nomiServiziOriginali[chiavePulita] = t.nomiServizi[key];
+                    }
+                }
+            });
+        });
+
+        // 2. Converte in array per ordinare e filtrare
+        const serviziAggregati = Object.keys(aggregati)
+            .filter(chiave => aggregati[chiave] > 0) 
+            .map(chiave => {
+                let nome = nomiServiziOriginali[chiave] || chiave.charAt(0).toUpperCase() + chiave.slice(1);
+                nome = nome.replace(/([A-Z])/g, ' $1').trim(); // Rende leggibili i camelCase (es. tagliobarba -> Taglio Barba)
+                return {
+                    servizio: nome,
+                    // La chiave API pulita sarà usata per il data-attributo
+                    chiaveAPI: chiave, 
+                    totale_richieste: aggregati[chiave]
+                };
+            })
+            // 3. Ordina per il più richiesto
+            .sort((a, b) => b.totale_richieste - a.totale_richieste);
+            
+        // 4. Popola l'HTML
+        container.innerHTML = serviziAggregati.map((s, i) => `
+            <div class="servizio-item clickable" data-servizio-chiave="${s.chiaveAPI}" title="Clicca per vedere i clienti">
+                <div>${i + 1}. <strong>${s.servizio}</strong></div>
                 <div>Richieste: ${s.totale_richieste}</div>
             </div>
         `).join('');
+        
+        if (serviziAggregati.length === 0) {
+            container.innerHTML = `<div class="loading-message">Nessun servizio richiesto nel periodo.</div>`;
+            return;
+        }
+
+        // AGGIUNGI L'EVENT LISTENER ai nuovi elementi per aprire la modale
+        container.querySelectorAll('.servizio-item.clickable').forEach(item => {
+            item.addEventListener('click', function() {
+                const nomeServizio = item.querySelector('strong').textContent;
+                const chiaveServizio = this.getAttribute('data-servizio-chiave');
+                mostraClientiServizio(nomeServizio, chiaveServizio);
+            });
+        });
     }
 
     function popolaDistribuzioneFedelta(distribuzione) {
@@ -172,7 +225,8 @@ document.addEventListener("DOMContentLoaded", () => {
         trend.forEach(t => {
             Object.keys(t).forEach(key => {
                 if (key !== 'mese' && key !== 'nomiServizi') { 
-                    const chiavePulita = key.trim();
+                    // CORREZIONE CRUCIALE: Normalizza a minuscolo per aggregazione
+                    const chiavePulita = key.trim().toLowerCase();
                     const valore = t[key] || 0;
                     
                     aggregati[chiavePulita] = (aggregati[chiavePulita] || 0) + valore;
@@ -187,9 +241,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // 2. Filtra i servizi con somma totale > 0 e li ordina alfabeticamente
         const datiFiltrati = Array.from(serviziTotali)
-            .filter(chiave => aggregati[chiave] > 0) // Esclude i servizi con somma totale zero
+            .filter(chiave => aggregati[chiave] > 0) 
             .sort((a, b) => {
-                 // Usa il nome visualizzato per l'ordinamento alfabetico (più pulito)
                  const labelA = nomiServiziOriginali[a] || a.charAt(0).toUpperCase() + a.slice(1);
                  const labelB = nomiServiziOriginali[b] || b.charAt(0).toUpperCase() + b.slice(1);
                  return labelA.localeCompare(labelB);
@@ -208,7 +261,6 @@ document.addEventListener("DOMContentLoaded", () => {
             labels.push(labelDaMostrare);
             dati.push(aggregati[chiavePulita]);
             
-            // Usa il colore mappato (assicurandoti che il trattamento sia #E74C3C)
             if (!coloriServiziMappati[chiavePulita]) {
                 coloriServiziMappati[chiavePulita] = getRandomColor();
             }
@@ -224,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }];
 
         new Chart(ctx, { 
-            type: 'doughnut', // 🛑 TIPO DI GRAFICO CAMBIATO IN DOUGHNUT (CIAMBELLA) 🛑
+            type: 'doughnut', 
             data: { labels, datasets },
             options: {
                 responsive: true,
@@ -241,7 +293,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 if (label) {
                                     label += ': ';
                                 }
-                                // Calcola la percentuale per il tooltip
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                 const currentValue = context.raw;
                                 const percentage = parseFloat(((currentValue / total) * 100).toFixed(1));
@@ -264,6 +315,51 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `).join('');
     }
+
+    // =======================================================
+    // === FUNZIONE GESTIONE MODALE SERVIZI ===
+    // =======================================================
+    async function mostraClientiServizio(nomeServizio, chiaveServizio) {
+        const modalContent = document.getElementById('modal-lista-clienti');
+        const modalTitle = document.getElementById('modal-titolo-servizio');
+        const periodo = filtroPeriodo ? filtroPeriodo.value : 'ultimi-3-mesi'; // Fallback
+    
+        if (!modal || !modalContent) return;
+
+        modalTitle.textContent = `Clienti per: ${nomeServizio} (${periodo})`;
+        modalContent.innerHTML = `<div class="loading-message">Caricamento clienti per ${nomeServizio}...</div>`;
+        modal.style.display = 'block'; // Mostra la modale
+
+        try {
+            // Chiamata API per ottenere la lista clienti per quel servizio e periodo
+            const clienti = await fetchDati('/api/analisi/clienti-per-servizio', { 
+                servizio: chiaveServizio, 
+                periodo: periodo 
+            });
+
+                   if (clienti.length > 0) {
+            modalContent.innerHTML = clienti.map(c => `
+                <div class="cliente-servizio-item">
+                    <a href="/scheda-cliente.html?id=${c.id}" class="link-cliente">
+                        <strong>${c.nome} ${c.cognome}</strong> 
+                    </a>
+                    
+                            <small>| 
+            <span style="color: #FFD700; font-weight: bold;">Visite: ${c.visite}</span> 
+            | Ultima: ${c.ultimaVisita || 'N/D'}
+        </small>
+                </div>
+            `).join('');
+        } else {
+                modalContent.innerHTML = `<div class="loading-message">Nessun cliente trovato per questo servizio nel periodo.</div>`;
+            }
+            
+        } catch (error) {
+            console.error("Errore caricamento lista clienti:", error);
+            modalContent.innerHTML = `<div style="color:red;">Errore nel caricamento della lista.</div>`;
+        }
+    }
+
 
     function mostraErrore(messaggio) {
         ['classifica-clienti','classifica-servizi','mappa-fidelita','grafico-trend','insights-container']
@@ -296,9 +392,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function popolaPagina(dati) {
         popolaClassificaClienti(dati.clientiAssidui);
-        popolaServiziPopolari(dati.serviziPopolari);
+        popolaServiziPopolariAggregati(dati.trendMensile); 
         popolaDistribuzioneFedelta(dati.distribuzioneFedelta);
-        // 🛑 AGGIORNA LA CHIAMATA ALLA NUOVA FUNZIONE
         popolaDistribuzioneServizi(dati.trendMensile); 
         popolaInsights(dati.insights);
     }
@@ -307,6 +402,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (aggiornaDatiBtn) aggiornaDatiBtn.addEventListener('click', caricaDatiAnalisi);
     if (filtroPeriodo) filtroPeriodo.addEventListener('change', caricaDatiAnalisi);
 
+    // Chiusura della modale
+    if (closeBtn) {
+        closeBtn.onclick = function() {
+            modal.style.display = "none";
+        }
+    }
+    // Chiusura con click fuori dalla modale
+    window.onclick = function(event) {
+        if (modal && event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+    
     // Caricamento iniziale
     caricaDatiAnalisi();
 });
