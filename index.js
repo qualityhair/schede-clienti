@@ -867,16 +867,17 @@ app.get("/api/clienti/:id", async (req, res) => {
 // === API ANALISI E STATISTICHE - VERSIONE SEMPLIFICATA ==
 // =======================================================
 
-/**
- * API per clienti più assidui - VERSIONE SEMPLIFICATA
- */
+
 app.get('/api/analisi/clienti-assidui', ensureAuthenticated, async (req, res) => {
     try {
         const { periodo = 'ultimi-3-mesi' } = req.query;
         
-        
         const dataInizio = calcolaDataInizio(periodo);
         
+        // 🚀 NUOVA LOGICA: Calcola i giorni totali nel periodo selezionato
+        const dataFine = new Date();
+        const dataInizioObj = new Date(dataInizio); // Converte la stringa SQL in oggetto Date
+        const durataPeriodoGiorni = Math.ceil((dataFine - dataInizioObj) / (1000 * 60 * 60 * 24)); 
         
         const query = `
             SELECT 
@@ -888,7 +889,7 @@ app.get('/api/analisi/clienti-assidui', ensureAuthenticated, async (req, res) =>
                 MAX(t.data_trattamento) as ultima_visita
             FROM clienti c
             LEFT JOIN trattamenti t ON c.id = t.cliente_id 
-            WHERE t.data_trattamento >= $1  -- ⚠️ CORRETTO: "WHERE" non "FILTRO"
+            WHERE t.data_trattamento >= $1 
             GROUP BY c.id, c.nome, c.cognome, c.soprannome
             HAVING COUNT(t.id) > 0
             ORDER BY visite_totali DESC
@@ -896,17 +897,26 @@ app.get('/api/analisi/clienti-assidui', ensureAuthenticated, async (req, res) =>
         `;
         
         const result = await db.query(query, [dataInizio]);
-        console.log('Clienti trovati per periodo', periodo, ':', result.rows.length);
+        // console.log('Clienti trovati per periodo', periodo, ':', result.rows.length);
         
-        const clientiFormattati = result.rows.map(cliente => ({
-            id: cliente.id,
-            nome: cliente.nome,
-            cognome: cliente.cognome,
-            soprannome: cliente.soprannome,
-            visite: parseInt(cliente.visite_totali),
-            frequenzaMedia: 30,
-            ultimaVisita: formattaUltimaVisita(cliente.ultima_visita)
-        }));
+        const clientiFormattati = result.rows.map(cliente => {
+            // Calcolo: Giorni Totali / Visite Totali = Frequenza in giorni
+            let frequenzaCalc = null;
+            if (parseInt(cliente.visite_totali) > 0) {
+                frequenzaCalc = Math.round(durataPeriodoGiorni / parseInt(cliente.visite_totali));
+            }
+
+            return {
+                id: cliente.id,
+                nome: cliente.nome,
+                cognome: cliente.cognome,
+                soprannome: cliente.soprannome,
+                visite: parseInt(cliente.visite_totali),
+                // 🚀 CORREZIONE: Usa il calcolo basato sul periodo
+                frequenzaMedia: frequenzaCalc, 
+                ultimaVisita: formattaUltimaVisita(cliente.ultima_visita)
+            };
+        });
         
         res.json(clientiFormattati);
         
