@@ -37,17 +37,35 @@
 /* CLASSIFICHE */
 .classifica-container {
     display: grid;
-    gap: 15px;
+    /* Rimuovi o imposta a 0 il gap */
+    gap: 0; 
 }
 
 .cliente-item, .servizio-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px;
-    background: #333;
-    border-radius: 8px;
+
+    /* 🛑 CAMBIAMENTO CHIAVE: Riduzione drastica del padding verticale (da 15px a 8px) */
+    padding: 8px 15px; 
+    
+    /* 🛑 RIMOZIONE: Elimina lo sfondo scuro (background: #333; era il problema dello spazio) */
+    background: transparent; 
+    
+    /* 🛑 RIMOZIONE: Elimina l'angolo arrotondato */
+    border-radius: 0; 
+
+    /* AGGIUNTA: Usa un bordo inferiore per separare le righe */
+    border-bottom: 1px solid #444; 
+    
+    /* Mantieni il bordo laterale */
     border-left: 4px solid #FFD700;
+}
+
+/* Rimuovi il bordo sotto l'ultimo elemento */
+.classifica-container .cliente-item:last-child,
+.classifica-container .servizio-item:last-child {
+    border-bottom: none;
 }
 
 .cliente-info, .servizio-info {
@@ -223,6 +241,7 @@
         flex-direction: column;
         text-align: center;
         gap: 10px;
+		    padding: 8px 15px; /* <--- 8px in alto e 8px in basso */
     }
     
     .cliente-statistiche, .servizio-statistiche {
@@ -297,11 +316,28 @@
 }
 
 /* Stili per la lista dei clienti all'interno della modale */
-.lista-clienti-servizio div {
-    padding: 10px 0;
+
+/* 🛑 NUOVA REGOLA CHIAVE: Usa Flexbox per allineare orizzontalmente tutti gli elementi */
+.cliente-servizio-item {
+    display: flex;
+    justify-content: space-between; /* Spinge il nome a sinistra e i dettagli a destra */
+    align-items: center;
+    padding: 8px 0; /* Ridotto per compattare */
     border-bottom: 1px dashed #444;
 }
 
-.lista-clienti-servizio div:last-child {
-    border-bottom: none;
+/* Stili per i dettagli */
+.dettagli-modale {
+    /* Assicurati che non ci siano interruzioni qui */
+    white-space: nowrap; 
+    font-size: 0.9em;
+    color: #ccc;
 }
+
+/* Stile del nome (dal passo precedente) */
+.nome-cliente-modale {
+    color: #FFD700 !important; 
+    font-weight: bold; 
+    text-decoration: none !important; 
+}
+

@@ -1000,25 +1000,19 @@ app.get('/api/analisi/distribuzione-fedelta', ensureAuthenticated, async (req, r
 // =======================================================
 // === API per trend mensile - VERSIONE FINALE E FUNZIONANTE ===
 // =======================================================
-// =======================================================
-// === API per trend mensile - VERSIONE FINALE E FUNZIONANTE ===
-// === ORA USA CALCOLADATAINIZIO PER UNIFORMARE IL FILTRO ===
-// =======================================================
+
 app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
     try {
+        const periodo = req.query.periodo || 'ultimi-3-mesi';
         
-
-        const periodo = req.query.periodo || 'ultimi-3-mesi'; // Ottieni il periodo dal frontend
-        
-        // 🛑 CAMBIO CHIAVE: USIAMO LA STESSA LOGICA DI FILTRO DEGLI ALTRI ENDPOINT 🛑
+        // Calcola la data di inizio del filtro in base al periodo
         const dataInizio = calcolaDataInizio(periodo);
         
-
-        // Query SQL: estrae i servizi e li normalizza (es. 'taglio & barba' diventa 'tagliobarba')
+        // Query SQL: estrae i servizi e li normalizza
         const query = `
             SELECT 
                 TO_CHAR(t.data_trattamento, 'TMMonth YYYY') AS mese_label,
-                -- Normalizzazione: usiamo REPLACE per sostituire gli spazi e il simbolo &.
+                -- Normalizzazione: usiamo REPLACE per sostituire gli spazi e il simbolo & (necessario per le chiavi JSON)
                 REPLACE(
                     REPLACE(TRIM(LOWER(jsonb_array_elements(t.servizi)->>'servizio')), ' ', ''), 
                     '&', ''
@@ -1035,37 +1029,41 @@ app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
         for (const row of result.rows) {
             const mese = row.mese_label.charAt(0).toUpperCase() + row.mese_label.slice(1).toLowerCase();
             
-            // Chiave dinamica (normalizzata)
             const chiaveDinamica = row.servizio_normalizzato || 'sconosciuto';
-            // Nome leggibile per la legenda (originale)
             const nomePerLegenda = row.servizio_originale;
 
             if (!trendMap[mese]) {
                 trendMap[mese] = { mese };
             }
 
-            // 💡 1. Salviamo il nome originale in un oggetto 'nomiServizi'
+            // 1. Salviamo il nome originale
             if (!trendMap[mese].nomiServizi) {
                 trendMap[mese].nomiServizi = {};
             }
             trendMap[mese].nomiServizi[chiaveDinamica] = nomePerLegenda;
 
-            // 💡 2. Aggiunge o incrementa il conteggio per la chiave normalizzata
+            // 2. Aggiunge o incrementa il conteggio
             trendMap[mese][chiaveDinamica] = (trendMap[mese][chiaveDinamica] || 0) + 1;
         }
         
-        // 🛑 LOGICA DI ORDINAMENTO (Mantenuta) 🛑
+        // LOGICA DI ORDINAMENTO (Mantenuta)
         const mesiOrdinati = Object.values(trendMap).sort((a, b) => {
             const [ma, aa] = a.mese.split(' ');
             const [mb, ab] = b.mese.split(' ');
             const mesi = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
             
-            // Ordina prima per anno, poi per mese
             return parseInt(aa) - parseInt(ab) || mesi.indexOf(ma.toLowerCase()) - mesi.indexOf(mb.toLowerCase());
         });
 
-        // La risposta corretta
-        return res.json(mesiOrdinati); 
+        // 🚀 CALCOLO DEL TOTALE SERVIZI (CORREZIONE RICHIESTA)
+        // Ogni riga del risultato SQL è un servizio singolo.
+        const totaleServizi = result.rows.length;
+
+        // La risposta finale restituisce un oggetto contenitore con entrambi i set di dati
+        return res.json({
+            trendDati: mesiOrdinati,
+            totaleServizi: totaleServizi
+        });
 
     } catch (error) {
         console.error('ERRORE API trend mensile (uniforme):', error.message);
