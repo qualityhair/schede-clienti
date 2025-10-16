@@ -18,7 +18,7 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js"></script>
 
 <!-- Il tuo script dashboard -->
-    <script src="/js/dashboard-app.js"></script>
+
 
 </head>
 <body>
@@ -319,9 +319,58 @@
     </div>
 </div>
 
+<script>
+// =======================================================
+// === GESTIONE MODALE IMPOSTAZIONI E GESTIONE ===
+// =======================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const impostazioniModal = document.getElementById('impostazioni-modal');
+    const apriImpostazioniBtn = document.getElementById('apri-impostazioni-btn');
+    const chiudiImpostazioniBtn = document.getElementById('close-impostazioni-btn');
+
+    // --- Apertura ---
+    function apriModaleImpostazioni() {
+        impostazioniModal.style.display = 'block';
+    }
+
+    // --- Chiusura ---
+    function chiudiModaleImpostazioni() {
+        impostazioniModal.style.display = 'none';
+    }
+
+    // --- Click sul pulsante "Apri" ---
+    if (apriImpostazioniBtn) {
+        apriImpostazioniBtn.addEventListener('click', apriModaleImpostazioni);
+    }
+
+    // --- Click sulla "X" ---
+    if (chiudiImpostazioniBtn) {
+        chiudiImpostazioniBtn.addEventListener('click', chiudiModaleImpostazioni);
+    }
+
+    // --- Click fuori dal contenuto per chiudere ---
+    window.addEventListener('click', function(event) {
+        if (event.target === impostazioniModal) {
+            chiudiModaleImpostazioni();
+        }
+    });
+
+    // =======================================================
+    // === APERTURA AUTOMATICA DA LINK ESTERNO ===
+    // =======================================================
+    const params = new URLSearchParams(window.location.search);
+    const modalToOpen = params.get('openModal');
+
+    if (modalToOpen === 'impostazioni') {
+        console.log("DEBUG: apro modale impostazioni!");
+        apriModaleImpostazioni();
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
+</script>
 
 
-
+    <script src="/js/dashboard-app.js"></script>
 
 </body>
 </html>

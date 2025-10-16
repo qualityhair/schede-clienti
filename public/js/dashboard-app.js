@@ -793,33 +793,48 @@ fetchAndDisplayClientiARischio();
 
 
     // =======================================================
-    // === GESTIONE MODALE IMPOSTAZIONI E GESTIONE ===
-    // =======================================================
+// === GESTIONE MODALE IMPOSTAZIONI E GESTIONE ===
+// =======================================================
+document.addEventListener('DOMContentLoaded', () => {
     const impostazioniModal = document.getElementById('impostazioni-modal');
     const apriImpostazioniBtn = document.getElementById('apri-impostazioni-btn');
     const chiudiImpostazioniBtn = document.getElementById('close-impostazioni-btn');
 
-    // Funzione per aprire la modale
+    function apriModaleImpostazioni() {
+        impostazioniModal.style.display = 'block';
+    }
+
+    function chiudiModaleImpostazioni() {
+        impostazioniModal.style.display = 'none';
+    }
+
     if (apriImpostazioniBtn) {
-        apriImpostazioniBtn.addEventListener('click', function() {
-            impostazioniModal.style.display = 'block';
-        });
+        apriImpostazioniBtn.addEventListener('click', apriModaleImpostazioni);
     }
 
-    // Funzione per chiudere la modale cliccando sulla 'X'
     if (chiudiImpostazioniBtn) {
-        chiudiImpostazioniBtn.addEventListener('click', function() {
-            impostazioniModal.style.display = 'none';
-        });
+        chiudiImpostazioniBtn.addEventListener('click', chiudiModaleImpostazioni);
     }
 
-    // Funzione per chiudere la modale cliccando fuori dal contenuto
-    // (Aggiungo anche la tua modale a questa logica che probabilmente già esiste)
-    window.addEventListener('click', function(event) {
-        if (event.target == impostazioniModal) {
-            impostazioniModal.style.display = 'none';
+    window.addEventListener('click', function (event) {
+        if (event.target === impostazioniModal) {
+            chiudiModaleImpostazioni();
         }
     });
+
+    // =======================================================
+    // === APERTURA AUTOMATICA SE RICHIESTA DA URL ===
+    // =======================================================
+    const params = new URLSearchParams(window.location.search);
+    const modalToOpen = params.get('openModal');
+
+    if (modalToOpen === 'impostazioni') {
+        console.log("DEBUG: apertura modale impostazioni da URL"); // <-- verifica in console
+        apriModaleImpostazioni();
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
+
 
 
 // === NUOVA FUNZIONE PER CARICARE I PRODOTTI CON SCORTE BASSE ===
