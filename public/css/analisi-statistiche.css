@@ -341,3 +341,167 @@
     text-decoration: none !important; 
 }
 
+
+/* ======================================================= */
+/* Bar Chart uniformi: tutte le barre con stessa altezza */
+/* ======================================================= */
+
+/* Per i canvas dei grafici a barre */
+#fedeltaChart, #distribuzioneServiziChart {
+    /* Altezza fissa dei canvas */
+    max-height: 400px;  /* Puoi regolare in base allo spazio disponibile */
+}
+
+/* Altezza uniforme delle barre */
+#fedeltaChart .chartjs-render-monitor,
+#distribuzioneServiziChart .chartjs-render-monitor {
+    /* Altezza massima della barra */
+    --bar-thickness: 25px; /* Valore consigliato, puoi aumentare/diminuire */
+}
+
+
+/* Pulsante insight */
+.btn-insight {
+    background-color: #FFD700;
+    color: #2a2a2a;
+    font-weight: bold;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn-insight:hover {
+    transform: scale(1.05);
+    background-color: #FFC107;
+}
+
+/* Messaggio insight dinamico */
+#insight-casuale {
+    padding: 12px 15px;
+    border-left: 4px solid #2196F3;
+    background: #333;
+    color: #FFD700;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    transition: transform 0.2s;
+}
+
+
+/* ========================= */
+/* === INSIGHT ANIMAZIONI === */
+/* ========================= */
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.insight-section {
+  margin-top: 25px;
+  text-align: center;
+}
+
+.insight-container {
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Card base */
+.insight-item {
+  background: #f9f9f9; /* chiaro e leggibile */
+  color: #222; /* testo scuro */
+  margin: 8px 0;
+  padding: 12px 18px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  width: 80%;
+  max-width: 500px;
+  text-align: left;
+  font-weight: 500;
+  animation: fadeInUp 0.6s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.insight-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Stato: crescita, calo o stabile */
+.insight-up {
+  border-left: 5px solid #4CAF50; /* verde */
+}
+
+.insight-down {
+  border-left: 5px solid #F44336; /* rosso */
+}
+
+.insight-stable {
+  border-left: 5px solid #FFC107; /* giallo */
+}
+/* ===== COLORI E ANIMAZIONI INSIGHT TREND ===== */
+.insight-item {
+    color: #fff;
+    background: #2a2a2a;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 12px 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover animato */
+.insight-item:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+}
+
+/* Crescita - Verde */
+.insight-up {
+    border-left: 5px solid #4CAF50;
+    background: linear-gradient(90deg, #1b3b1b, #2a2a2a);
+}
+
+/* Calo - Rosso */
+.insight-down {
+    border-left: 5px solid #F44336;
+    background: linear-gradient(90deg, #3b1b1b, #2a2a2a);
+}
+
+/* Stabile - Giallo */
+.insight-stable {
+    border-left: 5px solid #FFD700;
+    background: linear-gradient(90deg, #3b3b1b, #2a2a2a);
+}
+
+/* Selettore principale e quello in basso */
+#tipoGrafico,
+#filtro-periodo,
+#filtro-periodo-bottom {
+    background-color: #FFD700; /* giallo oro */
+    color: #000;               /* testo nero leggibile */
+    border: 1px solid #B8860B; /* bordo marrone oro scuro */
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+/* Effetto hover */
+#tipoGrafico:hover,
+#filtro-periodo:hover,
+#filtro-periodo-bottom:hover {
+    background-color: #FFC700; /* un po’ più chiaro al passaggio del mouse */
+    cursor: pointer;
+}
+
+

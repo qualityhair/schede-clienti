@@ -188,118 +188,230 @@ async function caricaDatiAnalisi() {
         });
     }
 
-    function popolaDistribuzioneFedelta(distribuzione) {
-        const container = document.getElementById('mappa-fidelita');
-        if (!container) return;
-        container.innerHTML = distribuzione.map(cat => `
-            <div class="categoria-fidelita data-box">
-                <strong>${cat.categoria}</strong>
-                <div>${cat.count} clienti</div>
-                <small>(${cat.intervallo})</small>
-            </div>
-        `).join('');
-    }
+    let fedeltaChart = null;
+
+function popolaDistribuzioneFedelta(distribuzione) {
+    const container = document.getElementById('mappa-fidelita');
+    if (!container) return;
+
+    let canvas = container.querySelector('canvas');
+    if (!canvas) {
+        container.innerHTML = '';
+        canvas = document.createElement('canvas');
+        canvas.id = 'fedeltaChart';
+        container.appendChild(canvas);
+    }
+    const ctx = canvas.getContext('2d');
+
+    const labels = distribuzione.map(cat => cat.categoria);
+    const dati = distribuzione.map(cat => cat.count);
+    const colori = distribuzione.map(cat => {
+        const nome = cat.categoria.toLowerCase();
+        if (nome.includes('vip')) return '#3498DB';
+        if (nome.includes('regolari')) return '#2ECC71';
+        if (nome.includes('occasionali')) return '#F1C40F';
+        if (nome.includes('a rischio')) return '#E74C3C';
+        return '#95A5A6';
+    });
+
+    const config = {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [{
+    label: 'Numero Clienti',
+    data: dati,
+    backgroundColor: colori,
+    barThickness: 20   // <--- Forza altezza barre uguale per tutti i grafici
+}]
+
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            animation: {
+                duration: 800,
+                easing: 'easeOutCubic'
+            },
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Distribuzione Fedeltà Clienti' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const cat = distribuzione[context.dataIndex];
+                            return `${cat.categoria}: ${context.raw} clienti (${cat.intervallo})`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { beginAtZero: true, ticks: { precision: 0 } }
+            }
+        }
+    };
+
+    if (fedeltaChart) {
+        // Aggiorna dati e colori senza resettare
+        fedeltaChart.data.labels = labels;
+        fedeltaChart.data.datasets[0].data = dati;
+        fedeltaChart.data.datasets[0].backgroundColor = colori;
+        fedeltaChart.update();
+    } else {
+        fedeltaChart = new Chart(ctx, config);
+    }
+}
+
+
 
     // =======================================================
     // === GRAFICO DISTRIBUZIONE SERVIZI (TORTA/DOUGHNUT) ===
     // =======================================================
-    function popolaDistribuzioneServizi(trend) {
-        const container = document.getElementById('grafico-trend');
-        if (!container) return;
+    let distribuzioneServiziChart = null;
+let datiTrendMensile = null;
+let graficoInizializzato = false;
 
-        // Setup Canvas e contesto
-        container.innerHTML = '';
-        const canvas = document.createElement('canvas');
-        canvas.id = 'distribuzioneServiziChart';
-        container.appendChild(canvas);
-        const ctx = canvas.getContext('2d'); 
-        
-        const aggregati = {};
-        let serviziTotali = new Set();
-        let nomiServiziOriginali = {};
+function popolaDistribuzioneServizi(trend, tipoSelezionato = null) {
+    datiTrendMensile = trend;
 
-        // 1. Aggrega i dati di tutti i mesi nel periodo selezionato
-        trend.forEach(t => {
-            Object.keys(t).forEach(key => {
-                if (key !== 'mese' && key !== 'nomiServizi') { 
-                    const chiavePulita = key.trim().toLowerCase();
-                    const valore = t[key] || 0;
-                    
-                    aggregati[chiavePulita] = (aggregati[chiavePulita] || 0) + valore;
-                    serviziTotali.add(chiavePulita);
-                    
-                    if (t.nomiServizi && t.nomiServizi[key]) {
-                        nomiServiziOriginali[chiavePulita] = t.nomiServizi[key];
-                    }
-                }
-            });
-        });
+    const container = document.getElementById('grafico-trend');
+    if (!container) return;
 
-        // 2. Filtra i servizi con somma totale > 0 e li ordina alfabeticamente
-        const datiFiltrati = Array.from(serviziTotali)
-            .filter(chiave => aggregati[chiave] > 0) 
-            .sort((a, b) => {
-                 const labelA = nomiServiziOriginali[a] || a.charAt(0).toUpperCase() + a.slice(1);
-                 const labelB = nomiServiziOriginali[b] || b.charAt(0).toUpperCase() + b.slice(1);
-                 return labelA.localeCompare(labelB);
-            }); 
+    let canvas = container.querySelector('canvas');
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.id = 'distribuzioneServiziChart';
+        canvas.style.opacity = 0; // start hidden for fade
+        container.appendChild(canvas);
+    }
+    const ctx = canvas.getContext('2d');
 
-        // 3. Prepara i dati per Chart.js
-        const labels = [];
-        const dati = [];
-        const colori = [];
+    // Aggregazione dati
+    const aggregati = {};
+    let serviziTotali = new Set();
+    let nomiServiziOriginali = {};
 
-        datiFiltrati.forEach(chiavePulita => {
-            let labelDaMostrare = nomiServiziOriginali[chiavePulita] 
-                || chiavePulita.charAt(0).toUpperCase() + chiavePulita.slice(1);
-            labelDaMostrare = labelDaMostrare.replace(/([A-Z])/g, ' $1').trim();
-            
-            labels.push(labelDaMostrare);
-            dati.push(aggregati[chiavePulita]);
-            
-            if (!coloriServiziMappati[chiavePulita]) {
-                coloriServiziMappati[chiavePulita] = getRandomColor();
-            }
-            colori.push(coloriServiziMappati[chiavePulita]);
-        });
+    trend.forEach(t => {
+        Object.keys(t).forEach(key => {
+            if (key !== 'mese' && key !== 'nomiServizi') {
+                const chiavePulita = key.trim().toLowerCase();
+                const valore = t[key] || 0;
+                aggregati[chiavePulita] = (aggregati[chiavePulita] || 0) + valore;
+                serviziTotali.add(chiavePulita);
+                if (t.nomiServizi && t.nomiServizi[key]) {
+                    nomiServiziOriginali[chiavePulita] = t.nomiServizi[key];
+                }
+            }
+        });
+    });
 
-        // 4. Configurazione del grafico a torta (Doughnut)
-        const datasets = [{
-            label: 'Richieste Totali nel Periodo',
-            data: dati,
-            backgroundColor: colori,
-            hoverOffset: 4
-        }];
+    const datiFiltrati = Array.from(serviziTotali)
+        .filter(chiave => aggregati[chiave] > 0)
+        .sort((a, b) => {
+            const labelA = nomiServiziOriginali[a] || a.charAt(0).toUpperCase() + a.slice(1);
+            const labelB = nomiServiziOriginali[b] || b.charAt(0).toUpperCase() + b.slice(1);
+            return labelA.localeCompare(labelB);
+        });
 
-        new Chart(ctx, { 
-            type: 'doughnut', 
-            data: { labels, datasets },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: { display: true, text: 'Distribuzione Servizi nel Periodo' },
-                    legend: { 
-                        position: 'bottom',
-                        labels: { usePointStyle: true }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const currentValue = context.raw;
-                                const percentage = parseFloat(((currentValue / total) * 100).toFixed(1));
-                                return `${label} ${currentValue} (${percentage}%)`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
+    const labels = [];
+    const dati = [];
+    const colori = [];
+
+    datiFiltrati.forEach(chiavePulita => {
+        let labelDaMostrare = nomiServiziOriginali[chiavePulita] 
+            || chiavePulita.charAt(0).toUpperCase() + chiavePulita.slice(1);
+        labelDaMostrare = labelDaMostrare.replace(/([A-Z])/g, ' $1').trim();
+
+        labels.push(labelDaMostrare);
+        dati.push(aggregati[chiavePulita]);
+
+        if (!coloriServiziMappati[chiavePulita]) {
+            coloriServiziMappati[chiavePulita] = getRandomColor();
+        }
+        colori.push(coloriServiziMappati[chiavePulita]);
+    });
+
+    tipoSelezionato = tipoSelezionato || document.getElementById('tipoGrafico')?.value || 'barOrizzontale';
+
+    const configBase = {
+        type: tipoSelezionato === 'doughnut' ? 'doughnut' : 'bar',
+        data: {
+            labels,
+            datasets: [{
+    label: 'Richieste Totali',
+    data: dati,
+    backgroundColor: colori,
+    barThickness: 20   // <--- Stessa altezza barre del grafico fedeltà
+}]
+
+        },
+        options: {
+            responsive: true,
+            animation: { duration: 1000, easing: 'easeOutBounce' }, // <--- effetto bounce
+            plugins: {
+                title: { display: true, text: 'Distribuzione Servizi nel Periodo' },
+                legend: { position: 'bottom', labels: { usePointStyle: true }, display: tipoSelezionato==='doughnut' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            if(label) label += ': ';
+                            const total = context.dataset.data.reduce((a,b)=>a+b,0);
+                            const current = context.raw;
+                            const perc = ((current/total)*100).toFixed(1);
+                            return `${label} ${current} (${perc}%)`;
+                        }
+                    }
+                }
+            },
+            scales: {}
+        }
+    };
+
+    if(tipoSelezionato === 'barVertical') {
+        configBase.options.indexAxis = 'x';
+        configBase.options.scales = { y: { beginAtZero: true, ticks: { precision: 0 } } };
+    } else if(tipoSelezionato === 'barOrizzontale') {
+        configBase.options.indexAxis = 'y';
+        configBase.options.scales = { x: { beginAtZero: true, ticks: { precision: 0 } } };
+    }
+
+    canvas.style.transition = 'opacity 0.4s';
+
+    if(distribuzioneServiziChart) {
+        // Fade out + update + fade in + bounce
+        canvas.style.opacity = 0;
+        setTimeout(() => {
+            distribuzioneServiziChart.config.type = configBase.type;
+            distribuzioneServiziChart.config.options.indexAxis = configBase.options.indexAxis;
+            distribuzioneServiziChart.data.labels = labels;
+            distribuzioneServiziChart.data.datasets[0].data = dati;
+            distribuzioneServiziChart.data.datasets[0].backgroundColor = colori;
+            distribuzioneServiziChart.options.scales = configBase.options.scales;
+            distribuzioneServiziChart.options.plugins.legend.display = configBase.options.plugins.legend.display;
+            distribuzioneServiziChart.options.animation.easing = 'easeOutBounce';
+            distribuzioneServiziChart.update({ duration: 1000 });
+            canvas.style.opacity = 1;
+        }, 300);
+    } else {
+        // Primo caricamento: slide + grow + bounce
+        const datiIniziali = dati.map(() => 0);
+        configBase.data.datasets[0].data = datiIniziali;
+        distribuzioneServiziChart = new Chart(ctx, configBase);
+
+        setTimeout(() => {
+            distribuzioneServiziChart.data.datasets[0].data = dati;
+            distribuzioneServiziChart.update({ duration: 1200, easing: 'easeOutBounce' });
+            canvas.style.opacity = 1;
+        }, 50);
+    }
+}
+
+// Listener select tipo grafico
+document.getElementById('tipoGrafico')?.addEventListener('change', () => {
+    if(datiTrendMensile) popolaDistribuzioneServizi(datiTrendMensile);
+});
+
 
     function popolaInsights(insights) {
         const container = document.getElementById('insights-container');
@@ -434,4 +546,81 @@ async function caricaDatiAnalisi() {
     
     // Caricamento iniziale
     caricaDatiAnalisi();
+
+function generaInsightTrendReale(datiTrendMensile) {
+    if (!datiTrendMensile || datiTrendMensile.length < 2) 
+        return ["Non ci sono abbastanza dati per calcolare il trend."];
+
+    const ultimo = datiTrendMensile[datiTrendMensile.length - 1];
+    const precedente = datiTrendMensile[datiTrendMensile.length - 2];
+
+    const insights = [];
+
+    // Prende tutte le chiavi dei servizi
+    const chiaviServizi = Object.keys(ultimo).filter(k => k !== 'mese' && k !== 'nomiServizi');
+
+    chiaviServizi.forEach(key => {
+        const valoreUltimo = ultimo[key] || 0;
+        const valorePrecedente = precedente[key] || 0;
+
+        if (valorePrecedente === 0 && valoreUltimo > 0) {
+            insights.push(`Il servizio ${key} ha avuto richieste nel mese corrente, ma nessuna nel mese precedente!`);
+        } else if (valorePrecedente > 0) {
+            const diffPercent = ((valoreUltimo - valorePrecedente) / valorePrecedente * 100).toFixed(1);
+            if (diffPercent > 0) {
+                insights.push(`Il servizio ${key} è in crescita del ${diffPercent}% rispetto al mese scorso.`);
+            } else if (diffPercent < 0) {
+                insights.push(`Il servizio ${key} è in calo del ${Math.abs(diffPercent)}% rispetto al mese scorso.`);
+            } else {
+                insights.push(`Il servizio ${key} ha mantenuto lo stesso livello rispetto al mese scorso.`);
+            }
+        }
+    });
+
+    return insights;
+}
+
+
+document.getElementById('btnInsightTrend')?.addEventListener('click', () => {
+    const container = document.getElementById('insightTrendContainer');
+    container.innerHTML = ""; // pulisce vecchi messaggi
+
+    const insights = generaInsightTrendReale(datiTrendMensile); // usa i dati del grafico
+    insights.forEach(msg => {
+    const div = document.createElement('div');
+    div.classList.add("insight-item", "data-box");
+
+    // 🔸 Determina il colore in base al testo
+    if (msg.includes("crescita")) {
+        div.classList.add("insight-up");
+    } else if (msg.includes("calo")) {
+        div.classList.add("insight-down");
+    } else {
+        div.classList.add("insight-stable");
+    }
+
+    div.innerHTML = `<p>${msg}</p>`;
+    container.appendChild(div);
+});
+
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+    const filtroTop = document.getElementById("filtro-periodo");
+    const filtroBottom = document.getElementById("filtro-periodo-bottom");
+
+    if (filtroTop && filtroBottom) {
+        filtroTop.addEventListener("change", () => {
+            filtroBottom.value = filtroTop.value;
+            filtroBottom.dispatchEvent(new Event("change"));
+        });
+
+        filtroBottom.addEventListener("change", () => {
+            filtroTop.value = filtroBottom.value;
+            filtroTop.dispatchEvent(new Event("change"));
+        });
+    }
+});
+
+
 });

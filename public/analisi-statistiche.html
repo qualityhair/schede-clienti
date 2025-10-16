@@ -19,16 +19,14 @@
             <br><br>
             <img src="/img/logo1.jpg" alt="Logo Quality Hair" id="navbar-logo">
         </div>
-                <ul class="navbar-links">
+        <ul class="navbar-links">
             <li><a href="/dashboard.html">Home</a></li>
             <li><a href="/calendario.html">Agenda Settimanale</a></li>
-			<li><a href="/dashboard.html?openModal=impostazioni">Impostazioni e Gestione</a></li>
-			
+            <li><a href="/dashboard.html?openModal=impostazioni">Impostazioni e Gestione</a></li>
             <li class="navbar-search-item">
                 <input type="text" id="navbar-search-input" placeholder="Cerca Cliente..." class="input-field" />
                 <button id="navbar-search-button" class="btn btn-primary">Cerca</button>
             </li>
-
         </ul>
     </div>
 
@@ -45,16 +43,16 @@
                         <option value="ultimi-6-mesi">Ultimi 6 Mesi</option>
                         <option value="ultimo-anno">Ultimo Anno</option>
                     </select>
- 
                 </div>
             </div>
-			
-			        <div class="metriche-chiave-container">
-						<div id="totale-servizi-box">
-						<div class="loading-message">Caricamento totale servizi...</div>
-						</div>
-					</div>
-			
+            
+            <div class="metriche-chiave-container">
+                <div id="totale-servizi-box">
+                    <div class="loading-message">Caricamento totale servizi...</div>
+                </div>
+            </div>
+
+
 
             <div class="classifiche-affiancate">
                 
@@ -64,14 +62,14 @@
                         <div id="classifica-clienti" class="classifica-container">
                             <div class="loading-message">Caricamento classifica clienti...</div>
                         </div>
-                        
-                        <div class="distribuzione-fidelita">
-                            <h3>📋 Distribuzione Fedeltà</h3>
-                            <div id="mappa-fidelita" class="mappa-container">
-                                <div class="loading-message">Caricamento distribuzione...</div>
-                            </div>
-                        </div>
                     </div>
+								
+
+
+<button id="btnInsightTrend" class="btn-primary" style="margin-bottom:15px;">🚀 Genera Insight Trend</button>
+<div id="insightTrendContainer"></div>
+					
+					
                 </div>
 
                 <div class="panel analisi-panel">
@@ -80,35 +78,58 @@
                         <div id="classifica-servizi" class="classifica-container">
                             <div class="loading-message">Caricamento servizi...</div>
                         </div>
-                        
+
+                        <!-- Grafico Trend Servizi -->
                         <div class="trend-mensile">
-                            <h3>📅 Grafico Andamento</h3>
-                            <div id="grafico-trend" class="trend-container">
-                                <div class="loading-message">Caricamento trend...</div>
+    <div class="trend-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h3>📅 Andamento Servizi</h3>
+        <select id="tipoGrafico">
+            <option value="barOrizzontale" selected>Barre Orizzontali</option>
+            <option value="barVertical">Barre Verticali</option>
+            <option value="doughnut">Torta</option>
+        </select>
+    </div>
+
+    <div id="grafico-trend" style="width:100%; max-width:700px; height:400px; margin:auto;">
+        <canvas id="distribuzioneServiziChart" style="width:100%; height:100%;"></canvas>
+    </div>
+</div>
+
+
+                        <!-- Grafico Distribuzione Fedeltà -->
+                        <div class="distribuzione-fidelita" style="margin-top:30px;">
+                            <h3>📋 Fedeltà Clienti</h3>
+                            <div id="mappa-fidelita" style="width:100%; max-width:700px; height:400px; margin:auto;">
+                                <canvas id="fedeltaChart" style="width:100%; height:100%;"></canvas>
+                              
                             </div>
                         </div>
                     </div>
                 </div>
                 
             </div>
-            </main>
+			
+			<div class="filtri-periodo" style="text-align:center; margin-top:20px;">
+    <select id="filtro-periodo-bottom" class="select-field">
+        <option value="ultimo-mese">Ultimo Mese</option>
+        <option value="ultimi-3-mesi" selected>Ultimi 3 Mesi</option>
+        <option value="ultimi-6-mesi">Ultimi 6 Mesi</option>
+        <option value="ultimo-anno">Ultimo Anno</option>
+    </select>
+</div>
+        </main>
     </div>
-	
-	
-	<div id="modal-clienti-servizio" class="modal">
-    <div class="modal-content">
-        <span class="close-btn">&times;</span>
-        <h3 id="modal-titolo-servizio">Clienti per: [Nome Servizio]</h3>
-        
-        <div id="modal-lista-clienti" class="lista-clienti-servizio">
-            <div class="loading-message">Caricamento clienti...</div>
+    
+    <div id="modal-clienti-servizio" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h3 id="modal-titolo-servizio">Clienti per: [Nome Servizio]</h3>
+            <div id="modal-lista-clienti" class="lista-clienti-servizio">
+                <div class="loading-message">Caricamento clienti...</div>
+            </div>
         </div>
     </div>
-</div>
-	
-	
-	
-	
+
     <script src="/js/scheda-cliente-navbar.js"></script> 
     <script src="./js/navbar-loader.js"></script>
     <script src="./js/analisi-statistiche.js"></script> 
