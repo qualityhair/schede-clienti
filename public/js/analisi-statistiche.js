@@ -53,214 +53,206 @@ async function fetchDati(endpoint, parametri = {}) {
 
 document.addEventListener("DOMContentLoaded", () => {
 
+    // ===== ELEMENTI DOM =====
+    const filtroPeriodo = document.getElementById('filtro-periodo');
+    const aggiornaDatiBtn = document.getElementById('aggiorna-dati-btn');
+    const modal = document.getElementById('modal-clienti-servizio');
+    const closeBtn = document.querySelector('.close-btn');
 
-    // ===== ELEMENTI DOM =====
-    const filtroPeriodo = document.getElementById('filtro-periodo');
-    const aggiornaDatiBtn = document.getElementById('aggiorna-dati-btn');
-    const modal = document.getElementById('modal-clienti-servizio');
-    const closeBtn = document.querySelector('.close-btn');
-
-   
-
-    // ============================
-    // === FUNZIONE CARICAMENTO ===
-    // ============================
-async function caricaDatiAnalisi() {
-    
-    if (!filtroPeriodo) {
-        console.error("ERRORE: Elemento filtro-periodo non trovato nel DOM.");
-        return;
-    }
-
-    if (aggiornaDatiBtn) {
-        aggiornaDatiBtn.disabled = true;
-        aggiornaDatiBtn.textContent = "🔄 Caricamento...";
-    }
-
-    const periodo = filtroPeriodo.value; 
-
-    try {
-       
-
-        // 🛑 AGGIORNATO: L'API trend-mensile restituisce ora { trendDati, totaleServizi }
-        const [clientiAssidui, distribuzioneFedelta, trendResponse, insights] = await Promise.all([
-            fetchDati('/api/analisi/clienti-assidui', { periodo }),
-            fetchDati('/api/analisi/distribuzione-fedelta'),
-            fetchDati('/api/analisi/trend-mensile', { periodo }), 
-            fetchDati('/api/analisi/insights')
-        ]);
-
-        popolaPagina({
-            clientiAssidui, 
-            distribuzioneFedelta, 
-            trendMensile: trendResponse.trendDati, // Passa l'array di dati mensili
-            totaleServizi: trendResponse.totaleServizi, // Passa il nuovo totale
-            insights
-        });
-
-        mostraMessaggioTemporaneo("Dati aggiornati!", "success");
-
-    } catch (error) {
-        console.error("ERRORE nel caricamento:", error);
-        mostraErrore(`Impossibile caricare i dati. Dettaglio: ${error.message}`);
-        mostraMessaggioTemporaneo("Errore nel caricamento", "error");
-    } finally {
-        if (aggiornaDatiBtn) {
-            aggiornaDatiBtn.disabled = false;
-            aggiornaDatiBtn.textContent = "🔄 Aggiorna";
-        }
-        
-    }
-}
-    
-    // =============================
-    // === FUNZIONI POPOLA PAGINA ===
-    // =============================
-    function popolaClassificaClienti(clienti) {
-        const container = document.getElementById('classifica-clienti');
-        if (!container) return;
-        container.innerHTML = clienti.map((c, i) => `
-            <div class="cliente-item">
-                <div>${i + 1}. <strong>${c.nome} ${c.cognome}</strong> (${c.visite} visite)</div>
-                <div>Frequenza media: ${c.frequenzaMedia || '?'} giorni • Ultima visita: ${c.ultimaVisita || 'N/D'}</div>
-            </div>
-        `).join('');
-    }
-
-    // Classifica Servizi Popolari Aggregata
-    function popolaServiziPopolariAggregati(trend) {
-        const container = document.getElementById('classifica-servizi');
-        if (!container) return;
-        
-        const aggregati = {};
-        let nomiServiziOriginali = {};
-
-        // 1. Aggrega i dati totali per TUTTO il periodo
-        trend.forEach(t => {
-            Object.keys(t).forEach(key => {
-                if (key !== 'mese' && key !== 'nomiServizi') { 
-                    const chiavePulita = key.trim().toLowerCase();
-                    const valore = t[key] || 0;
-                    aggregati[chiavePulita] = (aggregati[chiavePulita] || 0) + valore;
-                    
-                    if (t.nomiServizi && t.nomiServizi[key]) {
-                        nomiServiziOriginali[chiavePulita] = t.nomiServizi[key];
-                    }
-                }
-            });
-        });
-
-        // 2. Converte in array per ordinare e filtrare
-        const serviziAggregati = Object.keys(aggregati)
-            .filter(chiave => aggregati[chiave] > 0) 
-            .map(chiave => {
-                let nome = nomiServiziOriginali[chiave] || chiave.charAt(0).toUpperCase() + chiave.slice(1);
-                nome = nome.replace(/([A-Z])/g, ' $1').trim(); // Rende leggibili i camelCase (es. tagliobarba -> Taglio Barba)
-                return {
-                    servizio: nome,
-                    chiaveAPI: chiave, 
-                    totale_richieste: aggregati[chiave]
-                };
-            })
-            // 3. Ordina per il più richiesto
-            .sort((a, b) => b.totale_richieste - a.totale_richieste);
-            
-        // 4. Popola l'HTML
-        container.innerHTML = serviziAggregati.map((s, i) => `
-            <div class="servizio-item clickable" data-servizio-chiave="${s.chiaveAPI}" title="Clicca per vedere i clienti">
-                <div>${i + 1}. <strong>${s.servizio}</strong></div>
-                <div>Richieste: ${s.totale_richieste}</div>
-            </div>
-        `).join('');
-        
-        if (serviziAggregati.length === 0) {
-            container.innerHTML = `<div class="loading-message">Nessun servizio richiesto nel periodo.</div>`;
-            return;
-        }
-
-        // AGGIUNGI L'EVENT LISTENER ai nuovi elementi per aprire la modale
-        container.querySelectorAll('.servizio-item.clickable').forEach(item => {
-            item.addEventListener('click', function() {
-                const nomeServizio = item.querySelector('strong').textContent;
-                const chiaveServizio = this.getAttribute('data-servizio-chiave');
-                mostraClientiServizio(nomeServizio, chiaveServizio);
-            });
-        });
-    }
-
-    let fedeltaChart = null;
-
-function popolaDistribuzioneFedelta(distribuzione) {
-    const container = document.getElementById('mappa-fidelita');
-    if (!container) return;
-
-    let canvas = container.querySelector('canvas');
-    if (!canvas) {
-        container.innerHTML = '';
-        canvas = document.createElement('canvas');
-        canvas.id = 'fedeltaChart';
-        container.appendChild(canvas);
+    // ===== IMPOSTAZIONE DEFAULT FILTRO =====
+    if (filtroPeriodo) {
+        filtroPeriodo.value = "ultimo-mese";              // Imposta "Ultimo Mese" come default
+        filtroPeriodo.dispatchEvent(new Event("change")); // Trigger per caricare subito i dati
     }
-    const ctx = canvas.getContext('2d');
 
-    const labels = distribuzione.map(cat => cat.categoria);
-    const dati = distribuzione.map(cat => cat.count);
-    const colori = distribuzione.map(cat => {
-        const nome = cat.categoria.toLowerCase();
-        if (nome.includes('vip')) return '#3498DB';
-        if (nome.includes('regolari')) return '#2ECC71';
-        if (nome.includes('occasionali')) return '#F1C40F';
-        if (nome.includes('a rischio')) return '#E74C3C';
-        return '#95A5A6';
-    });
+    // ============================
+    // === FUNZIONE CARICAMENTO ===
+    // ============================
+    async function caricaDatiAnalisi() {
 
-    const config = {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [{
-    label: 'Numero Clienti',
-    data: dati,
-    backgroundColor: colori,
-    barThickness: 20   // <--- Forza altezza barre uguale per tutti i grafici
-}]
+        if (!filtroPeriodo) {
+            console.error("ERRORE: Elemento filtro-periodo non trovato nel DOM.");
+            return;
+        }
 
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            animation: {
-                duration: 800,
-                easing: 'easeOutCubic'
-            },
-            plugins: {
-                legend: { display: false },
-                title: { display: true, text: 'Distribuzione Fedeltà Clienti' },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const cat = distribuzione[context.dataIndex];
-                            return `${cat.categoria}: ${context.raw} clienti (${cat.intervallo})`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: { beginAtZero: true, ticks: { precision: 0 } }
+        if (aggiornaDatiBtn) {
+            aggiornaDatiBtn.disabled = true;
+            aggiornaDatiBtn.textContent = "🔄 Caricamento...";
+        }
+
+        const periodo = filtroPeriodo.value;
+
+        try {
+
+            // 🛑 AGGIORNATO: L'API trend-mensile restituisce ora { trendDati, totaleServizi }
+            const [clientiAssidui, distribuzioneFedelta, trendResponse, insights] = await Promise.all([
+                fetchDati('/api/analisi/clienti-assidui', { periodo }),
+                fetchDati('/api/analisi/distribuzione-fedelta'),
+                fetchDati('/api/analisi/trend-mensile', { periodo }),
+                fetchDati('/api/analisi/insights')
+            ]);
+
+            popolaPagina({
+                clientiAssidui,
+                distribuzioneFedelta,
+                trendMensile: trendResponse.trendDati,
+                totaleServizi: trendResponse.totaleServizi,
+                insights
+            });
+
+            mostraMessaggioTemporaneo("Dati aggiornati!", "success");
+
+        } catch (error) {
+            console.error("ERRORE nel caricamento:", error);
+            mostraErrore(`Impossibile caricare i dati. Dettaglio: ${error.message}`);
+            mostraMessaggioTemporaneo("Errore nel caricamento", "error");
+        } finally {
+            if (aggiornaDatiBtn) {
+                aggiornaDatiBtn.disabled = false;
+                aggiornaDatiBtn.textContent = "🔄 Aggiorna";
             }
         }
-    };
-
-    if (fedeltaChart) {
-        // Aggiorna dati e colori senza resettare
-        fedeltaChart.data.labels = labels;
-        fedeltaChart.data.datasets[0].data = dati;
-        fedeltaChart.data.datasets[0].backgroundColor = colori;
-        fedeltaChart.update();
-    } else {
-        fedeltaChart = new Chart(ctx, config);
     }
+
+    // =============================
+    // === FUNZIONI POPOLA PAGINA ===
+    // =============================
+function popolaClassificaClienti(clienti) {
+    const container = document.getElementById('classifica-clienti');
+    if (!container) return;
+    container.innerHTML = clienti.map((c, i) => `
+        <div class="cliente-item">
+            <div class="cliente-header">
+                <div class="cliente-nome">${i + 1}. ${c.nome} ${c.cognome}</div>
+                <div class="cliente-visite">${c.visite} visite</div>
+            </div>
+            <div class="cliente-info">
+                <div>Frequenza media: ${c.frequenzaMedia || '?'} giorni</div>
+                <div>Ultima visita: ${c.ultimaVisita || 'N/D'}</div>
+            </div>
+        </div>
+    `).join('');
 }
+
+
+    // Classifica Servizi Popolari Aggregata
+    function popolaServiziPopolariAggregati(trend) {
+        const container = document.getElementById('classifica-servizi');
+        if (!container) return;
+
+        const aggregati = {};
+        let nomiServiziOriginali = {};
+
+        trend.forEach(t => {
+            Object.keys(t).forEach(key => {
+                if (key !== 'mese' && key !== 'nomiServizi') {
+                    const chiavePulita = key.trim().toLowerCase();
+                    const valore = t[key] || 0;
+                    aggregati[chiavePulita] = (aggregati[chiavePulita] || 0) + valore;
+
+                    if (t.nomiServizi && t.nomiServizi[key]) {
+                        nomiServiziOriginali[chiavePulita] = t.nomiServizi[key];
+                    }
+                }
+            });
+        });
+
+        const serviziAggregati = Object.keys(aggregati)
+            .filter(chiave => aggregati[chiave] > 0)
+            .map(chiave => {
+                let nome = nomiServiziOriginali[chiave] || chiave.charAt(0).toUpperCase() + chiave.slice(1);
+                nome = nome.replace(/([A-Z])/g, ' $1').trim();
+                return { servizio: nome, chiaveAPI: chiave, totale_richieste: aggregati[chiave] };
+            })
+            .sort((a, b) => b.totale_richieste - a.totale_richieste);
+
+        container.innerHTML = serviziAggregati.map((s, i) => `
+            <div class="servizio-item clickable" data-servizio-chiave="${s.chiaveAPI}" title="Clicca per vedere i clienti">
+                <div>${i + 1}. <strong>${s.servizio}</strong></div>
+                <div>Richieste: ${s.totale_richieste}</div>
+            </div>
+        `).join('');
+
+        if (serviziAggregati.length === 0) {
+            container.innerHTML = `<div class="loading-message">Nessun servizio richiesto nel periodo.</div>`;
+            return;
+        }
+
+        container.querySelectorAll('.servizio-item.clickable').forEach(item => {
+            item.addEventListener('click', function () {
+                const nomeServizio = item.querySelector('strong').textContent;
+                const chiaveServizio = this.getAttribute('data-servizio-chiave');
+                mostraClientiServizio(nomeServizio, chiaveServizio);
+            });
+        });
+    }
+
+    let fedeltaChart = null;
+
+    function popolaDistribuzioneFedelta(distribuzione) {
+        const container = document.getElementById('mappa-fidelita');
+        if (!container) return;
+
+        let canvas = container.querySelector('canvas');
+        if (!canvas) {
+            container.innerHTML = '';
+            canvas = document.createElement('canvas');
+            canvas.id = 'fedeltaChart';
+            container.appendChild(canvas);
+        }
+        const ctx = canvas.getContext('2d');
+
+        const labels = distribuzione.map(cat => cat.categoria);
+        const dati = distribuzione.map(cat => cat.count);
+        const colori = distribuzione.map(cat => {
+            const nome = cat.categoria.toLowerCase();
+            if (nome.includes('vip')) return '#3498DB';
+            if (nome.includes('regolari')) return '#2ECC71';
+            if (nome.includes('occasionali')) return '#F1C40F';
+            if (nome.includes('a rischio')) return '#E74C3C';
+            return '#95A5A6';
+        });
+
+        const config = {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Numero Clienti',
+                    data: dati,
+                    backgroundColor: colori,
+                    barThickness: 20
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                animation: { duration: 800, easing: 'easeOutCubic' },
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: 'Distribuzione Fedeltà Clienti' },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const cat = distribuzione[context.dataIndex];
+                                return `${cat.categoria}: ${context.raw} clienti (${cat.intervallo})`;
+                            }
+                        }
+                    }
+                },
+                scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+            }
+        };
+
+        if (fedeltaChart) {
+            fedeltaChart.data.labels = labels;
+            fedeltaChart.data.datasets[0].data = dati;
+            fedeltaChart.data.datasets[0].backgroundColor = colori;
+            fedeltaChart.update();
+        } else {
+            fedeltaChart = new Chart(ctx, config);
+        }
+    }
 
 
 
@@ -609,6 +601,11 @@ window.addEventListener("DOMContentLoaded", () => {
     const filtroTop = document.getElementById("filtro-periodo");
     const filtroBottom = document.getElementById("filtro-periodo-bottom");
 
+    // Imposta il default su "ultimo-mese"
+    if (filtroTop) filtroTop.value = "ultimo-mese";
+    if (filtroBottom) filtroBottom.value = "ultimo-mese";
+
+    // Sincronizza i due selettori
     if (filtroTop && filtroBottom) {
         filtroTop.addEventListener("change", () => {
             filtroBottom.value = filtroTop.value;
@@ -620,7 +617,11 @@ window.addEventListener("DOMContentLoaded", () => {
             filtroTop.dispatchEvent(new Event("change"));
         });
     }
+
+    // Triggera subito il change per caricare i dati all'apertura
+    if (filtroTop) filtroTop.dispatchEvent(new Event("change"));
 });
+
 
 
 });
