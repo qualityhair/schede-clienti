@@ -1005,11 +1005,13 @@ app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
     try {
         const periodo = req.query.periodo || 'ultimi-3-mesi';
         
-        // Calcola la data di inizio del filtro in base al periodo
-        const dataInizio = calcolaDataInizio(periodo);
+        // La funzione calcolaDataInizio deve essere definita altrove nel tuo codice
+        const dataInizio = calcolaDataInizio(periodo); 
         
-        // Query SQL: estrae i servizi e li normalizza
-        const query = `
+        // =======================================================
+        // 1. QUERY PER ESTRARRE I DATI DEL TREND DEI SERVIZI
+        // =======================================================
+        const queryTrend = `
             SELECT 
                 TO_CHAR(t.data_trattamento, 'TMMonth YYYY') AS mese_label,
                 -- Normalizzazione: usiamo REPLACE per sostituire gli spazi e il simbolo & (necessario per le chiavi JSON)
@@ -1023,10 +1025,10 @@ app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
             WHERE t.data_trattamento >= $1
         `;
 
-        const result = await db.query(query, [dataInizio]);
+        const resultTrend = await db.query(queryTrend, [dataInizio]);
         
         const trendMap = {};
-        for (const row of result.rows) {
+        for (const row of resultTrend.rows) {
             const mese = row.mese_label.charAt(0).toUpperCase() + row.mese_label.slice(1).toLowerCase();
             
             const chiaveDinamica = row.servizio_normalizzato || 'sconosciuto';
@@ -1055,18 +1057,35 @@ app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
             return parseInt(aa) - parseInt(ab) || mesi.indexOf(ma.toLowerCase()) - mesi.indexOf(mb.toLowerCase());
         });
 
-        // 🚀 CALCOLO DEL TOTALE SERVIZI (CORREZIONE RICHIESTA)
-        // Ogni riga del risultato SQL è un servizio singolo.
-        const totaleServizi = result.rows.length;
+        // 🚀 CALCOLO DEL TOTALE SERVIZI (CORRETTO)
+        const totaleServizi = resultTrend.rows.length;
 
-        // La risposta finale restituisce un oggetto contenitore con entrambi i set di dati
+        // =======================================================
+        // 2. NUOVA QUERY PER IL CONTEGGIO CLIENTI UNICI
+        // =======================================================
+        const queryClientiUnici = `
+            SELECT 
+                COUNT(DISTINCT cliente_id) AS totale_clienti_unici
+            FROM trattamenti 
+            WHERE data_trattamento >= $1
+        `;
+        
+        const resultClientiUnici = await db.query(queryClientiUnici, [dataInizio]);
+        // Estrai il valore numerico (usa || 0 per garantire che sia un numero)
+        const totaleClientiUnici = parseInt(resultClientiUnici.rows[0].totale_clienti_unici) || 0;
+
+
+        // =======================================================
+        // 3. LA RISPOSTA FINALE INVIA TUTTI I DATI
+        // =======================================================
         return res.json({
             trendDati: mesiOrdinati,
-            totaleServizi: totaleServizi
+            totaleServizi: totaleServizi,
+            totaleClientiUnici: totaleClientiUnici // 👈 NUOVO DATO DINAMICO
         });
 
     } catch (error) {
-        console.error('ERRORE API trend mensile (uniforme):', error.message);
+        console.error('ERRORE API trend mensile:', error.message);
         res.status(500).json({ error: 'Errore nel caricamento trend: ' + error.message });
     }
 });
@@ -1093,7 +1112,7 @@ app.get('/api/analisi/insights', ensureAuthenticated, async (req, res) => {
             }
         ];
         
-        console.log('Insights restituiti');
+        //console.log('Insights restituiti');
         res.json(insights);
         
     } catch (error) {
