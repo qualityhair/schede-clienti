@@ -605,19 +605,19 @@ app.get("/api/clienti/cerca", async (req, res) => {
 
         if (isExactSearch) {
             // --- RICERCA ESATTA ---
-            // Cerca un cliente il cui NOME CONCATENATO è esattamente il termine o soprannome
             query = `
                 SELECT * FROM clienti
                 WHERE 
                     CONCAT(nome, ' ', cognome) ILIKE $1
                     OR CONCAT(cognome, ' ', nome) ILIKE $1
+                    OR nome ILIKE $1
+                    OR cognome ILIKE $1
                     OR soprannome ILIKE $1;
             `;
             values = [term]; // cerca il termine esatto, senza wildcard
 
         } else {
             // --- RICERCA GENERICA ---
-            // Usa il wildcard %term% e considera anche cognome+nome
             const termWithWildcard = `%${term}%`;
             query = `
                 SELECT *,
@@ -651,6 +651,7 @@ app.get("/api/clienti/cerca", async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 
 
