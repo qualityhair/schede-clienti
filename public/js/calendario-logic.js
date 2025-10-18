@@ -444,6 +444,9 @@ const searchResultsContainerEdit = document.getElementById('searchResultsContain
 // =======================================================
 // == LOGICA PER LA RICERCA CLIENTE LIVE NEL CALENDARIO ==
 // =======================================================
+// =======================================================
+// == LOGICA PER LA RICERCA CLIENTE LIVE NEL CALENDARIO ==
+// =======================================================
 if (eventTitleInput && searchResultsContainer) {
     let searchTimeout;
 
@@ -458,8 +461,18 @@ if (eventTitleInput && searchResultsContainer) {
 
         searchTimeout = setTimeout(async () => {
             try {
-                const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
-                const clienti = await response.json();
+                let response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
+                let clienti = await response.json();
+
+                // 🔁 Se nessun risultato, prova a invertire "cognome nome" → "nome cognome"
+                if (clienti.length === 0 && searchTerm.includes(' ')) {
+                    const parts = searchTerm.split(/\s+/);
+                    if (parts.length === 2) {
+                        const inverted = `${parts[1]} ${parts[0]}`;
+                        response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(inverted)}`);
+                        clienti = await response.json();
+                    }
+                }
 
                 searchResultsContainer.innerHTML = '';
                 if (clienti.length > 0) {
@@ -469,7 +482,7 @@ if (eventTitleInput && searchResultsContainer) {
                         div.textContent = `${cliente.nome} ${cliente.cognome}`;
                         
                         div.addEventListener('mousedown', (e) => {
-                            e.preventDefault(); // Impedisce al campo di perdere il focus
+                            e.preventDefault(); // evita blur
                             eventTitleInput.value = `${cliente.nome} ${cliente.cognome}`;
                             searchResultsContainer.style.display = 'none';
                         });
@@ -488,13 +501,16 @@ if (eventTitleInput && searchResultsContainer) {
 
     // Nasconde i risultati se l'input perde il focus
     eventTitleInput.addEventListener('blur', () => {
-        // Aggiungiamo un piccolo ritardo per permettere al click sul risultato di registrarsi
         setTimeout(() => {
             searchResultsContainer.style.display = 'none';
         }, 150);
     });
 }
 
+
+// =======================================================
+// == LOGICA PER LA RICERCA CLIENTE LIVE (MODALE MODIFICA) ==
+// =======================================================
 // =======================================================
 // == LOGICA PER LA RICERCA CLIENTE LIVE (MODALE MODIFICA) ==
 // =======================================================
@@ -512,8 +528,18 @@ if (editEventTitleInput && searchResultsContainerEdit) {
 
         searchTimeoutEdit = setTimeout(async () => {
             try {
-                const response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
-                const clienti = await response.json();
+                let response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(searchTerm)}`);
+                let clienti = await response.json();
+
+                // 🔁 Se nessun risultato, prova a invertire "cognome nome" → "nome cognome"
+                if (clienti.length === 0 && searchTerm.includes(' ')) {
+                    const parts = searchTerm.split(/\s+/);
+                    if (parts.length === 2) {
+                        const inverted = `${parts[1]} ${parts[0]}`;
+                        response = await fetch(`/api/clienti/cerca?term=${encodeURIComponent(inverted)}`);
+                        clienti = await response.json();
+                    }
+                }
 
                 searchResultsContainerEdit.innerHTML = '';
                 if (clienti.length > 0) {
@@ -546,5 +572,6 @@ if (editEventTitleInput && searchResultsContainerEdit) {
         }, 150);
     });
 }
+
 
 });

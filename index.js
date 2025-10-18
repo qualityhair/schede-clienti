@@ -604,18 +604,20 @@ app.get("/api/clienti/cerca", async (req, res) => {
         let values;
 
         if (isExactSearch) {
-            // --- NUOVA LOGICA PER LA RICERCA ESATTA ---
-            // Cerca un cliente il cui NOME CONCATENATO è ESATTAMENTE il termine pulito
+            // --- RICERCA ESATTA ---
+            // Cerca un cliente il cui NOME CONCATENATO è esattamente il termine o soprannome
             query = `
                 SELECT * FROM clienti
                 WHERE 
-                    CONCAT(nome, ' ', cognome) ILIKE $1 
+                    CONCAT(nome, ' ', cognome) ILIKE $1
+                    OR CONCAT(cognome, ' ', nome) ILIKE $1
                     OR soprannome ILIKE $1;
             `;
-            values = [term]; // Cerca il termine esatto, senza '%'
+            values = [term]; // cerca il termine esatto, senza wildcard
 
         } else {
-            // --- LOGICA DI RICERCA GENERICA (quella che avevamo prima) ---
+            // --- RICERCA GENERICA ---
+            // Usa il wildcard %term% e considera anche cognome+nome
             const termWithWildcard = `%${term}%`;
             query = `
                 SELECT *,
@@ -633,13 +635,14 @@ app.get("/api/clienti/cerca", async (req, res) => {
                     nome ILIKE $3
                     OR cognome ILIKE $3
                     OR CONCAT(nome, ' ', cognome) ILIKE $3
+                    OR CONCAT(cognome, ' ', nome) ILIKE $3
                     OR COALESCE(soprannome, '') ILIKE $3
                 ORDER BY 
                     relevance ASC, cognome ASC, nome ASC;
             `;
             values = [term, `${term}%`, termWithWildcard];
         }
-        
+
         const result = await db.query(query, values);
         res.json(result.rows);
 
@@ -648,6 +651,7 @@ app.get("/api/clienti/cerca", async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 
 // ====================================================================
@@ -1009,7 +1013,7 @@ app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
         const dataInizio = calcolaDataInizio(periodo); 
         
         // =======================================================
-        // 1. QUERY PER ESTRARRE I DATI DEL TREND DEI SERVIZI
+        // 1. QUERY PER ESTRARRE I DATI DEL TREND DEI SERVIZI (Periodo Corrente)
         // =======================================================
         const queryTrend = `
             SELECT 
@@ -1030,7 +1034,6 @@ app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
         const trendMap = {};
         for (const row of resultTrend.rows) {
             const mese = row.mese_label.charAt(0).toUpperCase() + row.mese_label.slice(1).toLowerCase();
-            
             const chiaveDinamica = row.servizio_normalizzato || 'sconosciuto';
             const nomePerLegenda = row.servizio_originale;
 
@@ -1038,13 +1041,10 @@ app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
                 trendMap[mese] = { mese };
             }
 
-            // 1. Salviamo il nome originale
             if (!trendMap[mese].nomiServizi) {
                 trendMap[mese].nomiServizi = {};
             }
             trendMap[mese].nomiServizi[chiaveDinamica] = nomePerLegenda;
-
-            // 2. Aggiunge o incrementa il conteggio
             trendMap[mese][chiaveDinamica] = (trendMap[mese][chiaveDinamica] || 0) + 1;
         }
         
@@ -1057,31 +1057,69 @@ app.get('/api/analisi/trend-mensile', ensureAuthenticated, async (req, res) => {
             return parseInt(aa) - parseInt(ab) || mesi.indexOf(ma.toLowerCase()) - mesi.indexOf(mb.toLowerCase());
         });
 
-        // 🚀 CALCOLO DEL TOTALE SERVIZI (CORRETTO)
+        // CALCOLO DEL TOTALE SERVIZI (Periodo Corrente)
         const totaleServizi = resultTrend.rows.length;
 
         // =======================================================
-        // 2. NUOVA QUERY PER IL CONTEGGIO CLIENTI UNICI
+        // 2. CONTEGGIO CLIENTI UNICI (Periodo Corrente)
         // =======================================================
-        const queryClientiUnici = `
-            SELECT 
-                COUNT(DISTINCT cliente_id) AS totale_clienti_unici
+        const queryClientiUniciCorrente = `
+            SELECT COUNT(DISTINCT cliente_id) AS totale_clienti_unici
             FROM trattamenti 
             WHERE data_trattamento >= $1
         `;
         
-        const resultClientiUnici = await db.query(queryClientiUnici, [dataInizio]);
-        // Estrai il valore numerico (usa || 0 per garantire che sia un numero)
+        const resultClientiUnici = await db.query(queryClientiUniciCorrente, [dataInizio]);
         const totaleClientiUnici = parseInt(resultClientiUnici.rows[0].totale_clienti_unici) || 0;
+
+        
+        // =======================================================
+        // 3. CALCOLO DEI DATI ANNO PRECEDENTE (YoY)
+        // =======================================================
+        
+        // Data di fine del periodo corrente (oggi)
+        const dataFineCorrente = new Date(); 
+        
+        // Calcola le date del periodo precedente (un anno fa)
+        const dataInizioPrecedente = new Date(dataInizio);
+        dataInizioPrecedente.setFullYear(dataInizioPrecedente.getFullYear() - 1);
+        
+        const dataFinePrecedente = new Date(dataFineCorrente);
+        dataFinePrecedente.setFullYear(dataFinePrecedente.getFullYear() - 1);
+
+
+        // a) Totale Servizi Anno Precedente
+        const queryServiziPrecedente = `
+            SELECT COUNT(*) AS totale_servizi
+            FROM trattamenti
+            WHERE data_trattamento >= $1 AND data_trattamento < $2
+        `;
+        // Usiamo [dataInizioPrecedente, dataFinePrecedente] per delimitare il periodo esatto
+        const resultServiziPrecedente = await db.query(queryServiziPrecedente, [dataInizioPrecedente, dataFinePrecedente]);
+        const serviziPrecedente = parseInt(resultServiziPrecedente.rows[0].totale_servizi) || 0;
+
+
+        // b) Totale Clienti Unici Anno Precedente
+        const queryClientiUniciPrecedente = `
+            SELECT COUNT(DISTINCT cliente_id) AS totale_clienti_unici
+            FROM trattamenti 
+            WHERE data_trattamento >= $1 AND data_trattamento < $2
+        `;
+        const resultClientiPrecedente = await db.query(queryClientiUniciPrecedente, [dataInizioPrecedente, dataFinePrecedente]);
+        const clientiPrecedente = parseInt(resultClientiPrecedente.rows[0].totale_clienti_unici) || 0;
 
 
         // =======================================================
-        // 3. LA RISPOSTA FINALE INVIA TUTTI I DATI
+        // 4. LA RISPOSTA FINALE INVIA TUTTI I DATI
         // =======================================================
         return res.json({
             trendDati: mesiOrdinati,
             totaleServizi: totaleServizi,
-            totaleClientiUnici: totaleClientiUnici // 👈 NUOVO DATO DINAMICO
+            totaleClientiUnici: totaleClientiUnici,
+            
+            // 🚀 NUOVI DATI DI CONFRONTO YoY
+            serviziPrecedente: serviziPrecedente,
+            clientiPrecedente: clientiPrecedente
         });
 
     } catch (error) {

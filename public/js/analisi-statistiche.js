@@ -97,7 +97,9 @@ popolaPagina({
     distribuzioneFedelta,
     trendMensile: trendResponse.trendDati,
     totaleServizi: trendResponse.totaleServizi,
-    totaleClienti: trendResponse.totaleClientiUnici, // 👈 USA IL DATO AGGIORNATO DAL BACKEND
+    totaleClienti: trendResponse.totaleClientiUnici,
+	serviziPrecedente: trendResponse.serviziPrecedente, 
+    clientiPrecedente: trendResponse.clientiPrecedente,
     insights
 });
 
@@ -455,20 +457,32 @@ document.getElementById('tipoGrafico')?.addEventListener('change', () => {
     // =======================================================
     // === NUOVA FUNZIONE PER IL TOTALE SERVIZI ===
     // =======================================================
-    function popolaTotaleServizi(totale) {
-        const container = document.getElementById('totale-servizi-box'); 
-        if (!container) {
-            console.warn("Elemento #totale-servizi-box non trovato. Assicurati che sia nel file HTML.");
-            return;
-        }
+    function popolaTotaleServizi(totale, totalePrecedente) { 
+    const container = document.getElementById('totale-servizi-box');  
+    if (!container) {
+        console.warn("Elemento #totale-servizi-box non trovato.");
+        return;
+    }
 
-        container.innerHTML = `
-            <div class="data-box metric-box">
-                <small>Trattamenti/Servizi Totali nel Periodo</small>
-                <strong style="font-size: 2em; color: #3498DB;">${totale || 0}</strong>
-            </div>
-        `;
-    }
+    // Calcolo della variazione percentuale (YoY)
+    const variazione = totalePrecedente > 0 
+        ? ((totale - totalePrecedente) / totalePrecedente * 100).toFixed(1)
+        : (totale > 0 ? 100 : 0); // Se l'anno scorso era 0 e quest'anno > 0, la crescita è 100% (o infinita, semplifichiamo a 100)
+    
+    // Determina il colore e l'icona
+    const colore = variazione > 0 ? '#2ECC71' : (variazione < 0 ? '#E74C3C' : '#95A5A6');
+    const freccia = variazione > 0 ? '▲' : (variazione < 0 ? '▼' : '▬');
+    
+    container.innerHTML = `
+        <div class="data-box metric-box">
+            <small>Trattamenti/Servizi Totali nel Periodo</small>
+            <strong style="font-size: 2em; color: #3498DB;">${totale || 0}</strong>
+            <p style="color: ${colore}; font-weight: bold; margin-top: 5px;">
+                ${freccia} ${Math.abs(variazione)}% vs Anno Precedente
+            </p>
+        </div>
+    `;
+}
 
     // =======================================================
     // === FUNZIONE GESTIONE MODALE SERVIZI ===
@@ -553,11 +567,37 @@ document.getElementById('tipoGrafico')?.addEventListener('change', () => {
     popolaInsights(dati.insights);
     popolaTotaleServizi(dati.totaleServizi);
 	popolaTotaleClienti(dati.totaleClienti);
+	popolaTotaleServizi(dati.totaleServizi, dati.serviziPrecedente);
+    popolaTotaleClienti(dati.totaleClienti, dati.clientiPrecedente);
 }
 
-function popolaTotaleClienti(totale) {
-    const el = document.getElementById('totale-clienti');
-    if (el) el.textContent = `Totale clienti nel periodo: ${totale}`;
+function popolaTotaleClienti(totale, totalePrecedente) {
+    // 1. Usa 'let' invece di 'const' per permettere la riassegnazione
+    let el = document.getElementById('totale-clienti'); 
+
+    if (!el) {
+        // 2. La riassegnazione ora è permessa perché 'el' è un 'let'
+        el = document.querySelector('#distribuzione-fedelta .riepilogo-fedelta p strong'); 
+        if (!el) return;
+    }
+    
+    // Calcolo della variazione percentuale (YoY)
+    const variazione = totalePrecedente > 0 
+        ? ((totale - totalePrecedente) / totalePrecedente * 100).toFixed(1)
+        : (totale > 0 ? 100 : 0);
+    
+    const colore = variazione > 0 ? '#2ECC71' : (variazione < 0 ? '#E74C3C' : '#95A5A6');
+    const freccia = variazione > 0 ? '▲' : (variazione < 0 ? '▼' : '▬');
+
+    // Assumiamo che tu voglia mostrare il confronto direttamente accanto al totale
+    el.innerHTML = `
+        Totale clienti nel periodo: <strong>${totale}</strong> 
+        (<span style="color: ${colore}; font-weight: bold;">${freccia} ${Math.abs(variazione)}% YoY</span>)
+    `;
+    
+    // Se stai usando il riepilogo del grafico Fedeltà (il tuo vecchio "Totale clienti nel periodo: 28"),
+    // probabilmente devi modificare direttamente la funzione popolaDistribuzioneFedelta,
+    // ma per semplicità ho dato la soluzione per un elemento separato con ID 'totale-clienti'.
 }
 
 
