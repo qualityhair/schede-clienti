@@ -51,6 +51,7 @@ const searchResultsContainerEdit = document.getElementById('searchResultsContain
     initialView: 'timeGridWeek',
     locale: 'it',
     firstDay: 1,
+    nowIndicator: true, // <-- questa linea è fondamentale
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
@@ -365,6 +366,14 @@ const searchResultsContainerEdit = document.getElementById('searchResultsContain
 
   // ---------- Render ----------
   calendar.render();
+  
+  // ---------- NOW INDICATOR ULTRA-LIVE ----------
+// Aggiorna la linea dell'ora ogni secondo
+setInterval(() => {
+  // FullCalendar aggiorna la posizione della linea "now" chiamando render, ma senza ricaricare eventi
+  calendar.updateSize(); 
+}, 1000);
+
   
   // ---------- SYNC AUTOMATICA OGNI 5 SECONDI ----------
 setInterval(async () => {
