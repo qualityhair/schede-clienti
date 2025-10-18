@@ -1,9 +1,5 @@
 // public/js/calendario-logic.js
-// Versione completa con:
-// - drag normale (sposta) / ALT+drag (duplica)
-// - auto cambio settimana ai bordi con ritardo
-// - orari locali (niente shift UTC)
-// - logiche colore/toolbar/modali come nel tuo file
+
 
 document.addEventListener('DOMContentLoaded', function () {
 
@@ -369,6 +365,18 @@ const searchResultsContainerEdit = document.getElementById('searchResultsContain
 
   // ---------- Render ----------
   calendar.render();
+  
+  // ---------- SYNC AUTOMATICA OGNI 5 SECONDI ----------
+setInterval(async () => {
+    try {
+        await fetch('/api/sync-now', { method: 'POST' }); // opzionale se vuoi aggiornare il server
+        calendar.refetchEvents(); // aggiorna il calendario
+        console.log('Sync automatica eseguita ✔️');
+    } catch (err) {
+        console.error('Sync automatica fallita:', err);
+    }
+}, 5000); // ogni 1000 ms = 5 secondi
+
 
   // ---------- Salvataggio NUOVO event (modal "Nuovo") ----------
   document.getElementById('btnSaveEvent').addEventListener('click', async function () {
@@ -441,9 +449,7 @@ const searchResultsContainerEdit = document.getElementById('searchResultsContain
     }
   });
 
-// =======================================================
-// == LOGICA PER LA RICERCA CLIENTE LIVE NEL CALENDARIO ==
-// =======================================================
+
 // =======================================================
 // == LOGICA PER LA RICERCA CLIENTE LIVE NEL CALENDARIO ==
 // =======================================================
@@ -508,9 +514,6 @@ if (eventTitleInput && searchResultsContainer) {
 }
 
 
-// =======================================================
-// == LOGICA PER LA RICERCA CLIENTE LIVE (MODALE MODIFICA) ==
-// =======================================================
 // =======================================================
 // == LOGICA PER LA RICERCA CLIENTE LIVE (MODALE MODIFICA) ==
 // =======================================================
