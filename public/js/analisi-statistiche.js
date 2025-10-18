@@ -12,14 +12,14 @@ function getRandomColor() {
 // Oggetto per memorizzare i colori dei servizi - USARE CHIAVI NORMALIZZATE
 const coloriServiziMappati = {
     colore: '#F39C12',             // Arancione Saturo
-    taglio: '#3498DB',             // Blu Brillante
-    piega: '#2ECC71',              // Verde Smeraldo
+    piega: '#3498DB',             // Blu Brillante
+    taglio: '#2ECC71',              // Verde Smeraldo
     barba: '#95A5A6',              // Grigio Medio
     meches: '#9B59B6',             // Viola Profondo
     tonalizzazione: '#1ABC9C',     // Turchese
     // Colore Rosso Vivo per il Trattamento (massimo contrasto)
     trattamento: '#E74C3C',        
-    
+    schiariture: '#E67E22', 
     // Chiavi composte che verranno trovate nel JSON del backend
     tagliobarba: '#5D6D7E',        // Grigio Blu
     coloretaglio: '#E67E22',       // Arancione Scuro
