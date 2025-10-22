@@ -2964,6 +2964,112 @@ app.put("/api/note", ensureAuthenticated, async (req, res) => {
 });
 
 
+// =======================================================
+// === API PER AMMINISTRAZIONE PANNELLO SESERE (SEGRETA) ===
+// =======================================================
+
+// Middleware per proteggere le route admin
+const authenticateAdmin = (req, res, next) => {
+    // Token segreto - cambia con una password complessa!
+    const token = req.headers.authorization;
+    if (token === 'sesere777') { // SOSTITUISCI CON UN TOKEN SICURO
+        next();
+    } else {
+        res.status(401).json({ error: 'Accesso non autorizzato' });
+    }
+};
+
+// GET - Tutti i records
+app.get("/api/admin/pannello-sesere", ensureAuthenticated, authenticateAdmin, async (req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT id, giorno, mese, importo1, importo2, diff, tot 
+            FROM pannello_sesere 
+            ORDER BY giorno DESC
+        `);
+        res.json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET - Singolo record per ID (per la modifica)
+app.get("/api/admin/pannello-sesere/:id", ensureAuthenticated, authenticateAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await db.query(`
+            SELECT id, giorno, mese, importo1, importo2, diff, tot 
+            FROM pannello_sesere 
+            WHERE id = $1
+        `, [id]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Record non trovato' });
+        }
+        
+        res.json(result.rows[0]);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+// POST - Nuovo record
+app.post("/api/admin/pannello-sesere", ensureAuthenticated, authenticateAdmin, async (req, res) => {
+    try {
+        const { giorno, mese, importo1, importo2 } = req.body;
+        
+        const result = await db.query(`
+            INSERT INTO pannello_sesere (giorno, mese, importo1, importo2) 
+            VALUES ($1, $2, $3, $4) 
+            RETURNING *
+        `, [giorno, mese, importo1, importo2]);
+        
+        res.json(result.rows[0]);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// PUT - Modifica record
+app.put("/api/admin/pannello-sesere/:id", ensureAuthenticated, authenticateAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { giorno, mese, importo1, importo2 } = req.body;
+        
+        const result = await db.query(`
+            UPDATE pannello_sesere 
+            SET giorno = $1, mese = $2, importo1 = $3, importo2 = $4 
+            WHERE id = $5 
+            RETURNING *
+        `, [giorno, mese, importo1, importo2, id]);
+        
+        res.json(result.rows[0]);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// DELETE - Elimina record
+app.delete("/api/admin/pannello-sesere/:id", ensureAuthenticated, authenticateAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        await db.query('DELETE FROM pannello_sesere WHERE id = $1', [id]);
+        
+        res.json({ message: 'Record eliminato con successo' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ROTTA PER LA PAGINA HTML (aggiungi prima delle route statiche)
+app.get("/admin-pannello.html", ensureAuthenticated, (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "admin-pannello.html"));
+});
+
+
+
 
 // --- Avvio server ---
 const port = process.env.PORT || 3000;

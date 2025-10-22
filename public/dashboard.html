@@ -385,6 +385,67 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     <script src="/js/dashboard-app.js"></script>
+	
+	
+<script>
+// =======================================================
+// === ACCESSO SEGRETO AL PANNELLO CASSA - VERSIONE CORRETTA ===
+// =======================================================
+// VERSIONE PULITA senza alert di conferma
+(function() {
+    let keySequence = '';
+    const secretCode = 'sesere';
+    let isListening = true;
+
+    document.addEventListener('keydown', function(e) {
+        if (!isListening) return;
+        
+        if (e.ctrlKey || e.altKey || e.metaKey || e.key === 'Shift') {
+            return;
+        }
+
+        if (e.key.length === 1 && e.key.match(/[a-z]/i)) {
+            keySequence += e.key.toLowerCase();
+            
+            if (keySequence.length > secretCode.length) {
+                keySequence = keySequence.slice(-secretCode.length);
+            }
+            
+            console.log('Sequenza:', keySequence);
+            
+            if (keySequence === secretCode) {
+                console.log('✅ Codice segreto riconosciuto!');
+                keySequence = '';
+                isListening = false;
+                
+                setTimeout(() => {
+                    const token = prompt('🔐 ACCESSO PANNELLO SESERE\n\nInserisci il token di sicurezza:');
+                    if (token && token.trim() !== '') {
+                        sessionStorage.setItem('adminToken', token.trim());
+                        
+                        // APRI IL PANNELLO SENZA MESSAGGIO DI CONFERMA
+                        window.open('/admin-pannello.html', '_blank');
+                    } else {
+                        alert('❌ Token non valido. Accesso negato.');
+                    }
+                    
+                    setTimeout(() => {
+                        isListening = true;
+                    }, 2000);
+                }, 100);
+            }
+        }
+        
+        if (e.key === 'Escape') {
+            keySequence = '';
+            console.log('Sequenza reset con ESC');
+        }
+    });
+
+    console.log('🔒 Sistema di accesso segreto attivato. Digita: "' + secretCode + '"');
+})();
+</script>
+
 
 </body>
 </html>

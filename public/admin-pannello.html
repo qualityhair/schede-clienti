@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pannello Sesere</title>
+    <style>
+        /* I tuoi stili CSS rimangono uguali */
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #007bff; }
+        .auth-section { margin-bottom: 20px; background: #fff3cd; padding: 15px; border-radius: 5px; border: 1px solid #ffeaa7; }
+        .controls { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .card { background: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #007bff; }
+        .card h3 { margin: 0 0 10px 0; font-size: 14px; color: #666; }
+        .card .value { font-size: 24px; font-weight: bold; color: #333; }
+        .card.positive { border-left-color: #28a745; }
+        .card.negative { border-left-color: #dc3545; }
+        .form-section { background: #e9ecef; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-weight: bold; margin-bottom: 5px; font-size: 12px; color: #555; }
+        input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-primary:hover { background: #0056b3; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-success:hover { background: #218838; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #343a40; color: white; position: sticky; top: 0; }
+        tr:nth-child(even) { background: #f8f9fa; }
+        tr:hover { background: #e9ecef; }
+        .diff-positive { color: #28a745; font-weight: bold; }
+        .diff-negative { color: #dc3545; font-weight: bold; }
+        .total-row { background: #343a40 !important; color: white; font-weight: bold; }
+       
+        .current-month { background: #d4edda !important; }
+        .data-italiana { font-weight: bold; }
+        .debug-info { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 12px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+    <h1>📊 Pannello Sesere</h1>
+    <button class="btn-danger" onclick="chiudiFinestra()" 
+            style="background: #dc3545; color: white;">
+        ❌ Chiudi
+    </button>
+</div>
+        
+
+
+        <div id="adminPanel">
+            <!-- Il resto del tuo codice rimane uguale -->
+            <div class="controls">
+                <div class="form-group">
+                    <label for="meseSelect">Mese:</label>
+                    <select id="meseSelect" onchange="applyFilter()">
+                        <option value="01">Gennaio</option>
+                        <option value="02">Febbraio</option>
+                        <option value="03">Marzo</option>
+                        <option value="04">Aprile</option>
+                        <option value="05">Maggio</option>
+                        <option value="06">Giugno</option>
+                        <option value="07">Luglio</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Settembre</option>
+                        <option value="10">Ottobre</option>
+                        <option value="11">Novembre</option>
+                        <option value="12">Dicembre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="annoSelect">Anno:</label>
+                    <select id="annoSelect" onchange="applyFilter()"></select>
+                </div>
+                <button class="btn-success" onclick="showAllData()">Mostra Tutti</button>
+                <button class="btn-primary" onclick="showCurrentMonth()">Mese Corrente</button>
+            </div>
+
+            <div class="summary-cards">
+                <div class="card"><h3>CASSA</h3><div class="value" id="totalCassa">0.00 €</div></div>
+                <div class="card"><h3>TOTALE</h3><div class="value" id="totalIncassi">0.00 €</div></div>
+                <div class="card" id="diffCard"><h3>DIFF</h3><div class="value" id="totalDiff">0.00 €</div></div>
+                <div class="card"><h3>NUMERO GIORNI</h3><div class="value" id="totalDays">0</div></div>
+            </div>
+
+            <div class="form-section">
+                <h3>➕ Nuovo</h3>
+                <div class="form-container">
+                    <input type="hidden" id="recordId">
+                    <div class="form-row">
+                        <div class="form-group"><label for="giorno">Data:</label><input type="date" id="giorno" required></div>
+                        <div class="form-group"><label for="cassa">Cassa (€):</label><input type="number" id="cassa" step="0.01" placeholder="0.00" required></div>
+                        <div class="form-group"><label for="totale">Totale(€):</label><input type="number" id="totale" step="0.01" placeholder="0.00" required></div>
+                        <div class="form-group"><label>Diff(€):</label><input type="text" id="differenza" readonly style="background: #f8f9fa; font-weight: bold;"></div>
+                        <div class="form-group">
+                            <button type="button" class="btn-primary" onclick="saveRecord()">Salva</button>
+                            <button type="button" class="btn-danger" onclick="resetForm()">Annulla</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3>📅 Dettaglio Giornaliero - <span id="currentPeriod">Mese Corrente</span></h3>
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Data</th><th>Giorno</th><th>Cassa (€)</th><th>Totale(€)</th><th>Differenza (€)</th><th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="2">TOTALI</td>
+                            <td id="footerCassa">0.00 €</td>
+                            <td id="footerTotale">0.00 €</td>
+                            <td id="footerDiff">0.00 €</td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+	// All'inizio dello script di admin-pannello.html (dopo la dichiarazione delle variabili)
+window.addEventListener('load', function() {
+    // Prova a prendere il token dalla sessionStorage per auto-login
+    const savedToken = sessionStorage.getItem('adminToken');
+    if (savedToken) {
+        console.log('Token trovato in sessionStorage, auto-login...');
+        document.getElementById('tokenInput').value = savedToken;
+        
+        // Auto-login dopo un breve delay
+        setTimeout(() => {
+            login();
+        }, 500);
+    }
+    
+});
+	
+	
+	
+    const API_BASE = '/api/admin';
+let authToken = '';
+let allData = [];
+let currentFilter = 'current-month';
+
+window.addEventListener('load', function() {
+    // Auto-login con token dalla sessionStorage
+    const savedToken = sessionStorage.getItem('adminToken');
+    if (savedToken) {
+        authToken = savedToken;
+        console.log('✅ Accesso automatico con token salvato');
+        loadData(); // Carica i dati immediatamente
+    } else {
+        // Se non c'è token, mostra errore
+        document.getElementById('adminPanel').innerHTML = `
+            <div style="text-align: center; padding: 50px; color: #dc3545;">
+                <h2>❌ Accesso Non Autorizzato</h2>
+                <p>Token di accesso non trovato.</p>
+                <button onclick="chiudiFinestra()" class="btn-danger">Chiudi</button>
+            </div>
+        `;
+        return;
+    }
+    
+    initYearSelector();
+    setCurrentMonth();
+    setupCalculations();
+    setTodayAsDefault();
+});
+
+// RIMUOVI la funzione login() completamente
+// RIMUOVI la funzione verifyTokenAndLoadData()
+
+// MODIFICA loadData() per gestire errori di autorizzazione
+async function loadData() {
+    try {
+        const response = await fetch(`${API_BASE}/pannello-sesere`, {
+            headers: { 'Authorization': authToken }
+        });
+        
+        if (response.status === 401) {
+            throw new Error('Token non valido o scaduto');
+        }
+        
+        const data = await response.json();
+        allData = data;
+        applyFilter();
+        
+    } catch (error) {
+        console.error('Errore caricamento dati:', error);
+        document.getElementById('adminPanel').innerHTML = `
+            <div style="text-align: center; padding: 50px; color: #dc3545;">
+                <h2>❌ Errore di Accesso</h2>
+                <p>${error.message}</p>
+                <button onclick="chiudiFinestra()" class="btn-danger">Chiudi</button>
+                <button onclick="location.reload()" class="btn-primary">Riprova</button>
+            </div>
+        `;
+    }
+}
+
+// Funzione per chiudere
+function chiudiFinestra() {
+    // Pulisci il token quando chiudi
+    sessionStorage.removeItem('adminToken');
+    window.close();
+    
+    setTimeout(() => {
+        if (!window.closed) {
+            window.location.href = '/dashboard.html';
+        }
+    }, 1000);
+}
+
+// ... il resto delle funzioni rimane uguale ...
+
+    window.addEventListener('load', function() {
+        initYearSelector();
+        setCurrentMonth();
+        setupCalculations();
+        setTodayAsDefault();
+    });
+
+    function initYearSelector() {
+        const yearSelect = document.getElementById('annoSelect');
+        if (!yearSelect) return;
+        
+        const currentYear = new Date().getFullYear();
+        for (let year = 2020; year <= currentYear + 1; year++) {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            yearSelect.appendChild(option);
+        }
+        yearSelect.value = currentYear;
+    }
+
+    function setCurrentMonth() {
+        const now = new Date();
+        const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+        const meseSelect = document.getElementById('meseSelect');
+        if (meseSelect) meseSelect.value = currentMonth;
+    }
+
+    function setTodayAsDefault() {
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        const giornoInput = document.getElementById('giorno');
+        if (giornoInput) giornoInput.value = formattedDate;
+    }
+
+    function setupCalculations() {
+        const cassaInput = document.getElementById('cassa');
+        const totaleInput = document.getElementById('totale');
+        const differenzaInput = document.getElementById('differenza');
+        if (!cassaInput || !totaleInput || !differenzaInput) return;
+
+        function calculateDiff() {
+            const cassa = parseFloat(cassaInput.value) || 0;
+            const totale = parseFloat(totaleInput.value) || 0;
+            const diff = totale - cassa;
+            differenzaInput.value = diff.toFixed(2) + ' €';
+            differenzaInput.style.color = diff >= 0 ? '#28a745' : '#dc3545';
+        }
+
+        cassaInput.addEventListener('input', calculateDiff);
+        totaleInput.addEventListener('input', calculateDiff);
+        calculateDiff();
+    }
+
+    
+
+    
+
+    // FUNZIONI MANCANTI AGGIUNTE
+    function applyFilter() {
+    const meseSelect = document.getElementById('meseSelect');
+    const annoSelect = document.getElementById('annoSelect');
+    const currentPeriod = document.getElementById('currentPeriod');
+    
+    if (!meseSelect || !annoSelect || !currentPeriod) return;
+    
+    const mese = meseSelect.value;
+    const anno = annoSelect.value;
+    
+    // SEMPRE usa il filtro basato su mese/anno selezionati
+    const filteredData = allData.filter(record => {
+        const recordDate = new Date(record.giorno);
+        return recordDate.getMonth() + 1 === parseInt(mese) && 
+               recordDate.getFullYear() === parseInt(anno);
+    });
+    
+    currentPeriod.textContent = `${getMonthName(mese)} ${anno}`;
+    renderTable(filteredData);
+    updateSummary(filteredData);
+}
+
+// E modifica showCurrentMonth per impostare mese/anno correnti:
+function showCurrentMonth() {
+    const now = new Date();
+    const currentMonth = String(now.getMonth() + 1).padStart(2, '0');
+    const currentYear = now.getFullYear();
+    
+    const meseSelect = document.getElementById('meseSelect');
+    const annoSelect = document.getElementById('annoSelect');
+    
+    if (meseSelect) meseSelect.value = currentMonth;
+    if (annoSelect) annoSelect.value = currentYear;
+    
+    applyFilter();
+}
+
+    function showAllData() {
+        currentFilter = 'all';
+        renderTable(allData);
+        updateSummary(allData);
+        const currentPeriod = document.getElementById('currentPeriod');
+        if (currentPeriod) {
+            currentPeriod.textContent = 'Tutti i Dati';
+        }
+    }
+
+    function showCurrentMonth() {
+        currentFilter = 'current-month';
+        setCurrentMonth();
+        applyFilter();
+    }
+
+    function getMonthName(monthNumber) {
+        const months = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+                      'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+        return months[parseInt(monthNumber) - 1];
+    }
+
+    function getDayName(dateString) {
+        const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+        const date = new Date(dateString);
+        return days[date.getDay()];
+    }
+
+    function formatDataItaliana(dateString) {
+        const date = new Date(dateString);
+        const giorno = String(date.getDate()).padStart(2, '0');
+        const mese = String(date.getMonth() + 1).padStart(2, '0');
+        const anno = date.getFullYear();
+        return `${giorno}/${mese}/${anno}`;
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+
+        data.sort((a, b) => new Date(b.giorno) - new Date(a.giorno));
+
+        let totalCassa = 0;
+        let totalTotale = 0;
+        let totalDiff = 0;
+
+        data.forEach(record => {
+            const row = document.createElement('tr');
+            
+            const cassa = parseFloat(record.importo1) || 0;
+            const totale = parseFloat(record.importo2) || 0;
+            const diff = record.diff !== null && record.diff !== undefined ? 
+                        parseFloat(record.diff) : (totale - cassa);
+            
+            const dayName = getDayName(record.giorno);
+            const dataItaliana = formatDataItaliana(record.giorno);
+            
+            const today = new Date().toISOString().split('T')[0];
+            if (record.giorno === today) {
+                row.classList.add('current-month');
+            }
+
+            row.innerHTML = `
+                <td class="data-italiana">${dataItaliana}</td>
+                <td>${dayName}</td>
+                <td>${cassa.toFixed(2)} €</td>
+                <td>${totale.toFixed(2)} €</td>
+                <td class="${diff >= 0 ? 'diff-positive' : 'diff-negative'}">
+                    ${diff.toFixed(2)} €
+                </td>
+                <td>
+                    <button class="btn-primary" onclick="editRecord(${record.id})">Modifica</button>
+                    <button class="btn-danger" onclick="deleteRecord(${record.id})">Elimina</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+
+            totalCassa += cassa;
+            totalTotale += totale;
+            totalDiff += diff;
+        });
+
+        const footerCassa = document.getElementById('footerCassa');
+        const footerTotale = document.getElementById('footerTotale');
+        const footerDiff = document.getElementById('footerDiff');
+        
+        if (footerCassa) footerCassa.textContent = totalCassa.toFixed(2) + ' €';
+        if (footerTotale) footerTotale.textContent = totalTotale.toFixed(2) + ' €';
+        if (footerDiff) footerDiff.textContent = totalDiff.toFixed(2) + ' €';
+    }
+
+    function updateSummary(data) {
+        let totalCassa = 0;
+        let totalTotale = 0;
+        let totalDiff = 0;
+
+        data.forEach(record => {
+            const cassa = parseFloat(record.importo1) || 0;
+            const totale = parseFloat(record.importo2) || 0;
+            const diff = record.diff !== null && record.diff !== undefined ? 
+                        parseFloat(record.diff) : (totale - cassa);
+            
+            totalCassa += cassa;
+            totalTotale += totale;
+            totalDiff += diff;
+        });
+
+        const totalCassaElem = document.getElementById('totalCassa');
+        const totalIncassiElem = document.getElementById('totalIncassi');
+        const totalDiffElem = document.getElementById('totalDiff');
+        const totalDaysElem = document.getElementById('totalDays');
+        
+        if (totalCassaElem) totalCassaElem.textContent = totalCassa.toFixed(2) + ' €';
+        if (totalIncassiElem) totalIncassiElem.textContent = totalTotale.toFixed(2) + ' €';
+        if (totalDiffElem) totalDiffElem.textContent = totalDiff.toFixed(2) + ' €';
+        if (totalDaysElem) totalDaysElem.textContent = data.length;
+
+        const diffCard = document.getElementById('diffCard');
+        if (diffCard) {
+            if (totalDiff >= 0) {
+                diffCard.classList.add('positive');
+                diffCard.classList.remove('negative');
+            } else {
+                diffCard.classList.add('negative');
+                diffCard.classList.remove('positive');
+            }
+        }
+    }
+
+    async function saveRecord() {
+        const giornoInput = document.getElementById('giorno');
+        const cassaInput = document.getElementById('cassa');
+        const totaleInput = document.getElementById('totale');
+        
+        const giorno = giornoInput.value;
+        const cassa = cassaInput.value;
+        const totale = totaleInput.value;
+        
+        if (!giorno || !cassa || !totale) {
+            alert('Per favore, compila tutti i campi obbligatori');
+            return;
+        }
+
+        if (parseFloat(cassa) < 0 || parseFloat(totale) < 0) {
+            alert('I valori non possono essere negativi');
+            return;
+        }
+        
+        const formData = {
+            giorno: giorno,
+            mese: getMonthName(giorno.split('-')[1]),
+            importo1: parseFloat(cassa),
+            importo2: parseFloat(totale)
+        };
+
+        const recordId = document.getElementById('recordId').value;
+
+        try {
+            const url = recordId ? 
+                `${API_BASE}/pannello-sesere/${recordId}` : 
+                `${API_BASE}/pannello-sesere`;
+
+            const response = await fetch(url, {
+                method: recordId ? 'PUT' : 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': authToken
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                resetForm();
+                loadData();
+                alert('Record salvato con successo!');
+            } else {
+                const error = await response.json();
+                alert('Errore: ' + error.error);
+            }
+        } catch (error) {
+            alert('Errore nel salvataggio: ' + error.message);
+        }
+    }
+
+    async function editRecord(id) {
+    try {
+        console.log('Modifica record ID:', id); // Debug
+        
+        const response = await fetch(`${API_BASE}/pannello-sesere/${id}`, {
+            headers: { 'Authorization': authToken }
+        });
+        
+        if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error('Record non trovato sul server');
+            } else if (response.status === 401) {
+                throw new Error('Token non valido');
+            } else {
+                throw new Error(`Errore server: ${response.status}`);
+            }
+        }
+        
+        const record = await response.json();
+        console.log('Record caricato:', record); // Debug
+
+        document.getElementById('recordId').value = record.id;
+        document.getElementById('giorno').value = record.giorno;
+        document.getElementById('cassa').value = record.importo1;
+        document.getElementById('totale').value = record.importo2;
+        
+        // Trigger calcolo differenza
+        document.getElementById('totale').dispatchEvent(new Event('input'));
+        
+        // Scroll al form
+        document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+        
+        // Cambia il titolo del form
+        document.querySelector('.form-section h3').textContent = '✏️ Modifica Record';
+        
+    } catch (error) {
+        console.error('Errore modifica:', error);
+        alert('Errore nel caricamento record: ' + error.message);
+    }
+}
+
+    async function deleteRecord(id) {
+        if (!confirm('Sei sicuro di voler eliminare questo record?')) return;
+
+        try {
+            const response = await fetch(`${API_BASE}/pannello-sesere/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': authToken }
+            });
+
+            if (response.ok) {
+                loadData();
+                alert('Record eliminato con successo!');
+            } else {
+                const error = await response.json();
+                alert('Errore: ' + error.error);
+            }
+        } catch (error) {
+            alert('Errore nell\'eliminazione: ' + error.message);
+        }
+    }
+
+    function resetForm() {
+    document.getElementById('recordId').value = '';
+    setTodayAsDefault();
+    document.getElementById('cassa').value = '';
+    document.getElementById('totale').value = '';
+    document.getElementById('differenza').value = '';
+    document.getElementById('differenza').style.color = '#333';
+    
+    // Ripristina il titolo del form
+    document.querySelector('.form-section h3').textContent = '➕ Nuovo Record Giornaliero';
+}
+
+    async function loadData() {
+    try {
+        const response = await fetch(`${API_BASE}/pannello-sesere`, {
+            headers: { 'Authorization': authToken }
+        });
+        
+        if (response.status === 401) {
+            throw new Error('Token non valido o scaduto');
+        }
+        
+        const data = await response.json();
+        allData = data;
+        applyFilter();
+        
+    } catch (error) {
+        console.error('Errore caricamento dati:', error);
+        document.getElementById('adminPanel').innerHTML = `
+            <div style="text-align: center; padding: 50px; color: #dc3545;">
+                <h2>❌ Errore di Accesso</h2>
+                <p>${error.message}</p>
+                <button onclick="chiudiFinestra()" class="btn-danger">Chiudi</button>
+               
+            </div>
+        `;
+    }
+}
+	
+	function chiudiFinestra() {
+    // Pulisci il token quando chiudi
+    sessionStorage.removeItem('adminToken');
+    window.close();
+    
+    setTimeout(() => {
+        if (!window.closed) {
+            window.location.href = '/dashboard.html';
+        }
+    }, 1000);
+}	
+	
+</script>
+</body>
+</html>
