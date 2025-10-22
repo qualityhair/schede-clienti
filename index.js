@@ -9,6 +9,8 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const session = require("express-session");
 const pgSession = require('connect-pg-simple')(session);
 
+
+
 // In cima al file, insieme agli altri 'require'
 const multer = require('multer');
 const crypto = require('crypto');
@@ -649,6 +651,82 @@ app.get("/api/clienti/cerca", async (req, res) => {
     } catch (err) {
         console.error(`ERRORE nella ricerca con termine '${term}':`, err);
         res.status(500).json({ error: err.message });
+    }
+});
+
+
+
+// =======================================================
+// === API PER SCONTRINO MEDIO CLIENTE (VERSIONE CORRETTA) ===
+// =======================================================
+
+app.get('/api/clienti/:id/scontrino-medio', async (req, res) => {
+    try {
+        const clienteId = parseInt(req.params.id);
+        const periodo = req.query.periodo || 'tutto';
+        
+        //console.log('🎯 Calcolo scontrino medio per cliente:', clienteId, 'periodo:', periodo);
+
+        if (isNaN(clienteId)) {
+            return res.status(400).json({ error: 'ID cliente non valido' });
+        }
+
+        // DEBUG: Verifica che il cliente esista
+        const clienteCheck = await db.query('SELECT id, nome, cognome FROM clienti WHERE id = $1', [clienteId]);
+        if (clienteCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Cliente non trovato' });
+        }
+        //console.log('✅ Cliente trovato:', clienteCheck.rows[0]);
+
+        // Costruzione query dinamica in base al periodo
+        let whereClause = 'WHERE cliente_id = $1 AND prezzo IS NOT NULL AND prezzo > 0';
+        let params = [clienteId];
+
+        if (periodo === 'anno') {
+            whereClause += ` AND data_trattamento >= DATE_TRUNC('year', CURRENT_DATE)`;
+        } else if (periodo === 'mese') {
+            whereClause += ` AND data_trattamento >= DATE_TRUNC('month', CURRENT_DATE)`;
+        }
+
+       const query = `
+    SELECT 
+        COUNT(*) as numero_transazioni,
+        COALESCE(SUM(
+            (SELECT SUM((servizio->>'prezzo')::numeric) 
+             FROM jsonb_array_elements(servizi) as servizio 
+             WHERE servizio->>'prezzo' IS NOT NULL)
+        ), 0) as totale_incassi
+    FROM trattamenti 
+    WHERE cliente_id = $1 AND servizi IS NOT NULL
+`;
+
+        //console.log('📊 Query eseguita:', query);
+        //console.log('📊 Parametri:', params);
+
+        const result = await db.query(query, params);
+        
+        const numeroTransazioni = parseInt(result.rows[0].numero_transazioni);
+        const totaleIncassi = parseFloat(result.rows[0].totale_incassi);
+        const importoMedio = numeroTransazioni > 0 ? (totaleIncassi / numeroTransazioni) : 0;
+
+     
+
+        res.json({
+            success: true,
+            numero_transazioni: numeroTransazioni,
+            totale_incassi: totaleIncassi,
+            importo_medio: importoMedio,
+            periodo: periodo
+        });
+
+    } catch (error) {
+        console.error('❌ Errore calcolo scontrino medio:', error.message);
+        
+        res.status(500).json({ 
+            success: false,
+            error: 'Errore interno del server',
+            details: error.message
+        });
     }
 });
 

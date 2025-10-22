@@ -4155,6 +4155,86 @@ body.iframe-mode .page-title {
     color: #FFD700;
 }
 
+
+/* ======================================================= */
+/* === STILI PER SCONTRINO MEDIO === */
+/* ======================================================= */
+
+/* Stile base per la riga dello scontrino medio */
+#scontrino-medio-display {
+    padding: 8px 0;
+    border-bottom: 1px solid #444;
+    margin-bottom: 8px;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* Colori in base al valore dello scontrino medio */
+.scontrino-alto {
+    color: #28a745 !important; /* Verde per scontrini alti */
+    font-weight: bold;
+}
+
+.scontrino-medio {
+    color: #FFD700 !important; /* Giallo oro per scontrini medi */
+    font-weight: bold;
+}
+
+.scontrino-basso {
+    color: #dc3545 !important; /* Rosso per scontrini bassi */
+    font-weight: bold;
+}
+
+/* Animazione per l'apparizione */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Miglioramento visivo per tutto il pannello dettagli cliente */
+.client-details-panel .client-detail-row {
+    transition: all 0.3s ease;
+    padding: 6px 0;
+}
+
+.client-details-panel .client-detail-row:hover {
+    background-color: rgba(255, 215, 0, 0.05);
+    border-radius: 4px;
+    padding-left: 8px;
+}
+
+/* Highlight per le metriche importanti */
+#scontrino-medio-valore {
+    font-size: 1.1em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background-color: rgba(42, 42, 42, 0.7);
+    transition: all 0.3s ease;
+}
+
+#scontrino-medio-valore:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.2);
+}
+
+/* Responsività per schermi piccoli */
+@media (max-width: 768px) {
+    #scontrino-medio-display {
+        padding: 6px 0;
+    }
+    
+    #scontrino-medio-valore {
+        font-size: 1em;
+        display: block;
+        margin-top: 4px;
+    }
+}
+
 /* =================================== */
 /* === REGOLE CSS PER LA STAMPA (@media print) === */
 /* =================================== */

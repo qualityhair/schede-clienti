@@ -654,7 +654,112 @@ function calcolaEVisualizzaMetricheVisita(storicoTrattamenti) {
 
 // === FINE DELLE NUOVE FUNZIONI DI CALCOLO METRICHE ===
 
+// =======================================================
+// === FUNZIONI PER SCONTRINO MEDIO ===
+// =======================================================
 
+// --- FUNZIONE PER CALCOLARE LO SCONTRINO MEDIO ---
+async function calcolaScontrinoMedio(clienteId, periodo = 'tutto') {
+    try {
+        console.log(`📊 Calcolo scontrino medio per cliente ${clienteId}, periodo: ${periodo}`);
+        
+        const response = await fetch(`/api/clienti/${clienteId}/scontrino-medio?periodo=${periodo}`);
+        
+        if (!response.ok) {
+            throw new Error(`Errore HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.error || "Errore nel calcolo dello scontrino medio");
+        }
+        
+        console.log("📊 Dati scontrino medio ricevuti:", data);
+        return data;
+        
+    } catch (error) {
+        console.error("❌ Errore calcolo scontrino medio:", error);
+        throw error;
+    }
+}
+
+// --- FUNZIONE PER VISUALIZZARE LO SCONTRINO MEDIO ---
+async function visualizzaScontrinoMedio(clienteId) {
+    try {
+        console.log(`🎨 Visualizzo scontrino medio per cliente ${clienteId}`);
+        
+        const scontrinoMedio = await calcolaScontrinoMedio(clienteId, 'anno');
+        
+        // Crea o aggiorna l'elemento nell'interfaccia
+        let scontrinoElement = document.getElementById('scontrino-medio-display');
+        
+        if (!scontrinoElement) {
+            scontrinoElement = document.createElement('div');
+            scontrinoElement.id = 'scontrino-medio-display';
+            scontrinoElement.className = 'client-detail-row';
+            
+            // Trova l'elemento della frequenza media e inserisci dopo
+            const frequenzaElement = document.getElementById('frequenza-media');
+            if (frequenzaElement && frequenzaElement.parentElement) {
+                frequenzaElement.parentElement.parentNode.insertBefore(
+                    scontrinoElement, 
+                    frequenzaElement.parentElement.nextSibling
+                );
+            } else {
+                // Fallback: inserisci prima del badge stato pagamento
+                const statoPagamentoElement = document.getElementById('stato-pagamento-badge');
+                if (statoPagamentoElement && statoPagamentoElement.parentElement) {
+                    statoPagamentoElement.parentElement.parentNode.insertBefore(
+                        scontrinoElement,
+                        statoPagamentoElement.parentElement
+                    );
+                }
+            }
+        }
+        
+        // Determina il colore in base all'importo
+        let coloreClasse = 'scontrino-medio';
+        if (scontrinoMedio.importo_medio > 80) coloreClasse = 'scontrino-alto';
+        else if (scontrinoMedio.importo_medio < 30) coloreClasse = 'scontrino-basso';
+        
+        scontrinoElement.innerHTML = `
+            <strong>💰 Scontrino Medio (anno):</strong> 
+            <span id="scontrino-medio-valore" class="${coloreClasse}" style="font-weight: bold;">
+                € ${scontrinoMedio.importo_medio?.toFixed(2) || '0.00'}
+            </span>
+            <small style="color: #888; margin-left: 8px;">
+                (${scontrinoMedio.numero_transazioni || 0} transazioni)
+            </small>
+        `;
+        
+        console.log("✅ Scontrino medio visualizzato con successo");
+        
+    } catch (error) {
+        console.error("❌ Errore visualizzazione scontrino medio:", error);
+        
+        // Mostra comunque un elemento per segnalare l'errore
+        let scontrinoElement = document.getElementById('scontrino-medio-display');
+        if (!scontrinoElement) {
+            scontrinoElement = document.createElement('div');
+            scontrinoElement.id = 'scontrino-medio-display';
+            scontrinoElement.className = 'client-detail-row';
+            
+            const frequenzaElement = document.getElementById('frequenza-media');
+            if (frequenzaElement && frequenzaElement.parentElement) {
+                frequenzaElement.parentElement.parentNode.insertBefore(
+                    scontrinoElement, 
+                    frequenzaElement.parentElement.nextSibling
+                );
+            }
+        }
+        
+        scontrinoElement.innerHTML = `
+            <strong>💰 Scontrino Medio:</strong> 
+            <span style="color: #888; font-style: italic;">Dati non disponibili</span>
+        `;
+    }
+}
 
 
     // --- SOSTITUISCI LA TUA FUNZIONE loadClientData CON QUESTA ---
@@ -719,6 +824,7 @@ avatarContainer.appendChild(initialsDiv);
         clienteNoteTextarea.value = client.preferenze_note || '';
         displayClientTags(client.tags);
         displayStatoPagamento(client.stato_pagamento);
+await visualizzaScontrinoMedio(clientId);
         
         // --- PARTE 3: Mostra le tabelle, i filtri E GESTISCI I PANNELLI ---
         
