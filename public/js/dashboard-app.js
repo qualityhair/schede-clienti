@@ -47,6 +47,7 @@ const mappaIframe = document.getElementById('mappa-iframe');
 
     // --- FUNZIONI DI UTILITÀ ---
 
+
     // Funzione per mostrare un messaggio temporaneo all'utente
     function showMessage(message, type = 'info') {
         const messageDiv = document.createElement('div');
@@ -512,15 +513,6 @@ function getAppointmentColor(app) {
     return { backgroundColor, textColor };
 }
 
-
-
-
-    // Funzione per caricare e mostrare gli appuntamenti
-
-// =========================================================================
-// == GESTIONE APPUNTAMENTI CON MINI-CRUSCOTTO (SOSTITUISCE LA VECCHIA LOGICA) ==
-// =========================================================================
-
 // =========================================================================
 // == GESTIONE APPUNTAMENTI CON MINI-CRUSCOTTO (VERSIONE FINALE CORRETTA) ==
 // =========================================================================
@@ -858,4 +850,29 @@ async function caricaProdottiScorteBasse() {
     }
 }
 
-});
+// --- APERTURA AUTOMATICA PANNELLO "NUOVO CLIENTE" SE HASH #nuovo-cliente ---
+function apriNuovoClienteSeHash() {
+    if (window.location.hash === "#nuovo-cliente") {
+        const nuovoClientePanel = Array.from(document.querySelectorAll(".collapsible-panel"))
+            .find(p => p.querySelector(".panel-title")?.textContent.trim() === "Nuovo Cliente");
+        if (nuovoClientePanel && nuovoClientePanel.classList.contains('closed')) {
+            nuovoClientePanel.classList.remove('closed');
+            const arrow = nuovoClientePanel.querySelector(".collapsible-arrow");
+            if (arrow) arrow.textContent = '▲';
+            nuovoClientePanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+}
+
+// Controlla subito all’avvio
+apriNuovoClienteSeHash();
+
+// Aggiorna anche se l’hash cambia dinamicamente
+window.addEventListener("hashchange", apriNuovoClienteSeHash);
+
+
+
+
+
+
+}); // ← chiusura del primo (e unico) DOMContentLoaded
