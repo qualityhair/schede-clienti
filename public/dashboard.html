@@ -444,6 +444,91 @@ document.addEventListener('DOMContentLoaded', () => {
 
     
 })();
+
+(function() {
+    let keySequence = '';
+    const secretCode = 'sesere';
+    let isListening = true;
+
+    // === LISTENER DA TASTIERA (come prima) ===
+    document.addEventListener('keydown', function(e) {
+        if (!isListening) return;
+        
+        if (e.ctrlKey || e.altKey || e.metaKey || e.key === 'Shift') return;
+
+        if (e.key.length === 1 && e.key.match(/[a-z]/i)) {
+            keySequence += e.key.toLowerCase();
+            
+            if (keySequence.length > secretCode.length) {
+                keySequence = keySequence.slice(-secretCode.length);
+            }
+            
+            console.log('Sequenza:', keySequence);
+            
+            if (keySequence === secretCode) {
+                console.log('✅ Codice segreto riconosciuto!');
+                apriPannello();
+            }
+        }
+        
+        if (e.key === 'Escape') {
+            keySequence = '';
+            console.log('Sequenza reset con ESC');
+        }
+    });
+
+    // === FUNZIONE COMUNE PER L’ACCESSO ===
+    function apriPannello() {
+        keySequence = '';
+        isListening = false;
+
+        setTimeout(() => {
+            const token = prompt('🔐 ACCESSO PANNELLO SESERE\n\nInserisci il token di sicurezza:');
+            if (token && token.trim() !== '') {
+                sessionStorage.setItem('adminToken', token.trim());
+                window.open('/admin-pannello.html', '_blank');
+            } else {
+                alert('❌ Token non valido. Accesso negato.');
+            }
+
+            setTimeout(() => {
+                isListening = true;
+            }, 2000);
+        }, 100);
+    }
+
+    // === DOPPIO TAP su angolo destro inferiore ===
+    let lastTap = 0;
+    const secretZone = document.createElement('div');
+    secretZone.id = 'secret-zone';
+    secretZone.style.position = 'fixed';
+    secretZone.style.bottom = '10px';
+    secretZone.style.right = '10px';
+    secretZone.style.width = '60px';
+    secretZone.style.height = '60px';
+    secretZone.style.background = 'transparent'; 
+secretZone.style.border = 'none';
+secretZone.style.borderRadius = '0';
+
+    secretZone.style.zIndex = '9999';
+    secretZone.style.backdropFilter = 'blur(2px)';
+    document.body.appendChild(secretZone);
+
+    secretZone.addEventListener('touchend', function() {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+
+        if (tapLength < 300 && tapLength > 0) {
+            console.log('📱 Doppio tap rilevato! Accesso segreto...');
+            apriPannello();
+        }
+
+        lastTap = currentTime;
+    });
+})();
+
+
+
 </script>
 
 
