@@ -88,7 +88,7 @@ async function initGoogleCalendar() {
     console.log('Autenticazione Google Calendar in modalità produzione...');
     authOptions.credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
   } else {
-    console.log('Autenticazione Google Calendar in modalità locale...');
+    //console.log('Autenticazione Google Calendar in modalità locale...');
     authOptions.keyFile = process.env.GOOGLE_CREDENTIALS_PATH || path.join(__dirname, 'config', 'google-credentials.json');
   }
 
@@ -97,7 +97,7 @@ async function initGoogleCalendar() {
   authClient = await auth.getClient();
   calendar = google.calendar({ version: 'v3', auth: authClient });
 
-  console.log("Google Calendar inizializzato con successo.");
+  //console.log("Google Calendar inizializzato con successo.");
 
   // Avvia la sincronizzazione
   await syncGoogleCalendarEvents();
@@ -115,7 +115,7 @@ initGoogleCalendar().catch(err => {
 
 // VERSIONE FINALE DELLA FUNZIONE DI SINCRONIZZAZIONE (CON PAGINAZIONE)
 async function syncGoogleCalendarEvents() {
-    console.log("Avvio sincronizzazione con Google Calendar (versione con paginazione)...");
+    //console.log("Avvio sincronizzazione con Google Calendar (versione con paginazione)...");
     if (!calendar) {
         console.error("ERRORE: Il client Google Calendar non è inizializzato.");
         return;
@@ -135,7 +135,7 @@ async function syncGoogleCalendarEvents() {
         };
 
         if (syncToken) {
-            console.log("Trovato Sync Token. Eseguo sincronizzazione incrementale.");
+            //console.log("Trovato Sync Token. Eseguo sincronizzazione incrementale.");
             requestParams.syncToken = syncToken;
         } else {
             console.log("Nessun Sync Token. Eseguo una sincronizzazione completa iniziale.");
@@ -158,7 +158,7 @@ async function syncGoogleCalendarEvents() {
             const eventsOnPage = res.data.items;
             if (eventsOnPage && eventsOnPage.length > 0) {
                 allEvents.push(...eventsOnPage); // Aggiungi gli eventi di questa pagina alla lista totale
-                console.log(`Ricevuti ${eventsOnPage.length} eventi da questa pagina. Totale finora: ${allEvents.length}`);
+                //console.log(`Ricevuti ${eventsOnPage.length} eventi da questa pagina. Totale finora: ${allEvents.length}`);
             }
 
             pageToken = res.data.nextPageToken; // Prendi il biglietto per la prossima pagina
@@ -166,12 +166,12 @@ async function syncGoogleCalendarEvents() {
 
         } while (pageToken); // Se c'è un biglietto, il ciclo continua
 
-        console.log(`Paginazione completata. Totale eventi da elaborare: ${allEvents.length}`);
+        //console.log(`Paginazione completata. Totale eventi da elaborare: ${allEvents.length}`);
 
         // 3. Elaboriamo TUTTI gli eventi raccolti
         for (const event of allEvents) {
             if (event.status === 'cancelled') {
-                console.log(`Rilevato evento CANCELLATO: "${event.summary}" (ID: ${event.id}). Eliminazione.`);
+               // console.log(`Rilevato evento CANCELLATO: "${event.summary}" (ID: ${event.id}). Eliminazione.`);
                 await db.query("DELETE FROM calendar_events WHERE google_event_id = $1", [event.id]);
             } // --- INCOLLA QUESTO AL POSTO DEL VECCHIO 'ELSE' ---
 else {
@@ -219,10 +219,10 @@ else {
 
         // 4. Salviamo il NUOVO syncToken finale per la prossima volta
         if (finalSyncToken) {
-            console.log("Salvataggio Sync Token finale per la prossima sincronizzazione.");
+            //console.log("Salvataggio Sync Token finale per la prossima sincronizzazione.");
             await db.query("UPDATE impostazioni SET valore = $1 WHERE chiave = 'google_sync_token'", [finalSyncToken]);
         }
-        console.log("Sincronizzazione eventi Google Calendar completata con successo.");
+        //console.log("Sincronizzazione eventi Google Calendar completata con successo.");
 
     } catch (error) {
         if (error.code === 410) {
@@ -1042,7 +1042,7 @@ app.get('/api/analisi/servizi-popolari', ensureAuthenticated, async (req, res) =
         `;
 
         const servizi = await db.query(query, [dataInizio]);
-        console.log('Servizi trovati per periodo', periodo, ':', servizi.rows.length);
+        //console.log('Servizi trovati per periodo', periodo, ':', servizi.rows.length);
 
         res.json(servizi.rows);
 
@@ -1250,7 +1250,7 @@ app.get('/api/analisi/clienti-per-servizio', ensureAuthenticated, async (req, re
             return res.status(400).json({ error: 'Parametro servizio mancante' });
         }
         
-        console.log(`API clienti-per-servizio chiamata per: ${servizio} (Periodo: ${periodo})`);
+        //console.log(`API clienti-per-servizio chiamata per: ${servizio} (Periodo: ${periodo})`);
 
         const dataInizio = calcolaDataInizio(periodo);
 
@@ -1281,7 +1281,7 @@ app.get('/api/analisi/clienti-per-servizio', ensureAuthenticated, async (req, re
 
         const result = await db.query(query, [dataInizio, servizio]);
         
-        console.log(`Clienti trovati per ${servizio}: ${result.rows.length}`);
+        //console.log(`Clienti trovati per ${servizio}: ${result.rows.length}`);
 
         const clientiFormattati = result.rows.map(cliente => ({
             id: cliente.id, // ✅ ID incluso per il frontend
