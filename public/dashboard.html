@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/dashboard-layout.css">
+<link rel="stylesheet" href="./css/hair-scanner.css" />
 
 <!-- FullCalendar CSS -->
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css" rel="stylesheet" />
@@ -41,6 +42,12 @@
                 <span id="weather-text">Meteo non disponibile</span>
                 <img id="weather-icon" src="" alt="" style="display: none;">
             </div>
+			
+			
+			
+			
+			
+			
         </td>
     </tr>
 </table>
@@ -101,7 +108,11 @@
 				<input type="text" id="new-client-tags" placeholder="Tag (es: VIP, Allergia Tinta)" class="input-field" />
 				<button id="add-new-client-button" class="btn btn-primary">Aggiungi Cliente</button>
 				</div>
-</div>          
+</div>    
+
+
+
+      
 
 
 
@@ -120,7 +131,46 @@
                 <ul class="appointments-list" id="lista-appuntamenti">
                     <li class="appointment-item loading">Caricamento in corso...</li>
                 </ul>
-            </div>            
+            </div>  
+
+
+
+<!-- === CLIENTE DEL MESE === -->
+<section class="client-of-month-section" id="client-of-month-section">
+    <div class="client-of-month-card">
+        <div class="crown-icon">👑</div>
+        <h2 class="client-of-month-title">CLIENTE DEL MESE</h2>
+        
+        <div class="client-of-month-info">
+            <div class="client-avatar-large" id="client-of-month-avatar">
+                <div class="client-avatar-initials">?</div>
+            </div>
+            <div class="client-details">
+                <div class="client-name" id="client-of-month-name">Calcolo in corso...</div>
+                <div class="client-since" id="client-of-month-since"></div>
+            </div>
+        </div>
+        
+        <!-- SOLO 2 STATISTICHE -->
+        <div class="client-stats">
+            <div class="stat">
+                <span class="number" id="stat-visits">0</span>
+                <span class="label">Visite</span>
+            </div>
+            <div class="stat">
+                <span class="number" id="stat-spent">€0</span>
+                <span class="label">Speso</span>
+            </div>
+        </div>
+        
+        <div class="client-achievements">
+            <h4 style="color: #FFD700; margin-bottom: 10px;">🎯 Riconoscimenti</h4>
+            <div class="achievement-badges" id="achievement-badges">
+                <div class="achievement-badge">⭐ Impeccabile Fedeltà</div>
+            </div>
+        </div>
+    </div>
+</section>		
  
         </div>
 
@@ -531,7 +581,7 @@ secretZone.style.borderRadius = '0';
 
 </script>
 
-
+<script src="./js/dashboard-clienti.js"></script>
 </body>
 </html>
 

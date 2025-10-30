@@ -1,0 +1,249 @@
+/* === CLIENTE DEL MESE - VERSIONE COMPATTA === */
+.client-of-month-section {
+    margin: 20px 0;
+    padding: 0 10px;
+}
+
+.client-of-month-card {
+    background: linear-gradient(135deg, #2d2d2d 0%, #3a3a3a 50%, #454545 100%);
+    border: 2px solid;
+    border-image: linear-gradient(45deg, #FFD700, #FFAA00, #FFD700) 1;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(255, 215, 0, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.client-of-month-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.08), transparent);
+    animation: shine 4s infinite linear;
+    z-index: 0;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.crown-icon {
+    font-size: 2.2rem;
+    margin-bottom: 12px;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.4));
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+
+.client-of-month-title {
+    font-size: 1.4rem;
+    background: linear-gradient(90deg, #FFD700, #FFAA00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 15px;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+}
+
+.client-of-month-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+/* AVATAR PIÙ COMPATTO */
+.client-avatar-large {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #666666, #888888);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: white;
+    border: 2px solid #FFD700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.client-avatar-large.has-photo {
+    background: none;
+    border: 2px solid #FFD700;
+}
+
+.client-avatar-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.client-avatar-initials {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: white;
+}
+
+.client-details {
+    text-align: left;
+    position: relative;
+    z-index: 1;
+    flex: 1;
+}
+
+.client-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #FFD700;
+    margin-bottom: 4px;
+}
+
+.client-since {
+    color: #cccccc;
+    font-size: 0.8rem;
+}
+
+/* STATS COMPATTE */
+.client-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.stat {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.stat:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+    border-color: rgba(255, 215, 0, 0.5);
+}
+
+.stat .number {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #FFD700;
+    margin-bottom: 4px;
+}
+
+.stat .label {
+    font-size: 0.75rem;
+    color: #cccccc;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.client-achievements {
+    position: relative;
+    z-index: 1;
+}
+
+.achievement-badges {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.achievement-badge {
+    background: linear-gradient(135deg, #FFD700, #FFAA00);
+    color: #2d2d2d;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .client-of-month-section {
+        margin: 15px 0;
+        padding: 0 5px;
+    }
+    
+    .client-of-month-card {
+        padding: 15px;
+    }
+    
+    .client-stats {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .client-of-month-info {
+        flex-direction: column;
+        text-align: center;
+        gap: 12px;
+    }
+    
+    .client-details {
+        text-align: center;
+    }
+    
+    .client-of-month-title {
+        font-size: 1.2rem;
+        margin-bottom: 12px;
+    }
+    
+    .crown-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+    
+    .client-avatar-large {
+        width: 60px;
+        height: 60px;
+        font-size: 1.2rem;
+    }
+    
+    .client-name {
+        font-size: 1.1rem;
+    }
+}
+
+/* Fallback per browser che non supportano backdrop-filter */
+@supports not (backdrop-filter: blur(10px)) {
+    .client-of-month-card {
+        background: rgba(45, 45, 45, 0.95);
+    }
+}
