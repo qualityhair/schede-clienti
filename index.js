@@ -1462,6 +1462,61 @@ app.post("/api/analisi", ensureAuthenticated, async (req, res) => {
 });
 
 
+// === API CLIENTE DEL MESE - SEMPLIFICATA ===
+app.get("/api/analisi/clienti-del-mese", ensureAuthenticated, async (req, res) => {
+    try {
+        const oggi = new Date();
+        const inizioMeseScorso = new Date(oggi.getFullYear(), oggi.getMonth() - 1, 1);
+        const fineMeseScorso = new Date(oggi.getFullYear(), oggi.getMonth(), 0);
+
+        console.log('📅 Calcolo cliente del mese per periodo:', 
+            inizioMeseScorso.toDateString(), '-', fineMeseScorso.toDateString());
+
+        const query = `
+            SELECT 
+                c.id,
+                c.nome,
+                c.cognome,
+                c.soprannome,
+                c.tags,
+                COUNT(t.id) as visite_mese,
+                COALESCE(SUM(COALESCE(t.prezzo, 0)), 0) as spesa_mese,
+                (SELECT file_path FROM client_photos 
+                 WHERE cliente_id = c.id AND 'profilo' = ANY(tags) 
+                 LIMIT 1) as foto_profilo
+            FROM 
+                clienti c
+            JOIN 
+                trattamenti t ON c.id = t.cliente_id 
+            WHERE 
+                t.data_trattamento >= $1 
+                AND t.data_trattamento <= $2
+            GROUP BY 
+                c.id
+            ORDER BY 
+                visite_mese DESC, spesa_mese DESC
+            LIMIT 1
+        `;
+
+        const result = await db.query(query, [
+            inizioMeseScorso.toISOString().split('T')[0], 
+            fineMeseScorso.toISOString().split('T')[0]
+        ]);
+
+        console.log(`✅ Clienti trovati: ${result.rows.length}`);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: "Nessun trattamento nel mese scorso" });
+        }
+
+        res.json(result.rows[0]);
+
+    } catch (error) {
+        console.error('❌ Errore API clienti del mese:', error.message);
+        res.status(500).json({ error: "Errore database: " + error.message });
+    }
+});
+
 
 
 
@@ -3145,6 +3200,10 @@ app.delete("/api/admin/pannello-sesere/:id", ensureAuthenticated, authenticateAd
 app.get("/admin-pannello.html", ensureAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, "public", "admin-pannello.html"));
 });
+
+
+
+
 
 
 
