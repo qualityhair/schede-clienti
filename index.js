@@ -1473,30 +1473,40 @@ app.get("/api/analisi/clienti-del-mese", ensureAuthenticated, async (req, res) =
             inizioMeseScorso.toDateString(), '-', fineMeseScorso.toDateString());
 
         const query = `
-            SELECT 
-                c.id,
-                c.nome,
-                c.cognome,
-                c.soprannome,
-                c.tags,
-                COUNT(t.id) as visite_mese,
-                COALESCE(SUM(COALESCE(t.prezzo, 0)), 0) as spesa_mese,
-                (SELECT file_path FROM client_photos 
-                 WHERE cliente_id = c.id AND 'profilo' = ANY(tags) 
-                 LIMIT 1) as foto_profilo
-            FROM 
-                clienti c
-            JOIN 
-                trattamenti t ON c.id = t.cliente_id 
-            WHERE 
-                t.data_trattamento >= $1 
-                AND t.data_trattamento <= $2
-            GROUP BY 
-                c.id
-            ORDER BY 
-                visite_mese DESC, spesa_mese DESC
-            LIMIT 1
-        `;
+    SELECT 
+        c.id,
+        c.nome,
+        c.cognome,
+        c.soprannome,
+        c.tags,
+        COUNT(DISTINCT t.id) as visite_mese,
+        -- NUOVA LOGICA PER CALCOLARE LA SPESA DAL CAMPO 'servizi' (JSONB)
+        COALESCE(SUM(
+            (SELECT SUM((s->>'prezzo')::NUMERIC) 
+             FROM jsonb_array_elements(t.servizi) AS s)
+        ), 0) as spesa_mese,
+        (SELECT file_path FROM client_photos 
+         WHERE cliente_id = c.id AND 'profilo' = ANY(tags) 
+         LIMIT 1) as foto_profilo
+    FROM 
+        clienti c
+    JOIN 
+        trattamenti t ON c.id = t.cliente_id 
+    WHERE 
+        t.data_trattamento >= $1 
+        AND t.data_trattamento <= $2
+        -- Se vuoi includere solo trattamenti che hanno servizi validi, puoi aggiungere:
+        -- AND t.servizi IS NOT NULL AND jsonb_array_length(t.servizi) > 0
+        -- Se l'API /trattamenti/paga-con-buono SALVA il prezzo nel campo t.prezzo, 
+        -- e vuoi sommare quello per quei trattamenti specifici, la query si complicherebbe un po'.
+        -- Ma data la tua intenzione di non toccare le API di gestione, 
+        -- e il fatto che il frontend calcola dal JSON, questa è la strada più coerente.
+    GROUP BY 
+        c.id, c.nome, c.cognome, c.soprannome, c.tags -- Aggiunti per conformità SQL standard
+    ORDER BY 
+        visite_mese DESC, spesa_mese DESC
+    LIMIT 1
+`;
 
         const result = await db.query(query, [
             inizioMeseScorso.toISOString().split('T')[0], 
