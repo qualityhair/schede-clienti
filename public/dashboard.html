@@ -61,7 +61,7 @@
     <div class="dashboard-layout-grid-3-col">
 
         <!-- === COLONNA SINISTRA === -->
-        <div class="dashboard-column">
+ <div class="dashboard-column">
             
             <!-- PANNELLO RIEPILOGO MATTUTINO -->
 <div class="summary-panel">
@@ -109,32 +109,7 @@
 				<input type="text" id="new-client-tags" placeholder="Tag (es: VIP, Allergia Tinta)" class="input-field" />
 				<button id="add-new-client-button" class="btn btn-primary">Aggiungi Cliente</button>
 				</div>
-</div>    
-
-
-
-      
-
-
-
-
-        </div>
-
-        <!-- === COLONNA CENTRALE === -->
-        <div class="dashboard-column">
-		            <button id="apri-mappa-btn" class="btn btn-primary">Quality Live</button>
-		
-		
-            <!-- PANNELLO APPUNTAMENTI DI OGGI -->
-			
-            <div class="panel dashboard-panel">
-                
-                <ul class="appointments-list" id="lista-appuntamenti">
-                    <li class="appointment-item loading">Caricamento in corso...</li>
-                </ul>
-            </div>  
-
-
+				</div> 
 
 <!-- === CLIENTE DEL MESE === -->
 <section class="client-of-month-section" id="client-of-month-section">
@@ -163,7 +138,29 @@
             </div>
 
     </div>
-</section>	
+</section>
+
+				
+
+</div>
+
+        <!-- === COLONNA CENTRALE === -->
+        <div class="dashboard-column">
+		            <button id="apri-mappa-btn" class="btn btn-primary">Quality Live</button>
+		
+		
+            <!-- PANNELLO APPUNTAMENTI DI OGGI -->
+			
+            <div class="panel dashboard-panel">
+                
+                <ul class="appointments-list" id="lista-appuntamenti">
+                    <li class="appointment-item loading">Caricamento in corso...</li>
+                </ul>
+            </div>  
+
+
+
+	
  
         </div>
 
@@ -178,19 +175,11 @@
 			</div>
 			
 			
-			<!-- PANNELLO CLIENTI DA CONTATTARE (ORA COLLASSABILE) -->
-<div class="panel dashboard-panel collapsible-panel closed">
-    <div class="collapsible-header">
-        <h2 class="panel-title">Clienti in Ritardo</h2>
-        <span class="collapsible-arrow">▼</span>
-    </div>
-    <div class="collapsible-content">
-       
-        <div id="clienti-a-rischio-container" class="lista-clienti-rischio">
-            <p class="loading">Caricamento in corso...</p>
-        </div>
-    </div>
-</div>
+			
+			
+			
+			
+
 			
 			
             
@@ -209,6 +198,22 @@
 
             <button id="apri-impostazioni-btn" class="btn btn-primary">Impostazioni e Gestione</button>
 
+        </div>
+    </div>
+</div>
+
+
+
+			<!-- PANNELLO CLIENTI DA CONTATTARE (ORA COLLASSABILE) -->
+<div class="panel dashboard-panel collapsible-panel closed">
+    <div class="collapsible-header">
+        <h2 class="panel-title">Clienti in Ritardo</h2>
+        <span class="collapsible-arrow">▼</span>
+    </div>
+    <div class="collapsible-content">
+       
+        <div id="clienti-a-rischio-container" class="lista-clienti-rischio">
+            <p class="loading">Caricamento in corso...</p>
         </div>
     </div>
 </div>
