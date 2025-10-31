@@ -105,14 +105,14 @@ class ClienteDelMese {
     }
 
     mostraNessunDato(section) {
-        section.innerHTML = `
-            <div class="client-of-month-card" style="text-align: center; padding: 30px;">
-                <div class="crown-icon">📊</div>
-                <h3 style="color: #FFD700;">Nessun dato nel mese scorso</h3>
-                <p style="color: #cccccc;">Non ci sono trattamenti nel periodo analizzato</p>
-            </div>
-        `;
-    }
+    section.innerHTML = `
+        <div class="client-of-month-card" style="text-align: center; padding: 30px;">
+            <div class="crown-icon">📊</div>
+            <h3 style="color: #FFD700;">Nessun trattamento questo mese</h3>
+            <p style="color: #cccccc;">I dati si aggiornano in tempo reale</p>
+        </div>
+    `;
+}
 
     mostraErrore(section) {
         section.innerHTML = `
