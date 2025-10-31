@@ -1,17 +1,17 @@
-// === CLIENTE DEL MESE - VERSIONE SEMPLIFICATA ===
+// === CLASSIFICA CLIENTI DEL MESE - VERSIONE CORRETTA ===
 class ClienteDelMese {
     constructor() {
-        this.clienteDelMese = null;
+        this.classifica = null;
     }
 
-    async caricaClienteReale() {
+    async caricaClassifica() {
         try {
-            console.log('🚀 Caricamento cliente del mese...');
+            console.log('🚀 Caricamento classifica clienti del mese...');
             
             const response = await fetch('/api/analisi/clienti-del-mese');
             
             if (response.status === 404) {
-                console.log('ℹ️ Nessun dato nel mese scorso');
+                console.log('ℹ️ Nessun dato questo mese');
                 return null;
             }
             
@@ -19,79 +19,126 @@ class ClienteDelMese {
                 throw new Error(`Server error: ${response.status}`);
             }
             
-            this.clienteDelMese = await response.json();
-            console.log('✅ Cliente del mese caricato:', this.clienteDelMese.nome);
-            return this.clienteDelMese;
+            this.classifica = await response.json();
+            console.log('✅ Classifica caricata:', this.classifica.length, 'clienti');
+            return this.classifica;
             
         } catch (error) {
-            console.error('❌ Errore caricamento:', error);
+            console.error('❌ Errore caricamento classifica:', error);
             return null;
         }
     }
 
-    async mostraClienteDelMese() {
+    async mostraClassifica() {
         const section = document.getElementById('client-of-month-section');
         if (!section) return;
 
-        const htmlOriginale = section.innerHTML;
+        // PULISCI completamente la sezione
+        section.innerHTML = '';
         this.mostraLoading(section);
 
         try {
-            const cliente = await this.caricaClienteReale();
+            const classifica = await this.caricaClassifica();
             
-            if (!cliente) {
+            if (!classifica || classifica.length === 0) {
                 this.mostraNessunDato(section);
                 return;
             }
 
-            section.innerHTML = htmlOriginale;
-            this.mostraCliente(cliente);
+            // Pulisci e mostra la classifica
+            section.innerHTML = '';
+            this.mostraClassificaCompleta(classifica, section);
 
         } catch (error) {
             this.mostraErrore(section);
         }
     }
 
-    mostraCliente(cliente) {
-        const visiteMese = parseInt(cliente.visite_mese) || 0;
-        const spesaMese = parseFloat(cliente.spesa_mese) || 0;
+    mostraClassificaCompleta(classifica, section) {
+        const primo = classifica[0];
+        const secondo = classifica[1];
+        const terzo = classifica[2];
 
-        const avatar = document.getElementById('client-of-month-avatar');
-        const name = document.getElementById('client-of-month-name');
-        const since = document.getElementById('client-of-month-since');
-        const visits = document.getElementById('stat-visits');
-        const spent = document.getElementById('stat-spent');
-
-        // AGGIORNA AVATAR - O FOTO O INIZIALI
-        this.aggiornaAvatarCliente(cliente, avatar);
+        // Crea il container per la classifica affiancata
+        const classificaContainer = document.createElement('div');
+        classificaContainer.id = 'classifica-container';
+        classificaContainer.className = 'classifica-container';
         
-        name.textContent = `${cliente.nome} ${cliente.cognome}`;
-        since.textContent = cliente.soprannome ? `"${cliente.soprannome}"` : 'Cliente affezionato';
-        visits.textContent = visiteMese;
-        spent.textContent = `€${Math.round(spesaMese)}`;
+        // Aggiungi titolo
+        const titolo = document.createElement('div');
+        titolo.className = 'client-of-month-card';
+        titolo.innerHTML = `
+            <div class="crown-icon">👑</div>
+            <h3 class="client-of-month-title">CLASSIFICA DEL MESE</h3>
+        `;
+        section.appendChild(titolo);
 
-        // NASCONDI LA SEZIONE RICONOSCIMENTI
+        // Mostra i tre clienti
+        if (primo) {
+            const primoElement = this.creaCardClassifica(primo, 'primo-posto', '🥇');
+            classificaContainer.appendChild(primoElement);
+        }
+        
+        if (secondo) {
+            const secondoElement = this.creaCardClassifica(secondo, 'secondo-posto', '🥈');
+            classificaContainer.appendChild(secondoElement);
+        }
+        
+        if (terzo) {
+            const terzoElement = this.creaCardClassifica(terzo, 'terzo-posto', '🥉');
+            classificaContainer.appendChild(terzoElement);
+        }
+
+        section.appendChild(classificaContainer);
+
+        // Nascondi la sezione riconoscimenti se esiste
         const achievements = document.querySelector('.client-achievements');
         if (achievements) {
             achievements.style.display = 'none';
         }
     }
 
-    aggiornaAvatarCliente(cliente, avatarElement) {
-        // SE C'È LA FOTO: mostra SOLO la foto
+    creaCardClassifica(cliente, classePosizione, emojiPosizione) {
+        const visiteMese = parseInt(cliente.visite_mese) || 0;
+        const spesaMese = parseFloat(cliente.spesa_mese) || 0;
+
+        const card = document.createElement('div');
+        card.className = `classifica-item ${classePosizione}`;
+        
+        card.innerHTML = `
+            <div class="classifica-card">
+                <div class="posizione-indicatore">${emojiPosizione}</div>
+                <div class="client-avatar-small">
+                    ${this.getAvatarHTML(cliente)}
+                </div>
+                <div class="client-info">
+                    <h4>${cliente.nome} ${cliente.cognome}</h4>
+                    <p class="client-soprannome">${cliente.soprannome ? `"${cliente.soprannome}"` : 'Cliente fedele'}</p>
+                </div>
+                <div class="classifica-stats">
+                    <div class="classifica-stat">
+                        <span class="classifica-stat-value">${visiteMese}</span>
+                        <span class="classifica-stat-label">visite</span>
+                    </div>
+                    <div class="classifica-stat">
+                        <span class="classifica-stat-value">€${Math.round(spesaMese)}</span>
+                        <span class="classifica-stat-label">spesa</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        return card;
+    }
+
+    getAvatarHTML(cliente) {
         if (cliente.foto_profilo) {
-            avatarElement.innerHTML = `
-                <img src="${cliente.foto_profilo}" 
-                     alt="${cliente.nome} ${cliente.cognome}" 
-                     class="client-avatar-photo">
-            `;
-            avatarElement.classList.add('has-photo');
-        } 
-        // SE NON C'È LA FOTO: mostra SOLO le iniziali
-        else {
+            return `<img src="${cliente.foto_profilo}" 
+                        alt="${cliente.nome} ${cliente.cognome}" 
+                        class="client-avatar-photo">`;
+        } else {
             const iniziali = (cliente.nome?.[0] || 'C') + (cliente.cognome?.[0] || '');
-            avatarElement.innerHTML = `<div class="client-avatar-initials">${iniziali}</div>`;
-            avatarElement.classList.remove('has-photo');
+            return `<div class="client-avatar-initials-small">${iniziali}</div>`;
         }
     }
 
@@ -99,20 +146,19 @@ class ClienteDelMese {
         section.innerHTML = `
             <div class="client-of-month-card" style="text-align: center; padding: 30px;">
                 <div class="crown-icon">⏳</div>
-                <h3 style="color: #FFD700;">Calcolo in corso...</h3>
+                <h3 style="color: #FFD700;">Calcolo classifica in corso...</h3>
             </div>
         `;
     }
 
     mostraNessunDato(section) {
-    section.innerHTML = `
-        <div class="client-of-month-card" style="text-align: center; padding: 30px;">
-            <div class="crown-icon">📊</div>
-            <h3 style="color: #FFD700;">Nessun trattamento questo mese</h3>
-            <p style="color: #cccccc;">I dati si aggiornano in tempo reale</p>
-        </div>
-    `;
-}
+        section.innerHTML = `
+            <div class="client-of-month-card" style="text-align: center; padding: 30px;">
+                <div class="crown-icon">📊</div>
+                <h3 style="color: #FFD700;">Nessun trattamento questo mese</h3>
+            </div>
+        `;
+    }
 
     mostraErrore(section) {
         section.innerHTML = `
@@ -126,5 +172,5 @@ class ClienteDelMese {
 
 // INIZIALIZZAZIONE
 document.addEventListener('DOMContentLoaded', function() {
-    new ClienteDelMese().mostraClienteDelMese();
+    new ClienteDelMese().mostraClassifica();
 });

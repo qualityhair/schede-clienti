@@ -1469,11 +1469,8 @@ app.get("/api/analisi/clienti-del-mese", ensureAuthenticated, async (req, res) =
         const inizioMeseCorrente = new Date(oggi.getFullYear(), oggi.getMonth(), 1);
         const fineMeseCorrente = new Date(oggi.getFullYear(), oggi.getMonth() + 1, 0);
 
-        // ⚠️ CORREGGI QUESTA RIGA - stai usando la variabile vecchia!
-        console.log('📅 Calcolo cliente del mese CORRENTE:', 
+        console.log('📅 Calcolo CLASSIFICA mese corrente:', 
             inizioMeseCorrente.toDateString(), '-', fineMeseCorrente.toDateString());
-            //    ^^^^^^^^^^^^^^^^^^^^           ^^^^^^^^^^^^^^^^^
-            //    QUESTE sono le variabili NUOVE, non "inizioMeseScorso"
 
         const query = `
             SELECT 
@@ -1501,7 +1498,7 @@ app.get("/api/analisi/clienti-del-mese", ensureAuthenticated, async (req, res) =
                 c.id, c.nome, c.cognome, c.soprannome, c.tags
             ORDER BY 
                 visite_mese DESC, spesa_mese DESC
-            LIMIT 1
+            LIMIT 3  -- 🏆 CAMBIA QUI: da 1 a 3!
         `;
 
         const result = await db.query(query, [
@@ -1515,7 +1512,7 @@ app.get("/api/analisi/clienti-del-mese", ensureAuthenticated, async (req, res) =
             return res.status(404).json({ message: "Nessun trattamento questo mese" });
         }
 
-        res.json(result.rows[0]);
+        res.json(result.rows);  // 🎯 Ora restituisce un ARRAY!
 
     } catch (error) {
         console.error('❌ Errore API clienti del mese:', error.message);
