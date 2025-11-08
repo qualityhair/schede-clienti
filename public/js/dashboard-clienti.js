@@ -68,8 +68,8 @@ class ClienteDelMese {
         const titolo = document.createElement('div');
         titolo.className = 'client-of-month-card';
         titolo.innerHTML = `
-            <div class="crown-icon">👑</div>
-            <h3 class="client-of-month-title">CLASSIFICA DEL MESE</h3>
+         
+            <h4 class="client-of-month-title">👑 Classifica Del Mese</h4>
         `;
         section.appendChild(titolo);
 
