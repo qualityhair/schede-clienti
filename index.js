@@ -1480,25 +1480,47 @@ app.get("/api/analisi/clienti-del-mese", ensureAuthenticated, async (req, res) =
                 c.soprannome,
                 c.tags,
                 COUNT(DISTINCT t.id) as visite_mese,
-                COALESCE(SUM(
-                    (SELECT SUM((s->>'prezzo')::NUMERIC) 
-                     FROM jsonb_array_elements(t.servizi) AS s)
-                ), 0) as spesa_mese,
+                
+                -- SPESA TOTALE = SERVIZI + ACQUISTI
+                (
+                    -- Spesa servizi dai trattamenti
+                    COALESCE(SUM(
+                        (SELECT SUM((s->>'prezzo')::NUMERIC) 
+                         FROM jsonb_array_elements(t.servizi) AS s)
+                    ), 0)
+                    +
+                    -- Spesa acquisti dallo storico
+                    COALESCE((
+                        SELECT SUM(
+                            (acquisto->>'prezzo_unitario')::NUMERIC * 
+                            COALESCE((acquisto->>'quantita')::INTEGER, 1)
+                        )
+                        FROM jsonb_array_elements(
+                            CASE 
+                                WHEN c.storico_acquisti IS NOT NULL AND c.storico_acquisti != 'null' 
+                                THEN c.storico_acquisti::jsonb 
+                                ELSE '[]'::jsonb 
+                            END
+                        ) AS acquisto
+                        WHERE (acquisto->>'data')::date >= $1 
+                            AND (acquisto->>'data')::date <= $2
+                            AND (acquisto->>'pagato')::boolean = true
+                    ), 0)
+                ) as spesa_mese,
+
                 (SELECT file_path FROM client_photos 
                  WHERE cliente_id = c.id AND 'profilo' = ANY(tags) 
                  LIMIT 1) as foto_profilo
-            FROM 
-                clienti c
-            JOIN 
-                trattamenti t ON c.id = t.cliente_id 
-            WHERE 
-                t.data_trattamento >= $1 
+                
+            FROM clienti c
+            JOIN trattamenti t ON c.id = t.cliente_id 
+            WHERE t.data_trattamento >= $1 
                 AND t.data_trattamento <= $2
-            GROUP BY 
-                c.id, c.nome, c.cognome, c.soprannome, c.tags
+            GROUP BY c.id
             ORDER BY 
-                visite_mese DESC, spesa_mese DESC
-            LIMIT 3  -- 🏆 CAMBIA QUI: da 1 a 3!
+                visite_mese DESC, 
+                spesa_mese DESC
+            LIMIT 3;
         `;
 
         const result = await db.query(query, [
@@ -1508,11 +1530,18 @@ app.get("/api/analisi/clienti-del-mese", ensureAuthenticated, async (req, res) =
 
         console.log(`✅ Clienti trovati: ${result.rows.length}`);
 
+        // Log di debug per vedere la spesa totale
+        result.rows.forEach(cliente => {
+            console.log(`💰 ${cliente.nome} ${cliente.cognome}: 
+                ${cliente.visite_mese} visite, 
+                Spesa TOTALE: €${Math.round(cliente.spesa_mese)}`);
+        });
+
         if (result.rows.length === 0) {
-            return res.status(404).json({ message: "Nessun trattamento questo mese" });
+            return res.status(404).json({ message: "Nessun trattamento o acquisto questo mese" });
         }
 
-        res.json(result.rows);  // 🎯 Ora restituisce un ARRAY!
+        res.json(result.rows);
 
     } catch (error) {
         console.error('❌ Errore API clienti del mese:', error.message);
